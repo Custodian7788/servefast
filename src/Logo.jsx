@@ -27,14 +27,14 @@ export function LogoMark({ size = 26 }) {
   );
 }
 
-// The mark sits tight after the name, riding just above the baseline.
+// The mark hugs the final t, just clear of the baseline.
 export default function Logo() {
   return (
-    <span className="inline-flex items-end gap-1 text-2xl font-semibold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
+    <span className="inline-flex items-end text-2xl font-semibold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
       <span>
         serve<span style={{ color: ORANGE }}>fast</span>
       </span>
-      <LogoMark size={17} />
+      <LogoMark size={15} />
     </span>
   );
 }
