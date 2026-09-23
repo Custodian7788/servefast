@@ -1,16 +1,15 @@
 import React from "react";
 
-const TEAL = "#0C9499";
-const CREAM = "#FFE9C4";
+export const BG = "#FFFCF8"; // warm white
+export const INK = "#1C1917";
+export const ORANGE = "#F26A1B";
 
-// Mark: a teal tile with a speed chevron cut out of it, trailed by two motion bars.
-export function LogoMark({ size = 28 }) {
+// Funnel tile: everything in, one clear thing out.
+export function LogoMark({ size = 26 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill={TEAL} />
-      <path d="M13.5 8 L23 16 L13.5 24 Z" fill={CREAM} />
-      <rect x="6" y="12" width="5" height="2.5" rx="1.25" fill={CREAM} opacity="0.85" />
-      <rect x="8" y="17.5" width="3" height="2.5" rx="1.25" fill={CREAM} opacity="0.55" />
+    <svg width={size} height={size} viewBox="0 0 52 52" fill="none" aria-hidden="true">
+      <rect width="52" height="52" rx="14" fill={ORANGE} />
+      <path d="M13 16 H39 L30 27 V38 L22 33 V27 Z" fill={BG} />
     </svg>
   );
 }
@@ -19,8 +18,8 @@ export default function Logo() {
   return (
     <div className="flex items-center gap-2 leading-none">
       <LogoMark />
-      <span className="text-xl font-extrabold" style={{ color: TEAL, letterSpacing: "0.02em" }}>
-        SERVEFAST<span className="text-neutral-400">.</span>
+      <span className="text-xl font-extrabold tracking-tight" style={{ color: INK }}>
+        serve<span style={{ color: ORANGE }}>fast</span>
       </span>
     </div>
   );
