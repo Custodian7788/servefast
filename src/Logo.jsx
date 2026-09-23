@@ -27,13 +27,23 @@ export function LogoMark({ size = 26 }) {
   );
 }
 
+// The mark tucks under the f, which rides a little higher than the rest.
 export default function Logo() {
   return (
-    <div className="flex items-center gap-2 leading-none">
-      <span className="text-2xl font-semibold" style={{ color: INK, letterSpacing: "-0.005em" }}>
-        serve<span style={{ color: ORANGE }}>fast</span>
+    <span
+      className="inline-block text-2xl font-semibold leading-none"
+      style={{ color: INK, letterSpacing: "-0.005em" }}
+    >
+      serve
+      <span className="relative inline-block" style={{ color: ORANGE }}>
+        <span className="inline-block" style={{ transform: "translateY(-5px)" }}>
+          f
+        </span>
+        <span className="absolute left-1/2 -translate-x-1/2" style={{ top: "0.62em" }}>
+          <LogoMark size={13} />
+        </span>
       </span>
-      <LogoMark />
-    </div>
+      <span style={{ color: ORANGE }}>ast</span>
+    </span>
   );
 }
