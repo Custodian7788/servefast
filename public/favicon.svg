@@ -1,4 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-  <rect width="52" height="52" rx="12" fill="#FFFCF8"/>
-  <text x="26" y="37" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="32" font-weight="600" fill="#332E2A">S</text>
+  <mask id="cut">
+    <rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
+    <ellipse cx="38" cy="16" rx="12" ry="10" fill="#000"/>
+  </mask>
+  <rect x="6" y="16" width="32" height="32" rx="9" fill="none" stroke="#332E2A" stroke-width="4" mask="url(#cut)"/>
+  <ellipse cx="38" cy="16" rx="9" ry="7" fill="#E4762F"/>
 </svg>
