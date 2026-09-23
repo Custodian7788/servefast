@@ -30,10 +30,10 @@ export function LogoMark({ size = 26 }) {
 export default function Logo() {
   return (
     <div className="flex items-center gap-2 leading-none">
-      <LogoMark />
       <span className="text-2xl font-semibold" style={{ color: INK, letterSpacing: "-0.005em" }}>
         serve<span style={{ color: ORANGE }}>fast</span>
       </span>
+      <LogoMark />
     </div>
   );
 }
