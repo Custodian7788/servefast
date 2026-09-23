@@ -7,7 +7,7 @@ export const ORANGE = "#E4762F";
 export default function Logo() {
   return (
     <span className="text-2xl font-semibold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
-      serve<span style={{ color: ORANGE }}>fast</span>
+      Serve<span style={{ color: ORANGE }}>fast</span>
     </span>
   );
 }
