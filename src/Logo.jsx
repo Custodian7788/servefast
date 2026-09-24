@@ -34,7 +34,7 @@ export default function Logo() {
       <span>
         serve<span style={{ color: ORANGE }}>fast</span>
       </span>
-      <LogoMark size={15} />
+      <LogoMark size={19} />
     </span>
   );
 }
