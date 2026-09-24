@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
   <mask id="cut">
     <rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
-    <ellipse cx="38" cy="16" rx="12" ry="10" fill="#000"/>
+    <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/>
   </mask>
-  <rect x="6" y="16" width="32" height="32" fill="none" stroke="#332E2A" stroke-width="8.5" mask="url(#cut)"/>
-  <ellipse cx="38" cy="16" rx="9" ry="7" fill="#E4762F"/>
+  <rect x="9.25" y="19.25" width="25.5" height="25.5" fill="none" stroke="#332E2A" stroke-width="13" mask="url(#cut)"/>
+  <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill="#E4762F"/>
 </svg>

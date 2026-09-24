@@ -4,24 +4,25 @@ export const BG = "#FFFCF8"; // warm white
 export const INK = "#332E2A"; // warm charcoal
 export const ORANGE = "#E4762F";
 
-// A square with sharp corners, the sun squeezing out of its top-right corner.
+// Square with sharp corners, the sun squeezing out of the top-right.
+// The frame thickens inward, so the outer size stays put.
 export function LogoMark({ size = 26 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 52 52" fill="none" aria-hidden="true">
       <mask id="sf-mark-cut">
         <rect x="-10" y="-10" width="72" height="72" fill="#fff" />
-        <ellipse cx="38" cy="16" rx="12" ry="10" fill="#000" />
+        <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000" />
       </mask>
       <rect
-        x="6"
-        y="16"
-        width="32"
-        height="32"
+        x="9.25"
+        y="19.25"
+        width="25.5"
+        height="25.5"
         stroke={INK}
-        strokeWidth="8.5"
+        strokeWidth="13"
         mask="url(#sf-mark-cut)"
       />
-      <ellipse cx="38" cy="16" rx="9" ry="7" fill={ORANGE} />
+      <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill={ORANGE} />
     </svg>
   );
 }
