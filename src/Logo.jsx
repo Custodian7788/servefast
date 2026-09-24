@@ -18,7 +18,7 @@ export function LogoMark({ size = 26 }) {
         width="32"
         height="32"
         stroke={INK}
-        strokeWidth="6.5"
+        strokeWidth="8.5"
         mask="url(#sf-mark-cut)"
       />
       <ellipse cx="38" cy="16" rx="9" ry="7" fill={ORANGE} />
