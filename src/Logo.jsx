@@ -4,7 +4,7 @@ export const BG = "#FFFCF8"; // warm white
 export const INK = "#332E2A"; // warm charcoal
 export const ORANGE = "#E4762F";
 
-// A small box with the sun squeezing out of its top-right corner.
+// A square with sharp corners, the sun squeezing out of its top-right corner.
 export function LogoMark({ size = 26 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 52 52" fill="none" aria-hidden="true">
@@ -17,9 +17,8 @@ export function LogoMark({ size = 26 }) {
         y="16"
         width="32"
         height="32"
-        rx="9"
         stroke={INK}
-        strokeWidth="4"
+        strokeWidth="5"
         mask="url(#sf-mark-cut)"
       />
       <ellipse cx="38" cy="16" rx="9" ry="7" fill={ORANGE} />
