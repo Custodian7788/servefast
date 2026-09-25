@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { ChevronDown, Circle, Square, Triangle } from "lucide-react";
-import Logo, { BG, INK, ORANGE } from "./Logo.jsx";
+import Logo, { INK, ORANGE } from "./Logo.jsx";
 
-const SIDEBAR = "#FDF3E8"; // warm tint
-const TOPBAR = "#FFF6EA";
-const LINE = "#F0E4D6";
+const SIDEBAR = "#FFE9C4";
+const TOPBAR = "#FFE9C4";
+const LINE = "#F2DCB4";
+const MAIN = "#FBF5E9";
 
 // Placeholder sections until the real ones are decided.
 const NAV = [
@@ -60,7 +61,7 @@ export default function App() {
   const current = NAV.find((n) => n.id === active);
 
   return (
-    <div className="h-screen w-full flex flex-col" style={{ backgroundColor: BG }}>
+    <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN }}>
       <TopBar />
       <div className="flex flex-1 min-h-0">
         <Sidebar active={active} setActive={setActive} />
