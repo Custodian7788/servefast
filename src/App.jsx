@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  Bell,
-  ChevronDown,
-  Circle,
-  MessageSquare,
-  Square,
-  Triangle,
-} from "lucide-react";
+import { ChevronDown, Circle, Square, Triangle } from "lucide-react";
 import Logo, { BG, INK, ORANGE } from "./Logo.jsx";
 
 const SIDEBAR = "#FDF3E8"; // warm tint
@@ -30,26 +23,10 @@ function TopBar() {
     >
       <Logo />
 
-      <div className="flex items-center gap-3 text-[11px]" style={{ color: INK }}>
-        <button className="flex items-center gap-1 font-bold uppercase tracking-wide hover:opacity-70">
-          Servefast
-          <ChevronDown size={11} />
-        </button>
-        <button className="hover:opacity-70" aria-label="Messages">
-          <MessageSquare size={13} />
-        </button>
-        <button className="hover:opacity-70" aria-label="Notifications">
-          <Bell size={13} />
-        </button>
-        <button className="flex items-center gap-1 hover:opacity-70">
-          alex@servefast.com
-          <ChevronDown size={11} />
-        </button>
-        <button className="flex items-center gap-1 hover:opacity-70">
-          View as
-          <ChevronDown size={11} />
-        </button>
-      </div>
+      <button className="flex items-center gap-1 text-[11px] hover:opacity-70" style={{ color: INK }}>
+        alex@servefast.com
+        <ChevronDown size={11} />
+      </button>
     </header>
   );
 }
