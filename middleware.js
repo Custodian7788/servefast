@@ -24,34 +24,37 @@ function gate(wrong) {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <title>Servefast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
 <style>
   html,body{height:100%}
   body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
-       background:#FBF5E9;font:700 26px ui-sans-serif,system-ui,sans-serif;color:#4B4B4B;
+       background:#FBF5E9;font:700 26px "Space Grotesk",ui-sans-serif,system-ui,sans-serif;color:#4B4B4B;
        letter-spacing:-.005em}
   .marks{display:flex;flex-direction:column;gap:14px}
   .row{display:flex;align-items:baseline;gap:4px}
   .o{color:#E4762F}
   .g{color:#7FB539}
-  input{width:220px;padding:7px 10px;font:400 13px ui-sans-serif,system-ui,sans-serif;background:#fff;
+  input{width:220px;padding:7px 10px;font:400 13px "Space Grotesk",ui-sans-serif,system-ui,sans-serif;background:#fff;
         border:2px solid ${wrong ? "#C0392B" : "#4B4B4B"};border-radius:4px;outline:none;color:#4B4B4B}
 </style></head>
 <body>
   <div class="marks">
     <div class="row"><span>serve<span class="o">fast</span></span>
-      <svg width="15" height="15" viewBox="10.75 12.25 38.5 39" fill="none">
+      <svg width="17" height="17" viewBox="10.75 12.25 38.5 39" fill="none">
         <mask id="m1"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
-          <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
+          <circle cx="34.75" cy="19.25" r="11" fill="#000"/></mask>
         <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#4B4B4B" stroke-width="13" mask="url(#m1)"/>
-        <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill="#E4762F"/>
+        <circle cx="34.75" cy="19.25" r="8" fill="#E4762F"/>
       </svg>
     </div>
     <div class="row"><span>was<span class="g">orbi</span></span>
-      <svg width="15" height="15" viewBox="10.75 12.25 38.5 39" fill="none">
+      <svg width="17" height="17" viewBox="10.75 12.25 38.5 39" fill="none">
         <mask id="m2"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
-          <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
+          <circle cx="34.75" cy="19.25" r="11" fill="#000"/></mask>
         <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#4B4B4B" stroke-width="13" mask="url(#m2)"/>
-        <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill="#7FB539"/>
+        <circle cx="34.75" cy="19.25" r="8" fill="#7FB539"/>
       </svg>
     </div>
   </div>

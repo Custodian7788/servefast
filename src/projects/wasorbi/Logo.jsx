@@ -9,7 +9,7 @@ export function WasorbiMark({ size = 26 }) {
     <svg width={size} height={size} viewBox="10.75 12.25 38.5 39" fill="none" aria-hidden="true">
       <mask id="wa-mark-cut">
         <rect x="-10" y="-10" width="72" height="72" fill="#fff" />
-        <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000" />
+        <circle cx="34.75" cy="19.25" r="11" fill="#000" />
       </mask>
       <rect
         x="9.25"
@@ -20,7 +20,7 @@ export function WasorbiMark({ size = 26 }) {
         strokeWidth="13"
         mask="url(#wa-mark-cut)"
       />
-      <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill={WASABI} />
+      <circle cx="34.75" cy="19.25" r="8" fill={WASABI} />
     </svg>
   );
 }
@@ -31,7 +31,7 @@ export default function WasorbiLogo() {
       <span>
         was<span style={{ color: WASABI }}>orbi</span>
       </span>
-      <WasorbiMark size={15} />
+      <WasorbiMark size={17} />
     </span>
   );
 }

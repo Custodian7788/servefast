@@ -3,3 +3,7 @@
 button {
   cursor: pointer;
 }
+
+:root {
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
