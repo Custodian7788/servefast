@@ -27,14 +27,14 @@ function gate(wrong) {
 <style>
   html,body{height:100%}
   body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
-       background:#FBF5E9;font:700 26px ui-sans-serif,system-ui,sans-serif;color:#332E2A;
+       background:#FBF5E9;font:700 26px ui-sans-serif,system-ui,sans-serif;color:#4A443E;
        letter-spacing:-.005em}
   .marks{display:flex;flex-direction:column;gap:14px}
   .row{display:flex;align-items:baseline;gap:4px}
   .o{color:#E4762F}
   .g{color:#7FB539}
   input{width:220px;padding:7px 10px;font:400 13px ui-sans-serif,system-ui,sans-serif;background:#fff;
-        border:2px solid ${wrong ? "#C0392B" : "#332E2A"};border-radius:4px;outline:none;color:#332E2A}
+        border:2px solid ${wrong ? "#C0392B" : "#4A443E"};border-radius:4px;outline:none;color:#4A443E}
 </style></head>
 <body>
   <div class="marks">
@@ -42,7 +42,7 @@ function gate(wrong) {
       <svg width="15" height="15" viewBox="10.75 12.25 38.5 39" fill="none">
         <mask id="m1"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
           <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
-        <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#332E2A" stroke-width="13" mask="url(#m1)"/>
+        <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#4A443E" stroke-width="13" mask="url(#m1)"/>
         <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill="#E4762F"/>
       </svg>
     </div>
@@ -50,7 +50,7 @@ function gate(wrong) {
       <svg width="15" height="15" viewBox="10.75 12.25 38.5 39" fill="none">
         <mask id="m2"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
           <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
-        <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#332E2A" stroke-width="13" mask="url(#m2)"/>
+        <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#4A443E" stroke-width="13" mask="url(#m2)"/>
         <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill="#7FB539"/>
       </svg>
     </div>
