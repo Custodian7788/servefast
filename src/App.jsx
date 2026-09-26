@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import Logo from "./Logo.jsx";
 import Workbench from "./Workbench.jsx";
@@ -49,26 +49,12 @@ function Sidebar() {
 }
 
 function Shell({ children }) {
-  const { pathname } = useLocation();
-  const current = PROJECTS.find((p) => pathname.startsWith(`/${p.slug}`));
-
   return (
     <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN_BG }}>
       <TopBar />
       <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 min-w-0 overflow-auto">
-          <div className="px-3 pt-2 text-[11px]" style={{ color: INK }}>
-            <span className="underline">Home</span>
-            {current && (
-              <>
-                <span className="opacity-50"> – </span>
-                <span className="italic">{current.name}</span>
-              </>
-            )}
-          </div>
-          {children}
-        </main>
+        <main className="flex-1 min-w-0 overflow-auto">{children}</main>
       </div>
     </div>
   );
