@@ -5,7 +5,7 @@ export const config = {
 const COOKIE = "sf_open";
 
 function password() {
-  return process.env.SITE_PASSWORD || "wasabi";
+  return process.env.SITE_PASSWORD || "Wasabi";
 }
 
 // A short token so the cookie never carries the password itself.
