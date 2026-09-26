@@ -38,7 +38,7 @@ function gate(wrong) {
 </style></head>
 <body>
   <div class="marks">
-    <div class="row">serve<span class="o">fast</span>
+    <div class="row"><span>serve<span class="o">fast</span></span>
       <svg width="15" height="15" viewBox="10.75 12.25 38.5 39" fill="none">
         <mask id="m1"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
           <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
@@ -46,7 +46,7 @@ function gate(wrong) {
         <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill="#E4762F"/>
       </svg>
     </div>
-    <div class="row">was<span class="g">orbi</span>
+    <div class="row"><span>was<span class="g">orbi</span></span>
       <svg width="15" height="15" viewBox="10.75 12.25 38.5 39" fill="none">
         <mask id="m2"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
           <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
