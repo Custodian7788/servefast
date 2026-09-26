@@ -1,29 +1,26 @@
-import React, { useState } from "react";
-import { ChevronDown, Circle, Square, Triangle } from "lucide-react";
-import Logo, { INK, ORANGE } from "./Logo.jsx";
+import React from "react";
+import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
+import Logo from "./Logo.jsx";
+import Workbench from "./Workbench.jsx";
+import { INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "./theme.js";
+import ServefastDesktop from "./projects/servefast/Desktop.jsx";
+import ServefastMobile from "./projects/servefast/Mobile.jsx";
+import WasorbiDesktop from "./projects/wasorbi/Desktop.jsx";
+import WasorbiMobile from "./projects/wasorbi/Mobile.jsx";
 
-const SIDEBAR = "#FFE9C4";
-const TOPBAR = "#FFE9C4";
-const LINE = "#F2DCB4";
-const MAIN = "#FBF5E9";
-
-// Placeholder sections until the real ones are decided.
-const NAV = [
-  { id: "a", name: "Navi A", icon: Square },
-  { id: "b", name: "Navi B", icon: Circle },
-  { id: "c", name: "Navi C", icon: Triangle },
-  { id: "d", name: "Navi D", icon: Square },
-  { id: "e", name: "Navi E", icon: Circle },
+const PROJECTS = [
+  { slug: "servefast", name: "Servefast" },
+  { slug: "wasorbi", name: "Wasorbi" },
 ];
 
 function TopBar() {
   return (
     <header
-      className="h-8 shrink-0 flex items-center justify-between pl-3 pr-3 border-b"
-      style={{ backgroundColor: TOPBAR, borderColor: LINE }}
+      className="h-8 shrink-0 flex items-center justify-between px-3 border-b"
+      style={{ backgroundColor: NAV_BG, borderColor: LINE }}
     >
       <Logo />
-
       <button className="flex items-center gap-1 text-[11px] hover:opacity-70" style={{ color: INK }}>
         alex@servefast.com
         <ChevronDown size={11} />
@@ -32,49 +29,77 @@ function TopBar() {
   );
 }
 
-function Sidebar({ active, setActive }) {
+function Sidebar() {
   return (
-    <aside
-      className="w-48 shrink-0 border-r"
-      style={{ backgroundColor: SIDEBAR, borderColor: LINE }}
-    >
+    <aside className="w-44 shrink-0 border-r" style={{ backgroundColor: NAV_BG, borderColor: LINE }}>
       <nav className="py-1">
-        {NAV.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActive(item.id)}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-colors"
-            style={{ color: active === item.id ? ORANGE : INK }}
+        {PROJECTS.map((p) => (
+          <NavLink
+            key={p.slug}
+            to={`/${p.slug}`}
+            className="w-full flex items-center px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide"
+            style={({ isActive }) => ({ color: isActive ? ORANGE : INK })}
           >
-            <item.icon size={12} className="shrink-0" />
-            <span className="flex-1 text-left">{item.name}</span>
-            <ChevronDown size={11} className="opacity-50" />
-          </button>
+            {p.name}
+          </NavLink>
         ))}
       </nav>
     </aside>
   );
 }
 
-export default function App() {
-  const [active, setActive] = useState("a");
-  const current = NAV.find((n) => n.id === active);
+function Shell({ children }) {
+  const { pathname } = useLocation();
+  const current = PROJECTS.find((p) => pathname.startsWith(`/${p.slug}`));
 
   return (
-    <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN }}>
+    <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN_BG }}>
       <TopBar />
       <div className="flex flex-1 min-h-0">
-        <Sidebar active={active} setActive={setActive} />
-        <main className="flex-1 min-w-0 overflow-auto px-4 py-3">
-          <div className="text-[11px]" style={{ color: INK }}>
+        <Sidebar />
+        <main className="flex-1 min-w-0 overflow-auto">
+          <div className="px-3 pt-2 text-[11px]" style={{ color: INK }}>
             <span className="underline">Home</span>
-            <span className="opacity-50"> – </span>
-            <span className="underline">Servefast</span>
-            <span className="opacity-50"> – </span>
-            <span className="italic">{current.name}</span>
+            {current && (
+              <>
+                <span className="opacity-50"> – </span>
+                <span className="italic">{current.name}</span>
+              </>
+            )}
           </div>
+          {children}
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      {/* Raw project screens, loaded inside the workbench frames. */}
+      <Route path="/servefast/desktop" element={<ServefastDesktop />} />
+      <Route path="/servefast/mobile" element={<ServefastMobile />} />
+      <Route path="/wasorbi/desktop" element={<WasorbiDesktop />} />
+      <Route path="/wasorbi/mobile" element={<WasorbiMobile />} />
+
+      <Route
+        path="/servefast"
+        element={
+          <Shell>
+            <Workbench base="/servefast" name="Servefast" />
+          </Shell>
+        }
+      />
+      <Route
+        path="/wasorbi"
+        element={
+          <Shell>
+            <Workbench base="/wasorbi" name="Wasorbi" />
+          </Shell>
+        }
+      />
+      <Route path="*" element={<Navigate to="/servefast" replace />} />
+    </Routes>
   );
 }
