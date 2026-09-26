@@ -30,7 +30,7 @@ function gate(wrong) {
        background:#FBF5E9;font:700 26px ui-sans-serif,system-ui,sans-serif;color:#332E2A;
        letter-spacing:-.005em}
   .marks{display:flex;flex-direction:column;gap:14px}
-  .row{display:flex;align-items:baseline;gap:0}
+  .row{display:flex;align-items:baseline;gap:4px}
   .o{color:#E4762F}
   .g{color:#7FB539}
   input{width:220px;padding:7px 10px;font:400 13px ui-sans-serif,system-ui,sans-serif;background:#fff;
