@@ -47,11 +47,11 @@ function gate(wrong) {
       </svg>
     </div>
     <div class="row">was<span class="g">orbi</span>
-      <svg width="15" height="15" viewBox="2.75 12.25 38.5 39" fill="none">
+      <svg width="15" height="15" viewBox="10.75 12.25 38.5 39" fill="none">
         <mask id="m2"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
-          <ellipse cx="17.25" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
-        <rect x="17.25" y="19.25" width="25.5" height="25.5" stroke="#332E2A" stroke-width="13" mask="url(#m2)"/>
-        <ellipse cx="17.25" cy="19.25" rx="9" ry="7" fill="#7FB539"/>
+          <ellipse cx="34.75" cy="19.25" rx="12" ry="10" fill="#000"/></mask>
+        <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#332E2A" stroke-width="13" mask="url(#m2)"/>
+        <ellipse cx="34.75" cy="19.25" rx="9" ry="7" fill="#7FB539"/>
       </svg>
     </div>
   </div>
