@@ -1,0 +1,38 @@
+import React from "react";
+
+export const WASABI = "#7FB539";
+const INK = "#332E2A";
+
+// A square taking a drop in through its top-left corner: the opposite move to
+// the Servefast mark, which lets light out.
+export function WasorbiMark({ size = 26 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 52 52" fill="none" aria-hidden="true">
+      <mask id="wa-mark-cut">
+        <rect x="-10" y="-10" width="72" height="72" fill="#fff" />
+        <ellipse cx="17.25" cy="19.25" rx="12" ry="10" fill="#000" />
+      </mask>
+      <rect
+        x="17.25"
+        y="19.25"
+        width="25.5"
+        height="25.5"
+        stroke={INK}
+        strokeWidth="13"
+        mask="url(#wa-mark-cut)"
+      />
+      <ellipse cx="17.25" cy="19.25" rx="9" ry="7" fill={WASABI} />
+    </svg>
+  );
+}
+
+export default function WasorbiLogo() {
+  return (
+    <span className="inline-flex items-end text-2xl font-semibold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
+      <span>
+        was<span style={{ color: WASABI }}>orbi</span>
+      </span>
+      <WasorbiMark size={15} />
+    </span>
+  );
+}
