@@ -27,7 +27,7 @@ function gate(wrong) {
 <style>
   html,body{height:100%}
   body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
-       background:#FBF5E9;font:600 26px ui-sans-serif,system-ui,sans-serif;color:#332E2A;
+       background:#FBF5E9;font:700 26px ui-sans-serif,system-ui,sans-serif;color:#332E2A;
        letter-spacing:-.005em}
   .marks{display:flex;flex-direction:column;gap:14px}
   .row{display:flex;align-items:baseline;gap:0}

@@ -29,7 +29,7 @@ export function LogoMark({ size = 26 }) {
 
 export default function Logo() {
   return (
-    <span className="inline-flex items-baseline text-2xl font-semibold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
+    <span className="inline-flex items-baseline text-2xl font-bold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
       <span>
         serve<span style={{ color: ORANGE }}>fast</span>
       </span>
