@@ -1,15 +1,19 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LINE, INK, ORANGE } from "./theme.js";
 
-// Shows a project's two real UIs side by side: the desktop route in a wide
-// frame, the mobile route inside a phone shell. Both are the live app, so
-// whatever proves out here is what ships.
-function FrameLabel({ text, href }) {
+// A project's two real UIs, side by side. The desktop panel is treated as the
+// browser window itself, so building inside it is building the real thing.
+function FrameLabel({ text, href, note }) {
   return (
     <div className="flex items-baseline gap-2 mb-1">
       <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: INK }}>
         {text}
       </span>
+      {note && (
+        <span className="text-[10px] tabular-nums opacity-60" style={{ color: INK }}>
+          {note}
+        </span>
+      )}
       <a
         href={href}
         target="_blank"
@@ -24,24 +28,39 @@ function FrameLabel({ text, href }) {
 }
 
 export default function Workbench({ base, name }) {
+  const deskRef = useRef(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const el = deskRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="flex gap-4 items-start p-3">
-      <section className="flex-1 min-w-0">
-        <FrameLabel text="Desktop" href={`${base}/desktop`} />
-        <div className="rounded border overflow-hidden" style={{ borderColor: LINE }}>
+    <div className="h-full flex gap-4 items-stretch p-3">
+      <section className="flex-1 min-w-0 flex flex-col">
+        <FrameLabel text="Desktop" href={`${base}/desktop`} note={width ? `${width}px` : null} />
+        <div
+          ref={deskRef}
+          className="flex-1 min-h-0 rounded border overflow-hidden"
+          style={{ borderColor: LINE }}
+        >
           <iframe
             title={`${name} desktop`}
             src={`${base}/desktop`}
-            className="w-full block"
-            style={{ height: 620, border: 0 }}
+            className="w-full h-full block"
+            style={{ border: 0 }}
           />
         </div>
       </section>
 
-      <section className="shrink-0">
-        <FrameLabel text="Mobile" href={`${base}/mobile`} />
+      <section className="shrink-0 flex flex-col">
+        <FrameLabel text="Mobile" href={`${base}/mobile`} note="390px" />
         <div
-          className="rounded-[34px] p-[9px]"
+          className="rounded-[34px] p-[9px] shrink-0"
           style={{ backgroundColor: INK, width: 408, height: 798 }}
         >
           <div className="relative rounded-[26px] overflow-hidden bg-white" style={{ width: 390, height: 780 }}>
