@@ -1,7 +1,7 @@
 import React from "react";
 
 export const BG = "#FFFCF8"; // warm white
-export const INK = "#4A443E"; // warm charcoal
+export const INK = "#4B4B4B"; // warm charcoal
 export const ORANGE = "#E4762F";
 
 // The viewBox is trimmed to the artwork, so the mark sits where it is placed

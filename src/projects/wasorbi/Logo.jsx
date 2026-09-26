@@ -1,7 +1,7 @@
 import React from "react";
 
 export const WASABI = "#7FB539";
-const INK = "#4A443E";
+const INK = "#4B4B4B";
 
 // Same square and same escape as the Servefast mark, in wasabi green.
 export function WasorbiMark({ size = 26 }) {
