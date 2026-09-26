@@ -1,15 +1,33 @@
 import React from "react";
-import { LINE, INK } from "./theme.js";
+import { LINE, INK, ORANGE } from "./theme.js";
 
 // Shows a project's two real UIs side by side: the desktop route in a wide
-// frame, the mobile route inside a phone shell. Both are live, not mockups.
+// frame, the mobile route inside a phone shell. Both are the live app, so
+// whatever proves out here is what ships.
+function FrameLabel({ text, href }) {
+  return (
+    <div className="flex items-baseline gap-2 mb-1">
+      <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: INK }}>
+        {text}
+      </span>
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="text-[10px] underline"
+        style={{ color: ORANGE }}
+      >
+        open
+      </a>
+    </div>
+  );
+}
+
 export default function Workbench({ base, name }) {
   return (
     <div className="flex gap-4 items-start p-3">
       <section className="flex-1 min-w-0">
-        <div className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: INK }}>
-          Desktop
-        </div>
+        <FrameLabel text="Desktop" href={`${base}/desktop`} />
         <div className="rounded border overflow-hidden" style={{ borderColor: LINE }}>
           <iframe
             title={`${name} desktop`}
@@ -21,12 +39,10 @@ export default function Workbench({ base, name }) {
       </section>
 
       <section className="shrink-0">
-        <div className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: INK }}>
-          Mobile
-        </div>
+        <FrameLabel text="Mobile" href={`${base}/mobile`} />
         <div
           className="rounded-[34px] p-[9px]"
-          style={{ backgroundColor: INK, width: 390 + 18, height: 780 + 18 }}
+          style={{ backgroundColor: INK, width: 408, height: 798 }}
         >
           <div className="relative rounded-[26px] overflow-hidden bg-white" style={{ width: 390, height: 780 }}>
             <iframe
