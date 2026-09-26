@@ -7,7 +7,7 @@ const INK = "#332E2A";
 // the Servefast mark, which lets light out.
 export function WasorbiMark({ size = 26 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 52 52" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="2.75 12.25 38.5 39" fill="none" aria-hidden="true">
       <mask id="wa-mark-cut">
         <rect x="-10" y="-10" width="72" height="72" fill="#fff" />
         <ellipse cx="17.25" cy="19.25" rx="12" ry="10" fill="#000" />
@@ -28,7 +28,7 @@ export function WasorbiMark({ size = 26 }) {
 
 export default function WasorbiLogo() {
   return (
-    <span className="inline-flex items-end text-2xl font-semibold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
+    <span className="inline-flex items-baseline text-2xl font-semibold leading-none" style={{ color: INK, letterSpacing: "-0.005em" }}>
       <span>
         was<span style={{ color: WASABI }}>orbi</span>
       </span>
