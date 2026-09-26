@@ -100,12 +100,12 @@ export default function Workbench({ base, name }) {
   }, []);
 
   return (
-    <div className="h-full flex gap-4 items-stretch p-3">
+    <div className="flex gap-4 items-start p-3">
       <section className="flex-1 min-w-0 flex flex-col">
         <FrameLabel text="Desktop" href={`${base}/desktop`} note={width ? `${width}px` : null} />
         <div
-          className="flex-1 min-h-0 flex flex-col rounded overflow-hidden border"
-          style={{ borderColor: CHROME_LINE }}
+          className="flex flex-col rounded-xl overflow-hidden shrink-0"
+          style={{ border: `9px solid ${INK}`, height: 798 }}
         >
           <BrowserChrome
             name={name}
