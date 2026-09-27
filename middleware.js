@@ -30,10 +30,9 @@ function gate(wrong) {
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
 <style>
   html,body{height:100%}
-  body{margin:0;display:flex;flex-direction:column;background:#FBF5E9;
+  body{margin:0;display:flex;flex-direction:column;background:#FFE9C4;
        font:400 13px "Space Grotesk",ui-sans-serif,system-ui,sans-serif;color:#4B4B4B}
-  header{height:32px;display:flex;align-items:center;padding:0 12px;
-         background:#FFE9C4;border-bottom:1px solid #F2DCB4}
+  header{height:32px;display:flex;align-items:center;padding:0 12px}
   .logo{display:inline-flex;align-items:baseline;gap:4px;font-weight:700;font-size:24px;
         line-height:1;letter-spacing:-.005em}
   .o{color:#E4762F}
