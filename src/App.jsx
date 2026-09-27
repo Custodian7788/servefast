@@ -6,12 +6,9 @@ import Workbench from "./Workbench.jsx";
 import { INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "./theme.js";
 import ServefastDesktop from "./projects/servefast/Desktop.jsx";
 import ServefastMobile from "./projects/servefast/Mobile.jsx";
-import WasorbiDesktop from "./projects/wasorbi/Desktop.jsx";
-import WasorbiMobile from "./projects/wasorbi/Mobile.jsx";
 
 const PROJECTS = [
   { slug: "servefast", name: "Servefast" },
-  { slug: "wasorbi", name: "Wasorbi" },
 ];
 
 function TopBar() {
@@ -66,22 +63,12 @@ export default function App() {
       {/* Raw project screens, loaded inside the workbench frames. */}
       <Route path="/servefast/desktop" element={<ServefastDesktop />} />
       <Route path="/servefast/mobile" element={<ServefastMobile />} />
-      <Route path="/wasorbi/desktop" element={<WasorbiDesktop />} />
-      <Route path="/wasorbi/mobile" element={<WasorbiMobile />} />
 
       <Route
         path="/servefast"
         element={
           <Shell>
             <Workbench base="/servefast" name="Servefast" />
-          </Shell>
-        }
-      />
-      <Route
-        path="/wasorbi"
-        element={
-          <Shell>
-            <Workbench base="/wasorbi" name="Wasorbi" />
           </Shell>
         }
       />
