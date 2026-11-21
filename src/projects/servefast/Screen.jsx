@@ -33,6 +33,7 @@ export default function Screen() {
   const [ready, setReady] = useState(false);
   const [justMade, setJustMade] = useState(null);
   const [naming, setNaming] = useState(null);
+  const [confirming, setConfirming] = useState(null);
   const [building, setBuilding] = useState(null);
   const [fn, setFn] = useState(null);
   const [focused, setFocused] = useState(false);
@@ -167,16 +168,41 @@ export default function Screen() {
                   className="flex-1 min-w-0 text-[9.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
                   style={{ color: ORANGE }}
                 />
-                <button
-                  onClick={() => removePanel(p.id)}
-                  className="shrink-0 opacity-25 hover:opacity-70"
-                  aria-label="Remove block"
-                >
-                  <X size={11} />
-                </button>
+                {confirming === p.id ? (
+                  <span className="shrink-0 flex items-center gap-1.5 text-[9px] font-bold tracking-[0.06em]">
+                    <span style={{ color: INK }}>DELETE?</span>
+                    <button
+                      onClick={() => {
+                        removePanel(p.id);
+                        setConfirming(null);
+                      }}
+                      style={{ color: "#A33427" }}
+                    >
+                      YES
+                    </button>
+                    <button onClick={() => setConfirming(null)} style={{ color: INK }} className="opacity-50">
+                      NO
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setConfirming(p.id)}
+                    className="shrink-0 opacity-25 hover:opacity-70"
+                    aria-label="Remove block"
+                  >
+                    <X size={11} />
+                  </button>
+                )}
               </div>
               <BlockTabs
                 tabs={p.tabs}
+                names={p.tabNames}
+                onRename={(tab, name) =>
+                  updatePanel(p.id, (panel) => ({
+                    ...panel,
+                    tabNames: { ...(panel.tabNames || {}), [tab]: name },
+                  }))
+                }
                 onAdd={(tab, item) =>
                   updatePanel(p.id, (panel) => ({
                     ...panel,

@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, RotateCw, X } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 
-export const TABS = ["EVENTS", "FORCES", "EXPOSURE", "FOCUS"];
+// Four tabs per block. They start unnamed - you name them as the block takes
+// shape. The first one is the one wired to the feeds.
+export const TABS = ["t1", "t2", "t3", "t4"];
 
 // Shrinks an item until it fits its box: nothing inside a block ever scrolls.
 function Fitted({ children }) {
@@ -30,7 +32,7 @@ function Fitted({ children }) {
   );
 }
 
-export default function BlockTabs({ tabs, onAdd, onRemove }) {
+export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename }) {
   const [tab, setTab] = useState(TABS[0]);
   const [index, setIndex] = useState(0);
   const [adding, setAdding] = useState(false);
@@ -38,8 +40,10 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
   const [pulling, setPulling] = useState(false);
   const [error, setError] = useState(null);
 
-  // EVENTS fills itself from the feeds, through the server route that holds
-  // the key. Everything else is typed in.
+  const items = tabs?.[tab] || [];
+  const current = items[Math.min(index, Math.max(items.length - 1, 0))];
+  const feedTab = TABS[0];
+
   async function pull() {
     setPulling(true);
     setError(null);
@@ -48,12 +52,11 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "That did not work");
       const pulled = data.events || [];
-      pulled.forEach((event) => onAdd("EVENTS", event));
+      pulled.forEach((event) => onAdd(feedTab, event));
       if (!pulled.length) {
         setError("Nothing qualified from today's feeds");
       } else {
-        // Land on the first of what just arrived, so the pull is visible.
-        setTab("EVENTS");
+        setTab(feedTab);
         setIndex(items.length);
       }
     } catch (err) {
@@ -62,9 +65,6 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
       setPulling(false);
     }
   }
-
-  const items = tabs?.[tab] || [];
-  const current = items[Math.min(index, Math.max(items.length - 1, 0))];
 
   function submit(e) {
     e.preventDefault();
@@ -78,30 +78,38 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      {/* Tabs */}
+      {/* Tabs, named by you */}
       <div className="shrink-0 flex items-stretch h-6" style={{ borderBottom: `1px solid ${LINE}` }}>
-        {TABS.map((name) => {
-          const on = name === tab;
+        {TABS.map((id) => {
+          const on = id === tab;
           return (
-            <button
-              key={name}
-              onClick={() => {
-                setTab(name);
+            <div
+              key={id}
+              onClick={(e) => {
+                setTab(id);
                 setIndex(0);
                 setAdding(false);
+                setError(null);
+                e.currentTarget.querySelector("input")?.focus();
               }}
-              className="flex-1 min-w-0 text-[8.5px] font-bold tracking-[0.06em] truncate"
-              style={{
-                color: on ? "#FFFFFF" : INK,
-                backgroundColor: on ? ORANGE : "transparent",
-                borderRight: `1px solid ${LINE}`,
-              }}
+              className="flex-1 min-w-0 flex items-center cursor-pointer"
+              style={{ backgroundColor: on ? ORANGE : "transparent", borderRight: `1px solid ${LINE}` }}
             >
-              {name}
-            </button>
+              <input
+                value={names[id] || ""}
+                readOnly={!on}
+                onChange={(e) => onRename(id, e.target.value)}
+                maxLength={12}
+                className={`w-full bg-transparent text-center text-[8.5px] font-bold tracking-[0.06em] uppercase outline-none ${
+                  on ? "cursor-text" : "cursor-pointer"
+                }`}
+                style={{ color: on ? "#FFFFFF" : INK, caretColor: on ? "#FFFFFF" : INK }}
+              />
+            </div>
           );
         })}
-        {tab === "EVENTS" && (
+
+        {tab === feedTab && (
           <button
             onClick={pull}
             disabled={pulling}
@@ -116,7 +124,7 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
           onClick={() => setAdding((a) => !a)}
           className="shrink-0 w-6 flex items-center justify-center"
           style={{ color: ORANGE }}
-          aria-label={`Add to ${tab}`}
+          aria-label="Add an item"
         >
           <Plus size={11} strokeWidth={2} />
         </button>
@@ -134,7 +142,7 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
                 if (e.key === "Enter" && !e.shiftKey) submit(e);
                 if (e.key === "Escape") setAdding(false);
               }}
-              placeholder={tab === "EVENTS" ? "What happened, factually" : "Add to this tab"}
+              placeholder="Add an item"
               className="h-full w-full resize-none text-[12px] leading-[1.45] outline-none placeholder:opacity-35"
               style={{ color: INK }}
             />
@@ -145,9 +153,9 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
           </div>
         ) : current ? (
           <Fitted>
-            {tab === "EVENTS" && (
+            {current.date && (
               <span className="mr-1.5 text-[9px] font-bold tabular-nums align-top" style={{ color: ORANGE }}>
-                {current.date?.slice(5).replace("-", " ")}
+                {current.date.slice(5).replace("-", " ")}
               </span>
             )}
             {current.text}
@@ -166,7 +174,7 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
           </Fitted>
         ) : (
           <div className="h-full flex items-center justify-center text-[10px] opacity-35" style={{ color: INK }}>
-            Nothing in {tab.toLowerCase()} yet
+            Nothing here yet
           </div>
         )}
       </div>
