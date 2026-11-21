@@ -100,17 +100,17 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
       {/* One item at a time */}
       <div className="flex-1 min-h-0 px-3 py-2">
         {pulling ? (
-          <div className="h-full flex items-center justify-center text-[10px] tracking-[0.06em] uppercase" style={{ color: ORANGE }}>
+          <div className="h-full flex items-center justify-center text-[11px] tracking-[0.06em] uppercase" style={{ color: ORANGE }}>
             <span className="animate-pulse">Reading the feeds…</span>
           </div>
         ) : error ? (
-          <div className="h-full flex items-center justify-center text-center text-[10px] px-2" style={{ color: "#A33427" }}>
+          <div className="h-full flex items-center justify-center text-center text-[11px] px-2" style={{ color: "#A33427" }}>
             {error}
           </div>
         ) : current ? (
           <Story item={current} view={layer} onView={setLayer} />
         ) : (
-          <div className="h-full flex items-center justify-center text-[10px] opacity-35" style={{ color: INK }}>
+          <div className="h-full flex items-center justify-center text-[11px] opacity-35" style={{ color: INK }}>
             Nothing here yet
           </div>
         )}
@@ -145,7 +145,7 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
         <span className="flex-1" />
         <button
           onClick={() => setShowSources(true)}
-          className="text-[9px] font-bold tracking-[0.07em] hover:opacity-70"
+          className="text-[10px] font-bold tracking-[0.07em] hover:opacity-70"
           style={{ color: ORANGE }}
         >
           SOURCES
@@ -159,7 +159,7 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
         >
           <RotateCw size={10} strokeWidth={2} className={pulling ? "animate-spin" : ""} />
         </button>
-        <span className="text-[9px] tabular-nums font-bold" style={{ color: items.length ? ORANGE : "transparent" }}>
+        <span className="text-[10px] tabular-nums font-bold" style={{ color: items.length ? ORANGE : "transparent" }}>
           {items.length ? `${index + 1}/${items.length}` : "."}
         </span>
       </div>

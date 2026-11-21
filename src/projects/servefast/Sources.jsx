@@ -42,7 +42,7 @@ export default function Sources({ extra = [], onAdd, onRemove, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
       <div
-        className="shrink-0 flex items-center px-3 h-10 sm:h-7 text-[10px] sm:text-[9.5px] font-bold tracking-[0.07em]"
+        className="shrink-0 flex items-center px-3 h-10 sm:h-7 text-[11px] sm:text-[10.5px] font-bold tracking-[0.07em]"
         style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
       >
         <span className="flex-1">
@@ -56,7 +56,7 @@ export default function Sources({ extra = [], onAdd, onRemove, onClose }) {
 
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 content-start">
         {extra.map((url) => (
-          <div key={url} className="group flex items-baseline gap-2 py-1.5 sm:py-[2px] text-[12px] sm:text-[10px]" style={{ color: INK }}>
+          <div key={url} className="group flex items-baseline gap-2 py-1.5 sm:py-[2px] text-[13px] sm:text-[11px]" style={{ color: INK }}>
             <span className="truncate flex-1" title={url}>
               {url.replace(/^https?:\/\/(www\.)?/, "")}
             </span>
@@ -71,12 +71,12 @@ export default function Sources({ extra = [], onAdd, onRemove, onClose }) {
         ))}
 
         {builtIn === null ? (
-          <div className="text-[10px] opacity-40" style={{ color: INK }}>
+          <div className="text-[11px] opacity-40" style={{ color: INK }}>
             Loading…
           </div>
         ) : (
           builtIn.map((feed) => (
-            <div key={feed.url} className="flex items-baseline gap-2 py-1.5 sm:py-[2px] text-[12px] sm:text-[10px]" style={{ color: INK }}>
+            <div key={feed.url} className="flex items-baseline gap-2 py-1.5 sm:py-[2px] text-[13px] sm:text-[11px]" style={{ color: INK }}>
               <span className="truncate flex-1" title={feed.url}>
                 {feed.source}
               </span>
@@ -90,10 +90,10 @@ export default function Sources({ extra = [], onAdd, onRemove, onClose }) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Add a feed URL"
-          className="flex-1 min-w-0 text-[13px] sm:text-[10px] outline-none bg-transparent placeholder:opacity-35"
+          className="flex-1 min-w-0 text-[13px] sm:text-[11px] outline-none bg-transparent placeholder:opacity-35"
           style={{ color: ORANGE }}
         />
-        <button type="submit" className="text-[11px] sm:text-[9px] font-bold tracking-[0.07em]" style={{ color: ORANGE }}>
+        <button type="submit" className="text-[12px] sm:text-[10px] font-bold tracking-[0.07em]" style={{ color: ORANGE }}>
           ADD
         </button>
       </form>
