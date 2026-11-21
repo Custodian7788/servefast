@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
+import BlockTabs from "./BlockTabs.jsx";
 import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
@@ -174,12 +175,23 @@ export default function Screen() {
                   <X size={11} />
                 </button>
               </div>
-              <textarea
-                value={p.body}
-                onChange={(e) => updatePanel(p.id, (panel) => ({ ...panel, body: e.target.value }))}
-                placeholder="What goes in here"
-                className="flex-1 min-h-0 w-full resize-none px-3 py-2 text-[12px] leading-[1.5] outline-none placeholder:opacity-35"
-                style={{ color: INK }}
+              <BlockTabs
+                tabs={p.tabs}
+                onAdd={(tab, item) =>
+                  updatePanel(p.id, (panel) => ({
+                    ...panel,
+                    tabs: { ...(panel.tabs || {}), [tab]: [...((panel.tabs || {})[tab] || []), item] },
+                  }))
+                }
+                onRemove={(tab, itemId) =>
+                  updatePanel(p.id, (panel) => ({
+                    ...panel,
+                    tabs: {
+                      ...(panel.tabs || {}),
+                      [tab]: ((panel.tabs || {})[tab] || []).filter((item) => item.id !== itemId),
+                    },
+                  }))
+                }
               />
             </Card>
           ))}
@@ -227,7 +239,11 @@ export default function Screen() {
           <div className="shrink-0 p-2.5" style={{ borderBottom: `1px solid ${LINE}` }}>
             <select
               value={building || ""}
-              onChange={(e) => setBuilding(e.target.value)}
+              onChange={(e) => {
+                setBuilding(e.target.value);
+                const picked = module.panels.find((panel) => panel.id === e.target.value);
+                setFn(picked?.kind || "");
+              }}
               className="w-full h-7 px-2 rounded bg-white text-[11px] outline-none cursor-pointer"
               style={{ border: `1px solid ${FRAME}`, color: INK }}
             >
@@ -242,7 +258,12 @@ export default function Screen() {
             {/* What that block does. Placeholder until the functions exist. */}
             <select
               value={fn || ""}
-              onChange={(e) => setFn(e.target.value)}
+              onChange={(e) => {
+                setFn(e.target.value);
+                if (building) {
+                  updatePanel(building, (panel) => ({ ...panel, kind: e.target.value }));
+                }
+              }}
               disabled={!building}
               className="mt-2 w-full h-7 px-2 rounded bg-white text-[11px] outline-none cursor-pointer disabled:opacity-35 disabled:cursor-default"
               style={{ border: `1px solid ${FRAME}`, color: INK }}
