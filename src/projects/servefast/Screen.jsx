@@ -196,7 +196,7 @@ export default function Screen() {
         </Card>
       </div>
 
-      {/* Where the instructions for this module go */}
+      {/* Reserved for building modules. Nothing behind it yet. */}
       <aside
         className="w-72 shrink-0 border-l hidden md:flex flex-col p-3"
         style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
@@ -206,15 +206,25 @@ export default function Screen() {
             className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
             style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
           >
-            AI
+            MODULE BUILDER
           </div>
-          <textarea
-            value={module.instructions || ""}
-            onChange={(e) => updateModule((mod) => ({ ...mod, instructions: e.target.value }))}
-            placeholder="Instructions for this module"
-            className="flex-1 min-h-0 w-full resize-none px-3 py-2 text-[12px] leading-[1.5] outline-none placeholder:opacity-35"
-            style={{ color: INK }}
-          />
+
+          <div className="shrink-0 px-2.5 py-2" style={{ borderBottom: `1px solid ${LINE}` }}>
+            <select
+              value={space.currentId || ""}
+              onChange={(e) => setSpace((s) => ({ ...s, currentId: e.target.value }))}
+              className="w-full h-7 px-2 rounded bg-white text-[11px] outline-none"
+              style={{ border: `1px solid ${FRAME}`, color: INK }}
+            >
+              {space.modules.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.field || "Untitled"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex-1 min-h-0" />
         </Card>
       </aside>
       </div>
