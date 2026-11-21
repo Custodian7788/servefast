@@ -17,6 +17,7 @@ function Card({ children, className = "", style }) {
 export default function Screen() {
   const [space, setSpace] = useState({ modules: [], currentId: null });
   const [ready, setReady] = useState(false);
+  const [justMade, setJustMade] = useState(null);
   const loaded = useRef(false);
 
   useEffect(() => {
