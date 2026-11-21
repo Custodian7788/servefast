@@ -78,21 +78,37 @@ export default function Screen() {
         {space.modules.map((m) => {
           const active = m.id === space.currentId;
           return (
-            <button
+            <div
               key={m.id}
               onClick={() => setSpace((s) => ({ ...s, currentId: m.id }))}
-              className="group shrink-0 flex items-center justify-center gap-1.5 w-32 sm:w-40 h-6 px-2 rounded text-[10px] font-bold tracking-[0.06em]"
+              className="group shrink-0 flex items-center gap-1 w-32 sm:w-40 h-6 px-2 rounded cursor-pointer"
               style={{
                 backgroundColor: active ? ORANGE : "transparent",
-                color: active ? "#FFFFFF" : INK,
                 border: `1px solid ${active ? ORANGE : FRAME}`,
               }}
             >
-              <span className="truncate">{(m.field || "UNTITLED").toUpperCase()}</span>
-              <span onClick={(e) => closeModule(m.id, e)} className="opacity-0 group-hover:opacity-45 hover:!opacity-100">
+              {active ? (
+                <input
+                  value={m.field}
+                  onChange={(e) => updateModule((mod) => ({ ...mod, field: e.target.value }))}
+                  maxLength={18}
+                  placeholder="NAME IT"
+                  className="flex-1 min-w-0 bg-transparent text-center text-[10px] font-bold tracking-[0.06em] uppercase outline-none placeholder:text-white/60"
+                  style={{ color: "#FFFFFF" }}
+                />
+              ) : (
+                <span className="flex-1 truncate text-center text-[10px] font-bold tracking-[0.06em]" style={{ color: INK }}>
+                  {(m.field || "UNTITLED").toUpperCase()}
+                </span>
+              )}
+              <span
+                onClick={(e) => closeModule(m.id, e)}
+                className="shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100"
+                style={{ color: active ? "#FFFFFF" : INK }}
+              >
                 <X size={10} />
               </span>
-            </button>
+            </div>
           );
         })}
 
@@ -107,27 +123,6 @@ export default function Screen() {
       </header>
 
       <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
-        {/* What this module is */}
-        <Card className="shrink-0">
-          <div className="px-4 py-2.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-            <input
-              value={module.field}
-              onChange={(e) => updateModule((m) => ({ ...m, field: e.target.value }))}
-              maxLength={18}
-              placeholder="Name this module"
-              className="w-full sm:w-44 sm:shrink-0 text-[13px] font-bold outline-none bg-transparent placeholder:opacity-35"
-              style={{ color: ORANGE }}
-            />
-            <input
-              value={module.goal}
-              onChange={(e) => updateModule((m) => ({ ...m, goal: e.target.value }))}
-              placeholder="What do you want to end up with?"
-              className="flex-1 min-w-0 text-[11px] outline-none bg-transparent placeholder:opacity-35"
-              style={{ color: INK }}
-            />
-          </div>
-        </Card>
-
         {/* The grid of screens, added one at a time */}
         <div className="grid gap-2 sm:gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
           {module.panels.map((p, i) => (
