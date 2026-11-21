@@ -33,13 +33,13 @@ function gate(wrong) {
   body{margin:0;display:flex;flex-direction:column;background:#FFE9C4;
        font:400 13px "Space Grotesk",ui-sans-serif,system-ui,sans-serif;color:#4B4B4B}
   main{flex:1;display:flex;align-items:center;justify-content:center}
-  input{width:220px;padding:7px 10px;font:inherit;background:#fff;
+  input{width:5ch;padding:6px 8px;text-align:center;letter-spacing:.08em;font:inherit;background:#fff;
         border:2px solid ${wrong ? "#C0392B" : "#4B4B4B"};border-radius:4px;outline:none;color:#4B4B4B}
 </style></head>
 <body>
   <main>
     <form method="POST" action="/__unlock">
-      <input type="password" name="p" autofocus autocomplete="current-password" />
+      <input type="password" name="p" maxlength="12" autofocus autocomplete="current-password" />
     </form>
   </main>
 </body></html>`;
