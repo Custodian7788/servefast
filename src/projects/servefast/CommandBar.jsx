@@ -11,9 +11,10 @@ export default function CommandBar({ onRun, disabled }) {
         e.preventDefault();
         onRun(value);
       }}
-      className="h-full p-2"
+      className="p-3"
     >
       <textarea
+        rows={3}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
@@ -22,9 +23,9 @@ export default function CommandBar({ onRun, disabled }) {
             onRun(value);
           }
         }}
-        placeholder={disabled ? "Drop a file first" : "Every passage where I mention the invoice"}
-        className="h-full w-full resize-none rounded px-2 py-1.5 text-[12px] leading-snug outline-none bg-white"
-        style={{ border: `1.5px solid ${LINE}`, color: INK }}
+        placeholder={disabled ? "Drop a file first" : "What are you looking for?"}
+        className="w-full resize-none rounded-md px-3 py-2 text-[13px] leading-[1.45] outline-none bg-white placeholder:opacity-40"
+        style={{ border: `1px solid ${LINE}`, color: INK }}
       />
     </form>
   );

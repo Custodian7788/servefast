@@ -34,11 +34,20 @@ export function queryTerms(query) {
   return [...new Set([...terms, ...useful])];
 }
 
+const HEADER_LINE = /^(from|to|cc|bcc|date|subject|sent|reply-to):/i;
+
+function isHeaderBlock(block) {
+  const lines = block.split(/\n/).filter(Boolean);
+  if (!lines.length) return false;
+  return lines.filter((l) => HEADER_LINE.test(l.trim())).length >= Math.max(2, lines.length - 1);
+}
+
 function splitPassages(text) {
   const blocks = text
     .split(/\n\s*\n+/)
     .map((b) => b.replace(/[ \t]+\n/g, "\n").trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((b) => !isHeaderBlock(b));
   if (blocks.length > 1) return blocks;
 
   // One solid block: fall back to single lines so results stay readable.

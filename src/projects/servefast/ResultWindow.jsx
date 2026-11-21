@@ -3,9 +3,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import FitText from "./FitText.jsx";
 import { INK, LINE, ORANGE } from "../../theme.js";
 
-const CARD = "#FFFFFF";
-const HEAD = "#FBF0DC";
-
 // Marks the asked-for words inside a passage, without touching the rest.
 function highlight(text, terms) {
   if (!terms || !terms.length) return text;
@@ -36,7 +33,7 @@ function highlight(text, terms) {
   merged.forEach(([start, end], i) => {
     if (start > cursor) out.push(text.slice(cursor, start));
     out.push(
-      <mark key={i} style={{ backgroundColor: "#FFE1C2", color: INK, padding: "0 2px", borderRadius: 2 }}>
+      <mark key={i} style={{ backgroundColor: "#FFD9AF", color: INK, padding: "0 1px" }}>
         {text.slice(start, end)}
       </mark>
     );
@@ -46,13 +43,29 @@ function highlight(text, terms) {
   return out;
 }
 
+function Arrow({ dir, onClick, disabled }) {
+  const Icon = dir === "left" ? ChevronLeft : ChevronRight;
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="shrink-0 w-10 flex items-center justify-center disabled:opacity-15 hover:opacity-60 transition-opacity"
+      style={{ color: INK }}
+      aria-label={dir === "left" ? "Previous passage" : "Next passage"}
+    >
+      <Icon size={26} strokeWidth={1.5} />
+    </button>
+  );
+}
+
 // One passage at a time, always whole, never scrolled. You toggle through them.
 export default function ResultWindow({ results, index, setIndex, empty }) {
   const total = results.length;
 
   useEffect(() => {
     function onKey(e) {
-      if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
+      const tag = e.target.tagName;
+      if (tag === "TEXTAREA" || tag === "INPUT") return;
       if (e.key === "ArrowRight") setIndex((i) => Math.min(i + 1, total - 1));
       if (e.key === "ArrowLeft") setIndex((i) => Math.max(i - 1, 0));
     }
@@ -63,60 +76,40 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
   const current = results[index];
 
   return (
-    <div className="flex-1 min-h-0 flex items-center justify-center p-5">
-      <div
-        className="w-full max-w-3xl h-full max-h-[620px] flex flex-col rounded overflow-hidden"
-        style={{ backgroundColor: CARD, border: `1px solid ${LINE}` }}
-      >
-        <div
-          className="shrink-0 flex items-center gap-2 px-3 h-7 text-[9px] font-bold uppercase tracking-[0.08em]"
-          style={{ backgroundColor: HEAD, borderBottom: `1px solid ${LINE}`, color: INK }}
-        >
-          <span className="flex-1 truncate normal-case font-normal text-[10px] opacity-60">
-            {current ? current.source : ""}
-          </span>
-          <span className="tabular-nums" style={{ color: total ? ORANGE : INK }}>
-            {total ? `${index + 1} of ${total}` : "No results"}
-          </span>
-        </div>
+    <div className="flex-1 min-h-0 flex items-center justify-center gap-1 px-4 py-8">
+      <Arrow dir="left" onClick={() => setIndex((i) => Math.max(i - 1, 0))} disabled={!total || index === 0} />
 
-        <div className="flex-1 min-h-0 px-8 py-7">
+      <div className="flex-1 min-w-0 h-full max-w-3xl flex flex-col gap-2">
+        <div
+          className="flex-1 min-h-0 rounded-sm bg-white px-12 py-10 flex items-center"
+          style={{ border: `1px solid ${LINE}` }}
+        >
           {current ? (
-            <FitText>
+            <FitText max={30} min={11}>
               <p className="whitespace-pre-wrap" style={{ color: INK }}>
                 {highlight(current.text, current.terms)}
               </p>
             </FitText>
           ) : (
-            <div className="h-full flex items-center justify-center text-[12px] opacity-40" style={{ color: INK }}>
+            <div className="w-full text-center text-[12px] opacity-35" style={{ color: INK }}>
               {empty}
             </div>
           )}
         </div>
 
-        <div
-          className="shrink-0 flex items-center justify-center gap-6 h-9"
-          style={{ backgroundColor: HEAD, borderTop: `1px solid ${LINE}`, color: INK }}
-        >
-          <button
-            onClick={() => setIndex((i) => Math.max(i - 1, 0))}
-            disabled={!total || index === 0}
-            className="disabled:opacity-20 hover:opacity-60"
-            aria-label="Previous passage"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <span className="text-[10px] uppercase tracking-[0.08em] opacity-45">Toggle</span>
-          <button
-            onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
-            disabled={!total || index >= total - 1}
-            className="disabled:opacity-20 hover:opacity-60"
-            aria-label="Next passage"
-          >
-            <ChevronRight size={18} />
-          </button>
+        <div className="h-4 shrink-0 flex items-baseline justify-between text-[10px]" style={{ color: INK }}>
+          <span className="truncate opacity-40">{current ? current.source : ""}</span>
+          <span className="tabular-nums shrink-0" style={{ color: total ? ORANGE : "transparent" }}>
+            {total ? `${index + 1} / ${total}` : "."}
+          </span>
         </div>
       </div>
+
+      <Arrow
+        dir="right"
+        onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
+        disabled={!total || index >= total - 1}
+      />
     </div>
   );
 }

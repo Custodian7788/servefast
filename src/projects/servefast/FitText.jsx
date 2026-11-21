@@ -38,8 +38,12 @@ export default function FitText({ children, max = 22, min = 9, className, style 
   }, []);
 
   return (
-    <div ref={boxRef} className={`h-full w-full overflow-hidden ${className || ""}`} style={style}>
-      <div ref={textRef} style={{ fontSize: size, lineHeight: 1.45 }}>
+    <div
+      ref={boxRef}
+      className={`h-full w-full overflow-hidden flex items-center ${className || ""}`}
+      style={style}
+    >
+      <div ref={textRef} className="w-full" style={{ fontSize: size, lineHeight: 1.45 }}>
         {children}
       </div>
     </div>
