@@ -107,7 +107,7 @@ export default function Screen() {
     <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN_BG, color: INK }}>
       {/* Modules */}
       <header
-        className="shrink-0 h-9 flex items-center gap-1 px-3 border-b"
+        className="shrink-0 h-9 flex items-center gap-1 px-2 sm:px-3 border-b overflow-x-auto"
         style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
       >
         {space.modules.map((m) => {
@@ -119,7 +119,7 @@ export default function Screen() {
                 setSpace((s) => ({ ...s, currentId: m.id }));
                 setIndex(0);
               }}
-              className="group flex items-center justify-center gap-1.5 w-40 h-6 px-2 rounded text-[10px] font-bold tracking-[0.06em]"
+              className="group shrink-0 flex items-center justify-center gap-1.5 w-32 sm:w-40 h-6 px-2 rounded text-[10px] font-bold tracking-[0.06em]"
               style={{
                 backgroundColor: active ? ORANGE : "transparent",
                 color: active ? "#FFFFFF" : INK,
@@ -148,7 +148,7 @@ export default function Screen() {
       </header>
 
       <div className="flex-1 min-h-0 flex">
-        <div className="flex-1 min-w-0 p-3 flex flex-col gap-3">
+        <div className="flex-1 min-w-0 p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
           <Card className="shrink-0">
             <div className="px-4 pt-3 pb-2 flex items-baseline gap-3" style={{ borderBottom: `1px solid ${LINE}` }}>
               <input
@@ -181,9 +181,9 @@ export default function Screen() {
           </Card>
 
           <Card className="flex-1 min-h-0 relative">
-            <div className="h-full w-full flex items-center px-16 pt-10 pb-16">
+            <div className="h-full w-full flex items-center px-6 sm:px-16 pt-8 pb-14 sm:pt-10 sm:pb-16">
               {current ? (
-                <p className="text-[19px] leading-[1.5]">{current.text}</p>
+                <p className="text-[15px] sm:text-[19px] leading-[1.5]">{current.text}</p>
               ) : (
                 <p className="w-full text-center text-[12px] opacity-45">
                   Nothing to judge yet. Add what you already believe on the right.
@@ -235,66 +235,24 @@ export default function Screen() {
               </>
             )}
           </Card>
-        </div>
 
-        <aside className="w-80 shrink-0 border-l flex flex-col" style={{ backgroundColor: NAV_BG, borderColor: FRAME }}>
-          <div className="flex-[2] min-h-0 p-3">
-            <Card className="h-full flex flex-col">
-              <Label right={<span className="tabular-nums opacity-45">{kept.length}</span>}>YOUR VIEW</Label>
-              <div className="flex-1 min-h-0 overflow-y-auto">
-                {kept.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-[10px] opacity-40 px-4 text-center">
-                    What you keep lands here
-                  </div>
-                ) : (
-                  kept.map((c, i) => (
-                    <div
-                      key={c.id}
-                      className="group flex gap-2 px-2.5 py-2 text-[11px] leading-snug"
-                      style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
-                    >
-                      <span className="flex-1">{c.text}</span>
-                      <button
-                        onClick={() => updateStep((s) => setClaimStatus(s, c.id, "pending"))}
-                        className="shrink-0 h-3 opacity-0 group-hover:opacity-45 hover:!opacity-100"
-                        aria-label="Put back"
-                      >
-                        <X size={11} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-              <form
-                onSubmit={submitClaim}
-                className="shrink-0 flex items-center gap-1.5 px-2.5 h-8"
-                style={{ borderTop: `1px solid ${LINE}` }}
-              >
-                <Plus size={12} strokeWidth={2} style={{ color: ORANGE }} />
-                <input
-                  value={adding}
-                  onChange={(e) => setAdding(e.target.value)}
-                  placeholder="Add something to judge"
-                  className="flex-1 min-w-0 text-[11px] outline-none bg-transparent placeholder:opacity-45"
-                  style={{ color: ORANGE }}
-                />
-              </form>
-            </Card>
-          </div>
-
-          <div className="flex-1 min-h-0 p-3 border-t" style={{ borderColor: FRAME }}>
-            <Card className="h-full flex flex-col">
-              <Label>{step.outputLabel.toUpperCase()}</Label>
-              <textarea
-                value={step.output}
-                onChange={(e) => updateStep((s) => ({ ...s, output: e.target.value }))}
-                placeholder="What this step hands to the next one"
-                className="flex-1 min-h-0 w-full resize-none px-3 py-2 text-[12px] leading-snug outline-none placeholder:opacity-45"
+          <Card className="shrink-0">
+            <form onSubmit={submitClaim} className="flex items-center gap-2 px-3 h-9">
+              <Plus size={13} strokeWidth={2} style={{ color: ORANGE }} />
+              <input
+                value={adding}
+                onChange={(e) => setAdding(e.target.value)}
+                placeholder="Add something to judge"
+                className="flex-1 min-w-0 text-[12px] outline-none bg-transparent placeholder:opacity-40"
                 style={{ color: ORANGE }}
               />
-            </Card>
-          </div>
-        </aside>
+              <span className="shrink-0 text-[10px] tabular-nums opacity-40">
+                {kept.length} kept
+              </span>
+            </form>
+          </Card>
+        </div>
+
       </div>
     </div>
   );
