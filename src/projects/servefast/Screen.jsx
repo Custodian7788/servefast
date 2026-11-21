@@ -1,16 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CommandBar from "./CommandBar.jsx";
 import DropZone from "./DropZone.jsx";
 import ResultWindow from "./ResultWindow.jsx";
 import { useDocs } from "./useDocs.js";
 import { findPassages } from "./search.js";
-import { LINE, MAIN_BG, NAV_BG, INK } from "../../theme.js";
+import { LINE, MAIN_BG, NAV_BG, INK, ORANGE } from "../../theme.js";
 
 export default function Screen() {
   const { docs, busy, error, addFiles, removeDoc, clearDocs } = useDocs();
   const [results, setResults] = useState([]);
   const [index, setIndex] = useState(0);
   const [ran, setRan] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const dragDepth = useRef(0);
+
+  // A file dropped anywhere on the page counts, not only on the dashed box -
+  // and the browser never gets to open it in a tab instead.
+  useEffect(() => {
+    function over(e) {
+      e.preventDefault();
+    }
+    function enter(e) {
+      e.preventDefault();
+      dragDepth.current += 1;
+      if (e.dataTransfer?.types?.includes("Files")) setDragging(true);
+    }
+    function leave() {
+      dragDepth.current = Math.max(0, dragDepth.current - 1);
+      if (dragDepth.current === 0) setDragging(false);
+    }
+    function drop(e) {
+      e.preventDefault();
+      dragDepth.current = 0;
+      setDragging(false);
+      if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+    }
+
+    window.addEventListener("dragover", over);
+    window.addEventListener("dragenter", enter);
+    window.addEventListener("dragleave", leave);
+    window.addEventListener("drop", drop);
+    return () => {
+      window.removeEventListener("dragover", over);
+      window.removeEventListener("dragenter", enter);
+      window.removeEventListener("dragleave", leave);
+      window.removeEventListener("drop", drop);
+    };
+  }, [addFiles]);
 
   function run(query) {
     setResults(findPassages(docs, query));
@@ -19,17 +55,16 @@ export default function Screen() {
   }
 
   const empty = !docs.length
-    ? "Drop a file on the right to begin."
+    ? "Drop a file anywhere to begin."
     : ran
     ? "Nothing in those files matches."
     : "Ask for something in the bar above.";
 
   return (
     <div
-      className="h-screen w-full flex flex-col md:flex-row"
+      className="relative h-screen w-full flex flex-col md:flex-row"
       style={{ backgroundColor: MAIN_BG, color: INK }}
     >
-      {/* Tools area */}
       <div className="flex-1 min-h-0 min-w-0 flex flex-col">
         <CommandBar onRun={run} disabled={!docs.length} />
         <ResultWindow results={results} index={index} setIndex={setIndex} empty={empty} />
@@ -48,6 +83,15 @@ export default function Screen() {
           onClear={clearDocs}
         />
       </aside>
+
+      {dragging && (
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center text-[13px] font-bold uppercase tracking-wide pointer-events-none"
+          style={{ backgroundColor: "rgba(255,243,230,0.92)", border: `3px dashed ${ORANGE}`, color: ORANGE }}
+        >
+          Drop to load
+        </div>
+      )}
     </div>
   );
 }
