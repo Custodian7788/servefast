@@ -45,7 +45,16 @@ export const LAYERS = ["Headline", "Summary", "Perspective"];
 export default function Story({ item, layer, onLayer }) {
   const hasSummary = Boolean(item.summary);
   const hasPerspective = Boolean(item.effects?.length);
-  const furthest = hasPerspective ? 2 : hasSummary ? 1 : 0;
+
+  // Only offer the layers this story actually has, so a step never lands on
+  // an empty one. Stories pulled before summaries existed go straight to
+  // perspective.
+  const steps = [
+    hasSummary ? { label: "Summary", show: 1 } : null,
+    hasPerspective ? { label: "Perspective", show: 2 } : null,
+  ].filter(Boolean);
+  const at = steps.findIndex((step) => step.show > layer);
+  const next = at === -1 ? null : steps[at];
 
   return (
     <Fitted>
@@ -92,13 +101,13 @@ export default function Story({ item, layer, onLayer }) {
       )}
 
       {/* Where you are in the story */}
-      {furthest > 0 && (
+      {steps.length > 0 && (
         <button
-          onClick={() => onLayer(layer >= furthest ? 0 : layer + 1)}
+          onClick={() => onLayer(next ? next.show : 0)}
           className="mt-3 text-[9px] font-bold uppercase tracking-[0.08em] hover:opacity-70"
           style={{ color: ORANGE }}
         >
-          {layer >= furthest ? "Collapse" : layer === 0 ? "Summary" : "Perspective"}
+          {next ? next.label : "Collapse"}
         </button>
       )}
     </Fitted>
