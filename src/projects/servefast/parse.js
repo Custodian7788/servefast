@@ -1,4 +1,5 @@
 import MsgReader from "@kenjiuno/msgreader";
+import { decompressRTF } from "@kenjiuno/decompressrtf";
 
 // Turns a dropped file into plain text. Outlook .msg and .eml messages come
 // out as a readable header block plus the message body, so the search works on
@@ -34,6 +35,46 @@ function joinParts(header, body) {
 
 // ---- Outlook .msg -------------------------------------------------------
 
+// Outlook often stores the body as compressed RTF rather than plain text or
+// HTML, which is why a .msg can otherwise come out as headers and nothing else.
+function rtfToText(rtf) {
+  if (!rtf) return "";
+
+  // Outlook wraps HTML inside RTF: pull that out and read it as HTML.
+  if (rtf.includes("\\fromhtml")) {
+    const html = rtf
+      .replace(/\\par[d]?/g, "\n")
+      .replace(/\{\\\*\\htmltag\d+ ?([^}]*)\}/g, "$1")
+      .replace(/\\htmlrtf[\s\S]*?\\htmlrtf0/g, "")
+      .replace(/\\'([0-9a-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/\\[a-z]+-?\d* ?/gi, "")
+      .replace(/[{}]/g, "");
+    return htmlToText(html);
+  }
+
+  return rtf
+    .replace(/\{\\\*[\s\S]*?\}/g, "")
+    .replace(/\\par[d]? ?/g, "\n")
+    .replace(/\\tab ?/g, "\t")
+    .replace(/\\'([0-9a-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/\\[a-z]+-?\d* ?/gi, "")
+    .replace(/[{}]/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function rtfBody(data) {
+  const packed = data.compressedRtf;
+  if (!packed) return "";
+  try {
+    const bytes = decompressRTF(Array.from(packed));
+    return rtfToText(new TextDecoder("utf-8", { fatal: false }).decode(Uint8Array.from(bytes)));
+  } catch {
+    return "";
+  }
+}
+
 export function parseMsg(arrayBuffer) {
   const data = new MsgReader(arrayBuffer).getFileData();
   if (!data || data.error) throw new Error(data?.error || "unreadable .msg");
@@ -44,7 +85,7 @@ export function parseMsg(arrayBuffer) {
     .filter(Boolean)
     .join(", ");
 
-  const body = data.body || htmlToText(data.bodyHtml);
+  const body = data.body || htmlToText(data.bodyHtml) || rtfBody(data);
 
   return joinParts(
     headerBlock({

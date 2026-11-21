@@ -40,6 +40,7 @@ export function useDocs() {
               id: `${file.name}-${file.size}-${file.lastModified}`,
               name: file.name,
               text,
+              words: (text.match(/\S+/g) || []).length,
             });
         } catch {
           failed.push(file.name);

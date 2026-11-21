@@ -54,6 +54,7 @@ export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear
             <span className="truncate flex-1" title={d.name}>
               {d.name}
             </span>
+            <span className="shrink-0 tabular-nums opacity-50">{d.words}w</span>
             <button onClick={() => onRemove(d.id)} className="shrink-0 opacity-50 hover:opacity-100" aria-label="Remove">
               <X size={11} />
             </button>
