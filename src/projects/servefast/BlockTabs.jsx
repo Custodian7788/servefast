@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, RotateCw, X } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
+import Story from "./Story.jsx";
 
 // Four tabs per block. They start unnamed - you name them as the block takes
 // shape. The first one is the one wired to the feeds.
@@ -32,9 +33,10 @@ function Fitted({ children }) {
   );
 }
 
-export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename }) {
+export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, onRemove, onRename }) {
   const [tab, setTab] = useState(TABS[0]);
   const [index, setIndex] = useState(0);
+  const [layer, setLayer] = useState(0);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
   const [pulling, setPulling] = useState(false);
@@ -50,7 +52,13 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
     setError(null);
     try {
       const response = await fetch("/api/events");
-      const data = await response.json();
+      const body = await response.text();
+      let data;
+      try {
+        data = JSON.parse(body);
+      } catch {
+        throw new Error("The feed service is not reachable from here");
+      }
       if (!response.ok) throw new Error(data.error || "That did not work");
       const pulled = data.events || [];
       pulled.forEach((event) => onAdd(feedTab, event));
@@ -71,7 +79,7 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
   useEffect(() => {
     if (askedOnce.current) return;
     askedOnce.current = true;
-    if (!(tabs?.[TABS[0]] || []).length) pull();
+    if (autoPull && !(tabs?.[TABS[0]] || []).length) pull();
   }, []);
 
   function submit(e) {
@@ -108,26 +116,7 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
             {error}
           </div>
         ) : current ? (
-          <Fitted>
-            {current.date && (
-              <span className="mr-1.5 text-[9px] font-bold tabular-nums align-top" style={{ color: ORANGE }}>
-                {current.date.slice(5).replace("-", " ")}
-              </span>
-            )}
-            {current.text}
-            {current.effects?.length > 0 && (
-              <span className="block mt-2.5">
-                {current.effects.map((effect, i) => (
-                  <span key={i} className="block mt-1">
-                    <span className="text-[9.5px] font-bold uppercase tracking-[0.06em]" style={{ color: ORANGE }}>
-                      {effect.industry}
-                    </span>
-                    <span className="ml-1.5 text-[11px] opacity-75">{effect.consequence}</span>
-                  </span>
-                ))}
-              </span>
-            )}
-          </Fitted>
+          <Story item={current} layer={layer} onLayer={setLayer} />
         ) : (
           <div className="h-full flex items-center justify-center text-[10px] opacity-35" style={{ color: INK }}>
             Nothing here yet
@@ -138,7 +127,10 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
       {/* Move through them */}
       <div className="shrink-0 flex items-center gap-2 px-2 h-6" style={{ borderTop: `1px solid ${LINE}` }}>
         <button
-          onClick={() => setIndex((i) => Math.max(i - 1, 0))}
+          onClick={() => {
+            setLayer(0);
+            setIndex((i) => Math.max(i - 1, 0));
+          }}
           disabled={!items.length || index === 0}
           className="disabled:opacity-20"
           style={{ color: ORANGE }}
@@ -147,7 +139,10 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
           <ChevronLeft size={13} />
         </button>
         <button
-          onClick={() => setIndex((i) => Math.min(i + 1, items.length - 1))}
+          onClick={() => {
+            setLayer(0);
+            setIndex((i) => Math.min(i + 1, items.length - 1));
+          }}
           disabled={!items.length || index >= items.length - 1}
           className="disabled:opacity-20"
           style={{ color: ORANGE }}

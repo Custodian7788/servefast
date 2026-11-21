@@ -98,6 +98,10 @@ For each event you keep, give three things:
 1. "headline" - the fact, in one sentence of at most 24 words. What happened
    and who did it. No interpretation, no forecasting, no adjectives of
    significance.
+1b. "summary" - two or three sentences, at most 55 words, giving what the item
+   actually says: who, what, where, the numbers and dates in it, and what
+   happens next if it says so. Use only what is in the item. Never invent
+   detail that is not there.
 2. "domain" - one of: trade, energy, defence, technology, money, resources.
 3. "effects" - one to three industries this lands on, each with the specific
    consequence. Name the industry from ordinary vocabulary (semiconductors,
@@ -110,7 +114,7 @@ For each event you keep, give three things:
    loses. Never write a consequence that would be true of any news item.
 
 Return JSON only, in this exact shape and nothing else:
-{"events":[{"headline":"...","domain":"trade","effects":[{"industry":"semiconductors","consequence":"..."}],"source":"BBC","url":"https://..."}]}
+{"events":[{"headline":"...","summary":"...","domain":"trade","effects":[{"industry":"semiconductors","consequence":"..."}],"source":"BBC","url":"https://..."}]}
 
 Keep at most 12 events, the most consequential first. If nothing qualifies,
 return {"events":[]}.`;
@@ -135,6 +139,8 @@ export default async function handler(request, response) {
       response.status(200).json({ events: [], read: 0 });
       return;
     }
+
+    const publishedByUrl = new Map(items.map((item) => [item.link, item.at]));
 
     const lines = items
       .map((item, i) => `${i + 1}. [${item.source}] ${item.title}${item.summary ? ` - ${item.summary}` : ""} :: ${item.link}`)
@@ -171,6 +177,8 @@ export default async function handler(request, response) {
           id: `ev-${Date.now()}-${i}`,
           date: new Date().toISOString().slice(0, 10),
           text: event.headline || event.text || "",
+          summary: event.summary || "",
+          publishedAt: new Date(publishedByUrl.get(event.url) || Date.now()).toISOString(),
           domain: event.domain || "",
           effects: event.effects.slice(0, 3).map((effect) => ({
             industry: effect.industry || "",
