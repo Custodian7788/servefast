@@ -2,13 +2,17 @@
 // throws your work away; this moves to the server once accounts exist.
 const DB = "servefast";
 const STORE = "modules";
+const VERSION = 3;
 
 function open() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB, 2);
+    const request = indexedDB.open(DB, VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      // Anything saved under an older shape is dropped rather than migrated.
+      if (db.objectStoreNames.contains(STORE)) db.deleteObjectStore(STORE);
+      if (db.objectStoreNames.contains("docs")) db.deleteObjectStore("docs");
+      db.createObjectStore(STORE);
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);

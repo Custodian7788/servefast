@@ -21,20 +21,3 @@ export function makeModule({ field = "", goal = "" } = {}) {
     output: "",
   };
 }
-
-// Older modules were built around steps; keep them openable.
-export function normalise(module) {
-  if (module.panels) return module;
-  const panels = (module.steps || []).map((s) => ({
-    id: s.id || newId("p"),
-    title: s.title || "",
-    body: [s.question, ...(s.claims || []).filter((c) => c.status === "kept").map((c) => `- ${c.text}`)]
-      .filter(Boolean)
-      .join("\n"),
-  }));
-  return {
-    ...module,
-    panels: panels.length ? panels : [makePanel()],
-    output: module.steps?.map((s) => s.output).filter(Boolean).join("\n") || "",
-  };
-}

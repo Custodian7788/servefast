@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
-import { makeModule, makePanel, normalise } from "./module.js";
+import { makeModule, makePanel } from "./module.js";
 import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
@@ -22,7 +22,7 @@ export default function Screen() {
   useEffect(() => {
     loadModule(KEY).then((saved) => {
       if (saved?.modules?.length) {
-        setSpace({ ...saved, modules: saved.modules.map(normalise) });
+        setSpace(saved);
       } else {
         const first = makeModule();
         setSpace({ modules: [first], currentId: first.id });
