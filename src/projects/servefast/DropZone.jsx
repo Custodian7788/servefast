@@ -13,7 +13,7 @@ function stripExtension(name) {
 }
 
 // One box: empty it invites a drop, filled it lists what is loaded. Dropping
-// or clicking anywhere in it adds more.
+// or clicking anywhere in it adds more. The list scrolls once it is long.
 export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear }) {
   const inputRef = useRef(null);
   const [over, setOver] = useState(false);
@@ -42,35 +42,31 @@ export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear
           </div>
         ) : (
           <>
-            <div className="flex-1 min-h-0 overflow-auto">
+            <div className="flex-1 min-h-0 overflow-y-auto">
               {docs.map((d, i) => (
                 <div
                   key={d.id}
-                  className="group flex items-center gap-2 px-2.5 py-2 hover:bg-[#FFF8F2] transition-colors"
+                  className="group flex items-center gap-2 px-2.5 h-7 hover:bg-[#FFF8F2] transition-colors"
                   style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
                 >
                   <span
-                    className="shrink-0 w-9 text-center py-[2px] rounded text-[8px] font-bold tracking-[0.06em]"
+                    className="shrink-0 w-8 text-center py-[1px] rounded-sm text-[8px] font-bold tracking-[0.06em]"
                     style={{ backgroundColor: "#FFF0E4", color: ORANGE }}
                   >
                     {kindOf(d.name)}
                   </span>
-
-                  <span className="flex-1 min-w-0 leading-tight">
-                    <span className="block truncate text-[11.5px]" style={{ color: INK }} title={d.name}>
-                      {stripExtension(d.name)}
-                    </span>
-                    <span className="block text-[9.5px] opacity-45" style={{ color: INK }}>
-                      {d.words.toLocaleString("en-GB")} words
-                    </span>
+                  <span className="flex-1 min-w-0 truncate text-[11.5px]" style={{ color: INK }} title={d.name}>
+                    {stripExtension(d.name)}
                   </span>
-
+                  <span className="shrink-0 tabular-nums text-[10px] opacity-40" style={{ color: INK }}>
+                    {d.words.toLocaleString("en-GB")}
+                  </span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onRemove(d.id);
                     }}
-                    className="shrink-0 opacity-0 group-hover:opacity-45 hover:!opacity-100"
+                    className="shrink-0 w-3 opacity-0 group-hover:opacity-45 hover:!opacity-100"
                     style={{ color: INK }}
                     aria-label={`Remove ${d.name}`}
                   >
@@ -81,19 +77,20 @@ export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear
             </div>
 
             <div
-              className="shrink-0 flex items-center gap-1.5 px-2.5 h-7 text-[10px]"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 h-8 text-[9.5px] font-bold tracking-[0.07em]"
               style={{ borderTop: `1px solid ${LINE}`, color: ORANGE }}
             >
-              <Plus size={12} strokeWidth={1.5} className={busy ? "animate-pulse" : ""} />
-              <span className="flex-1 opacity-70">{busy ? "Reading…" : "Add more"}</span>
+              <Plus size={12} strokeWidth={2} />
+              <span className="flex-1">{busy ? "READING…" : "ADD MORE"}</span>
+              <span className="tabular-nums opacity-40">{docs.length}</span>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onClear();
                 }}
-                className="opacity-50 hover:opacity-100"
+                className="opacity-60 hover:opacity-100"
               >
-                clear
+                CLEAR
               </button>
             </div>
           </>

@@ -1,9 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { readFileAsText } from "./parse.js";
+import { clearStoredDocs, loadStoredDocs, storeDocs } from "./store.js";
 
-// Dropped files are held in memory only. Nothing is written to the browser, so
-// a browser reset cannot lose anything. Saving will go to the server once
-// accounts exist.
+// Loaded files survive a refresh and only go when you clear them. The copy is
+// local for now; it moves to the server once accounts exist.
 
 // PDF and Word are containers, not text: reading them as text gives mojibake,
 // so they are refused until a parser is added. Outlook .msg and .eml are
@@ -17,9 +17,21 @@ function looksBinary(text) {
 }
 
 export function useDocs() {
-  const [docs, setDocs] = useState([]); // [{ id, name, text }]
+  const [docs, setDocs] = useState([]); // [{ id, name, text, words }]
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    loadStoredDocs().then((saved) => {
+      if (saved.length) setDocs(saved);
+      loaded.current = true;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (loaded.current) storeDocs(docs);
+  }, [docs]);
 
   const addFiles = useCallback(async (fileList) => {
     const files = Array.from(fileList || []);
@@ -63,9 +75,11 @@ export function useDocs() {
   }, []);
 
   const removeDoc = useCallback((id) => setDocs((prev) => prev.filter((d) => d.id !== id)), []);
+
   const clearDocs = useCallback(() => {
     setDocs([]);
     setError(null);
+    clearStoredDocs();
   }, []);
 
   return { docs, busy, error, addFiles, removeDoc, clearDocs };
