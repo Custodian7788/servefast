@@ -39,7 +39,7 @@ function gate(wrong) {
 <body>
   <main>
     <form method="POST" action="/__unlock">
-      <input type="password" name="p" maxlength="12" autofocus autocomplete="current-password" />
+      <input type="text" name="p" maxlength="12" autofocus autocomplete="off" autocapitalize="characters" spellcheck="false" />
     </form>
   </main>
 </body></html>`;
