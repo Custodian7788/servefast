@@ -19,6 +19,7 @@ export default function Screen() {
   const [ready, setReady] = useState(false);
   const [justMade, setJustMade] = useState(null);
   const [naming, setNaming] = useState(null);
+  const [building, setBuilding] = useState(null);
   const [focused, setFocused] = useState(false);
   const loaded = useRef(false);
 
@@ -210,14 +211,15 @@ export default function Screen() {
               MODULE BUILDER
             </span>
             <select
-              value={space.currentId || ""}
-              onChange={(e) => setSpace((s) => ({ ...s, currentId: e.target.value }))}
+              value={building || ""}
+              onChange={(e) => setBuilding(e.target.value)}
               className="flex-1 min-w-0 h-6 px-1.5 rounded bg-white text-[10.5px] outline-none"
               style={{ border: `1px solid ${FRAME}`, color: INK }}
             >
-              {space.modules.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.field || "Untitled"}
+              <option value="">Pick a screen</option>
+              {module.panels.map((panel, i) => (
+                <option key={panel.id} value={panel.id}>
+                  {String(i + 1).padStart(2, "0")} {panel.title || "Untitled"}
                 </option>
               ))}
             </select>
