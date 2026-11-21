@@ -34,7 +34,7 @@ function Fitted({ children }) {
   );
 }
 
-export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = [], onAdd, onRemove, onRename, onFeeds }) {
+export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = [], onAdd, onRemove, onRename, onFeeds, onReplace }) {
   const [tab, setTab] = useState(TABS[0]);
   const [index, setIndex] = useState(0);
   const [layer, setLayer] = useState(0);
@@ -65,12 +65,13 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
       }
       if (!response.ok) throw new Error(data.error || "That did not work");
       const pulled = data.events || [];
-      pulled.forEach((event) => onAdd(feedTab, event));
       if (!pulled.length) {
         setError("Nothing qualified from today's feeds");
       } else {
+        onReplace(feedTab, pulled);
         setTab(feedTab);
-        setIndex(items.length);
+        setIndex(0);
+        setLayer(0);
       }
     } catch (err) {
       setError(err.message);

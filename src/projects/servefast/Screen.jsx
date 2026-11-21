@@ -209,6 +209,12 @@ export default function Screen() {
                 tabs={p.tabs}
                 autoPull={i === 0}
                 feeds={p.feeds || []}
+                onReplace={(tab, list) =>
+                  updatePanel(p.id, (panel) => ({
+                    ...panel,
+                    tabs: { ...(panel.tabs || {}), [tab]: list },
+                  }))
+                }
                 onFeeds={(feeds) => updatePanel(p.id, (panel) => ({ ...panel, feeds }))}
                 names={p.tabNames}
                 onRename={(tab, name) =>
