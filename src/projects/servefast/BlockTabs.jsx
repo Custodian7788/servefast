@@ -99,7 +99,11 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
       )}
       {/* One item at a time */}
       <div className="flex-1 min-h-0 px-3 py-2">
-        {error ? (
+        {pulling ? (
+          <div className="h-full flex items-center justify-center text-[10px] tracking-[0.06em] uppercase" style={{ color: ORANGE }}>
+            <span className="animate-pulse">Reading the feeds…</span>
+          </div>
+        ) : error ? (
           <div className="h-full flex items-center justify-center text-center text-[10px] px-2" style={{ color: "#A33427" }}>
             {error}
           </div>
