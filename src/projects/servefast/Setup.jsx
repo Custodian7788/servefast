@@ -3,7 +3,7 @@ import { FRAME, INK, MAIN_BG, ORANGE } from "../../theme.js";
 
 // Step one of any module: say what you want to learn and what you want out
 // of it. Everything the module does afterwards hangs off these two answers.
-export default function Setup({ onCreate }) {
+export default function Setup({ onCreate, onCancel }) {
   const [field, setField] = useState("");
   const [goal, setGoal] = useState("");
 
@@ -56,7 +56,18 @@ export default function Setup({ onCreate }) {
           >
             BUILD THE FUNNEL
           </button>
-          <span className="text-[10px] opacity-45">You can change every step afterwards</span>
+          {onCancel ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-[10px] opacity-45 hover:opacity-80"
+              style={{ color: INK }}
+            >
+              cancel
+            </button>
+          ) : (
+            <span className="text-[10px] opacity-45">You can change every step afterwards</span>
+          )}
         </div>
       </form>
     </div>

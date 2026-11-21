@@ -5,7 +5,8 @@ import Setup from "./Setup.jsx";
 import { addClaim, keptOf, makeModule, pendingOf, setClaimStatus } from "./module.js";
 import { loadModule, saveModule } from "./store.js";
 
-const KEY = "module:current";
+const KEY = "workspace";
+const EMPTY = { modules: [], currentId: null };
 
 function Card({ children, className = "", style }) {
   return (
@@ -28,24 +29,26 @@ function Label({ children, right }) {
 }
 
 export default function Screen() {
-  const [module, setModule] = useState(null);
+  const [space, setSpace] = useState(EMPTY);
   const [ready, setReady] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [index, setIndex] = useState(0);
   const [adding, setAdding] = useState("");
   const loaded = useRef(false);
 
   useEffect(() => {
     loadModule(KEY).then((saved) => {
-      if (saved && saved.steps) setModule(saved);
+      if (saved && Array.isArray(saved.modules)) setSpace(saved);
       loaded.current = true;
       setReady(true);
     });
   }, []);
 
   useEffect(() => {
-    if (loaded.current && module) saveModule(KEY, module);
-  }, [module]);
+    if (loaded.current) saveModule(KEY, space);
+  }, [space]);
 
+  const module = space.modules.find((m) => m.id === space.currentId) || null;
   const step = module?.steps[module.currentStep];
   const pending = step ? pendingOf(step) : [];
   const kept = step ? keptOf(step) : [];
@@ -62,13 +65,29 @@ export default function Screen() {
   }, [pending.length]);
 
   if (!ready) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
-  if (!module) return <Setup onCreate={(seed) => setModule(makeModule(seed))} />;
+
+  function createModule(seed) {
+    const made = makeModule(seed);
+    setSpace((s) => ({ modules: [...s.modules, made], currentId: made.id }));
+    setCreating(false);
+    setIndex(0);
+  }
+
+  if (!module || creating) {
+    return (
+      <Setup
+        onCreate={createModule}
+        onCancel={space.modules.length ? () => setCreating(false) : null}
+      />
+    );
+  }
+
+  function updateModule(fn) {
+    setSpace((s) => ({ ...s, modules: s.modules.map((m) => (m.id === s.currentId ? fn(m) : m)) }));
+  }
 
   function updateStep(fn) {
-    setModule((m) => ({
-      ...m,
-      steps: m.steps.map((s, i) => (i === m.currentStep ? fn(s) : s)),
-    }));
+    updateModule((m) => ({ ...m, steps: m.steps.map((s, i) => (i === m.currentStep ? fn(s) : s)) }));
   }
 
   function judge(id, status) {
@@ -84,27 +103,74 @@ export default function Screen() {
     setAdding("");
   }
 
+  function closeModule(id, e) {
+    e.stopPropagation();
+    setSpace((s) => {
+      const left = s.modules.filter((m) => m.id !== id);
+      return { modules: left, currentId: s.currentId === id ? left[0]?.id ?? null : s.currentId };
+    });
+  }
+
   return (
     <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN_BG, color: INK }}>
-      {/* The funnel itself */}
+      {/* Modules */}
       <header
+        className="shrink-0 h-8 flex items-stretch gap-1 px-2 pt-1 border-b"
+        style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
+      >
+        {space.modules.map((m) => {
+          const active = m.id === space.currentId;
+          return (
+            <button
+              key={m.id}
+              onClick={() => {
+                setSpace((s) => ({ ...s, currentId: m.id }));
+                setIndex(0);
+              }}
+              className="group flex items-center gap-1.5 px-3 rounded-t text-[10.5px] font-bold tracking-[0.04em]"
+              style={{
+                backgroundColor: active ? MAIN_BG : "transparent",
+                color: active ? ORANGE : INK,
+                border: `1px solid ${active ? FRAME : "transparent"}`,
+                borderBottom: "none",
+              }}
+            >
+              <span className="truncate max-w-[150px]">{m.field.toUpperCase()}</span>
+              <span
+                onClick={(e) => closeModule(m.id, e)}
+                className="opacity-0 group-hover:opacity-45 hover:!opacity-100"
+              >
+                <X size={10} />
+              </span>
+            </button>
+          );
+        })}
+
+        <button
+          onClick={() => setCreating(true)}
+          className="px-2 flex items-center hover:opacity-70"
+          style={{ color: ORANGE }}
+          aria-label="New module"
+        >
+          <Plus size={14} strokeWidth={2} />
+        </button>
+      </header>
+
+      {/* Steps of this module */}
+      <nav
         className="shrink-0 h-9 flex items-center gap-1 px-3 border-b"
         style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
       >
-        <span className="text-[11px] font-bold truncate max-w-[220px]" title={module.goal}>
-          {module.field}
-        </span>
-        <span className="mx-2 opacity-20">|</span>
         {module.steps.map((s, i) => {
           const active = i === module.currentStep;
           return (
             <button
               key={s.id}
               onClick={() => {
-                setModule((m) => ({ ...m, currentStep: i }));
+                updateModule((m) => ({ ...m, currentStep: i }));
                 setIndex(0);
               }}
-              className="px-2.5 h-6 rounded text-[10px] font-bold tracking-[0.06em] transition-colors"
+              className="px-2.5 h-6 rounded text-[10px] font-bold tracking-[0.06em]"
               style={{
                 backgroundColor: active ? ORANGE : "transparent",
                 color: active ? "#FFFFFF" : INK,
@@ -115,10 +181,9 @@ export default function Screen() {
             </button>
           );
         })}
-      </header>
+      </nav>
 
       <div className="flex-1 min-h-0 flex">
-        {/* Working area */}
         <div className="flex-1 min-w-0 p-3 flex flex-col gap-3">
           <Card className="shrink-0">
             <div className="px-4 py-3">
@@ -191,7 +256,6 @@ export default function Screen() {
           </Card>
         </div>
 
-        {/* What you have settled, and what this step hands on */}
         <aside className="w-80 shrink-0 border-l flex flex-col" style={{ backgroundColor: NAV_BG, borderColor: FRAME }}>
           <div className="flex-[2] min-h-0 p-3">
             <Card className="h-full flex flex-col">
