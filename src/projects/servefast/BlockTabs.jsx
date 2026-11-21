@@ -47,8 +47,15 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
       const response = await fetch("/api/events");
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "That did not work");
-      (data.events || []).forEach((event) => onAdd("EVENTS", event));
-      if (!data.events?.length) setError("Nothing qualified from today's feeds");
+      const pulled = data.events || [];
+      pulled.forEach((event) => onAdd("EVENTS", event));
+      if (!pulled.length) {
+        setError("Nothing qualified from today's feeds");
+      } else {
+        // Land on the first of what just arrived, so the pull is visible.
+        setTab("EVENTS");
+        setIndex(items.length);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
