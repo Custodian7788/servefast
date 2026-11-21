@@ -136,7 +136,8 @@ export default function Screen() {
         </button>
       </header>
 
-      <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
+      <div className="flex-1 min-h-0 flex">
+      <div className="flex-1 min-w-0 overflow-auto p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
         {/* The grid of screens, added one at a time */}
         <div className="grid gap-2 sm:gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
           {module.panels.map((p, i) => (
@@ -193,6 +194,29 @@ export default function Screen() {
             style={{ color: INK }}
           />
         </Card>
+      </div>
+
+      {/* Where the instructions for this module go */}
+      <aside
+        className="w-72 shrink-0 border-l hidden md:flex flex-col p-3"
+        style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
+      >
+        <Card className="flex-1 min-h-0 flex flex-col">
+          <div
+            className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
+            style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
+          >
+            AI
+          </div>
+          <textarea
+            value={module.instructions || ""}
+            onChange={(e) => updateModule((mod) => ({ ...mod, instructions: e.target.value }))}
+            placeholder="Instructions for this module"
+            className="flex-1 min-h-0 w-full resize-none px-3 py-2 text-[12px] leading-[1.5] outline-none placeholder:opacity-35"
+            style={{ color: INK }}
+          />
+        </Card>
+      </aside>
       </div>
     </div>
   );

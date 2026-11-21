@@ -19,5 +19,6 @@ export function makeModule({ field = "", goal = "" } = {}) {
     createdAt: Date.now(),
     panels: [makePanel()],
     output: "",
+    instructions: "",
   };
 }
