@@ -1,23 +1,12 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
 import Workbench from "./Workbench.jsx";
-import { INK, LINE, MAIN_BG, NAV_BG } from "./theme.js";
+import { LINE, MAIN_BG, NAV_BG } from "./theme.js";
 import ServefastDesktop from "./projects/servefast/Desktop.jsx";
 import ServefastMobile from "./projects/servefast/Mobile.jsx";
 
 function TopBar() {
-  return (
-    <header
-      className="h-8 shrink-0 flex items-center justify-end px-3 border-b"
-      style={{ backgroundColor: NAV_BG, borderColor: LINE }}
-    >
-      <button className="flex items-center gap-1 text-[11px] hover:opacity-70" style={{ color: INK }}>
-        alex@servefast.com
-        <ChevronDown size={11} />
-      </button>
-    </header>
-  );
+  return <header className="h-8 shrink-0 border-b" style={{ backgroundColor: NAV_BG, borderColor: LINE }} />;
 }
 
 function Sidebar() {
