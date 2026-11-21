@@ -48,7 +48,7 @@ export function useDocs() {
     );
 
     if (failed.length) {
-      const needsParser = failed.some((n) => /.(pdf|docx?|pptx?|xlsx?)$/i.test(n));
+      const needsParser = failed.some((n) => /\.(pdf|docx?|pptx?|xlsx?)$/i.test(n));
       setError(
         `Could not read ${failed.join(", ")}${needsParser ? " – PDF and Office files still need a parser." : "."}`
       );
