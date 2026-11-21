@@ -107,7 +107,7 @@ export default function Screen() {
     <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN_BG, color: INK }}>
       {/* Modules */}
       <header
-        className="shrink-0 h-8 flex items-stretch gap-1 px-2 pt-1 border-b"
+        className="shrink-0 h-9 flex items-center gap-1 px-3 border-b"
         style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
       >
         {space.modules.map((m) => {
@@ -119,12 +119,11 @@ export default function Screen() {
                 setSpace((s) => ({ ...s, currentId: m.id }));
                 setIndex(0);
               }}
-              className="group flex items-center justify-center gap-1.5 w-40 px-3 rounded-t text-[10px] font-bold tracking-[0.04em]"
+              className="group flex items-center justify-center gap-1.5 w-40 h-6 px-2 rounded text-[10px] font-bold tracking-[0.06em]"
               style={{
-                backgroundColor: active ? MAIN_BG : "transparent",
-                color: active ? ORANGE : INK,
-                border: `1px solid ${active ? FRAME : "transparent"}`,
-                borderBottom: "none",
+                backgroundColor: active ? ORANGE : "transparent",
+                color: active ? "#FFFFFF" : INK,
+                border: `1px solid ${active ? ORANGE : FRAME}`,
               }}
             >
               <span className="truncate">{(m.field || "UNTITLED").toUpperCase()}</span>
@@ -186,6 +185,7 @@ export default function Screen() {
               <input
                 value={module.field}
                 onChange={(e) => updateModule((m) => ({ ...m, field: e.target.value }))}
+                maxLength={18}
                 placeholder="Name this module"
                 className="w-44 shrink-0 text-[13px] font-bold outline-none bg-transparent placeholder:opacity-35"
                 style={{ color: ORANGE }}
