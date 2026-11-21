@@ -165,7 +165,7 @@ export default function Screen() {
         </div>
 
         {/* Where it all lands */}
-        <Card className="shrink-0 flex flex-col" style={{ borderColor: ORANGE }}>
+        <Card className="shrink-0 mt-auto flex flex-col" style={{ borderColor: ORANGE }}>
           <div
             className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
             style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
@@ -175,7 +175,6 @@ export default function Screen() {
           <textarea
             value={module.output}
             onChange={(e) => updateModule((m) => ({ ...m, output: e.target.value }))}
-            placeholder={module.goal || "What this module is driving at"}
             className="w-full h-28 resize-none px-3 py-2 text-[12px] leading-[1.5] outline-none placeholder:opacity-35"
             style={{ color: INK }}
           />
