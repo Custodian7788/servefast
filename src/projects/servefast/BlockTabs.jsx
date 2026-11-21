@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, RotateCw, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw, X } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import Story from "./Story.jsx";
 
@@ -37,8 +37,6 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, o
   const [tab, setTab] = useState(TABS[0]);
   const [index, setIndex] = useState(0);
   const [layer, setLayer] = useState(0);
-  const [adding, setAdding] = useState(false);
-  const [draft, setDraft] = useState("");
   const [pulling, setPulling] = useState(false);
   const [error, setError] = useState(null);
 
@@ -82,36 +80,11 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, o
     if (autoPull && !(tabs?.[TABS[0]] || []).length) pull();
   }, []);
 
-  function submit(e) {
-    e.preventDefault();
-    const text = draft.trim();
-    if (!text) return;
-    onAdd(tab, { id: `i-${Date.now()}`, date: new Date().toISOString().slice(0, 10), text });
-    setDraft("");
-    setAdding(false);
-    setIndex(items.length);
-  }
-
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       {/* One item at a time */}
       <div className="flex-1 min-h-0 px-3 py-2">
-        {adding ? (
-          <form onSubmit={submit} className="h-full flex items-start">
-            <textarea
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) submit(e);
-                if (e.key === "Escape") setAdding(false);
-              }}
-              placeholder="Add an item"
-              className="h-full w-full resize-none text-[12px] leading-[1.45] outline-none placeholder:opacity-35"
-              style={{ color: INK }}
-            />
-          </form>
-        ) : error ? (
+        {error ? (
           <div className="h-full flex items-center justify-center text-center text-[10px] px-2" style={{ color: "#A33427" }}>
             {error}
           </div>
@@ -159,13 +132,6 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, o
           aria-label="Pull today's events"
         >
           <RotateCw size={10} strokeWidth={2} className={pulling ? "animate-spin" : ""} />
-        </button>
-        <button
-          onClick={() => setAdding((a) => !a)}
-          style={{ color: ORANGE }}
-          aria-label="Add an item"
-        >
-          <Plus size={11} strokeWidth={2} />
         </button>
         {current && (
           <button
