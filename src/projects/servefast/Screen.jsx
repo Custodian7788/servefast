@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
-import { addClaim, keptOf, makeModule, pendingOf, setClaimStatus } from "./module.js";
+import { makeModule, makePanel, normalise } from "./module.js";
 import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
-const EMPTY = { modules: [], currentId: null };
 
 function Card({ children, className = "", style }) {
   return (
@@ -15,29 +14,16 @@ function Card({ children, className = "", style }) {
   );
 }
 
-function Label({ children, right }) {
-  return (
-    <div
-      className="shrink-0 flex items-center gap-2 px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
-      style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
-    >
-      <span className="flex-1 truncate">{children}</span>
-      {right}
-    </div>
-  );
-}
-
 export default function Screen() {
-  const [space, setSpace] = useState(EMPTY);
+  const [space, setSpace] = useState({ modules: [], currentId: null });
   const [ready, setReady] = useState(false);
-  const [index, setIndex] = useState(0);
-  const [adding, setAdding] = useState("");
   const loaded = useRef(false);
 
   useEffect(() => {
     loadModule(KEY).then((saved) => {
-      if (saved && saved.modules?.length) setSpace(saved);
-      else {
+      if (saved?.modules?.length) {
+        setSpace({ ...saved, modules: saved.modules.map(normalise) });
+      } else {
         const first = makeModule();
         setSpace({ modules: [first], currentId: first.id });
       }
@@ -51,48 +37,27 @@ export default function Screen() {
   }, [space]);
 
   const module = space.modules.find((m) => m.id === space.currentId) || null;
-  const step = module?.steps[module.currentStep];
-  const pending = step ? pendingOf(step) : [];
-  const kept = step ? keptOf(step) : [];
-  const current = pending[Math.min(index, Math.max(pending.length - 1, 0))];
-
-  useEffect(() => {
-    function onKey(e) {
-      if (["TEXTAREA", "INPUT"].includes(e.target.tagName)) return;
-      if (e.key === "ArrowRight") setIndex((i) => Math.min(i + 1, pending.length - 1));
-      if (e.key === "ArrowLeft") setIndex((i) => Math.max(i - 1, 0));
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [pending.length]);
-
   if (!ready || !module) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
-
-  function createModule() {
-    const made = makeModule();
-    setSpace((s) => ({ modules: [...s.modules, made], currentId: made.id }));
-    setIndex(0);
-  }
 
   function updateModule(fn) {
     setSpace((s) => ({ ...s, modules: s.modules.map((m) => (m.id === s.currentId ? fn(m) : m)) }));
   }
 
-  function updateStep(fn) {
-    updateModule((m) => ({ ...m, steps: m.steps.map((s, i) => (i === m.currentStep ? fn(s) : s)) }));
+  function updatePanel(id, fn) {
+    updateModule((m) => ({ ...m, panels: m.panels.map((p) => (p.id === id ? fn(p) : p)) }));
   }
 
-  function judge(id, status) {
-    updateStep((s) => setClaimStatus(s, id, status));
-    setIndex((i) => Math.min(i, Math.max(pending.length - 2, 0)));
+  function addPanel() {
+    updateModule((m) => ({ ...m, panels: [...m.panels, makePanel()] }));
   }
 
-  function submitClaim(e) {
-    e.preventDefault();
-    const text = adding.trim();
-    if (!text) return;
-    updateStep((s) => addClaim(s, text));
-    setAdding("");
+  function removePanel(id) {
+    updateModule((m) => ({ ...m, panels: m.panels.filter((p) => p.id !== id) }));
+  }
+
+  function createModule() {
+    const made = makeModule();
+    setSpace((s) => ({ modules: [...s.modules, made], currentId: made.id }));
   }
 
   function closeModule(id, e) {
@@ -115,10 +80,7 @@ export default function Screen() {
           return (
             <button
               key={m.id}
-              onClick={() => {
-                setSpace((s) => ({ ...s, currentId: m.id }));
-                setIndex(0);
-              }}
+              onClick={() => setSpace((s) => ({ ...s, currentId: m.id }))}
               className="group shrink-0 flex items-center justify-center gap-1.5 w-32 sm:w-40 h-6 px-2 rounded text-[10px] font-bold tracking-[0.06em]"
               style={{
                 backgroundColor: active ? ORANGE : "transparent",
@@ -127,10 +89,7 @@ export default function Screen() {
               }}
             >
               <span className="truncate">{(m.field || "UNTITLED").toUpperCase()}</span>
-              <span
-                onClick={(e) => closeModule(m.id, e)}
-                className="opacity-0 group-hover:opacity-45 hover:!opacity-100"
-              >
+              <span onClick={(e) => closeModule(m.id, e)} className="opacity-0 group-hover:opacity-45 hover:!opacity-100">
                 <X size={10} />
               </span>
             </button>
@@ -147,112 +106,85 @@ export default function Screen() {
         </button>
       </header>
 
-      <div className="flex-1 min-h-0 flex">
-        <div className="flex-1 min-w-0 p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
-          <Card className="shrink-0">
-            <div className="px-4 pt-3 pb-2 flex items-baseline gap-3" style={{ borderBottom: `1px solid ${LINE}` }}>
-              <input
-                value={module.field}
-                onChange={(e) => updateModule((m) => ({ ...m, field: e.target.value }))}
-                maxLength={18}
-                placeholder="Name this module"
-                className="w-44 shrink-0 text-[13px] font-bold outline-none bg-transparent placeholder:opacity-35"
-                style={{ color: ORANGE }}
-              />
-              <input
-                value={module.goal}
-                onChange={(e) => updateModule((m) => ({ ...m, goal: e.target.value }))}
-                placeholder="What do you want to end up with?"
-                className="flex-1 min-w-0 text-[11px] outline-none bg-transparent placeholder:opacity-35"
-                style={{ color: INK }}
-              />
-            </div>
-            <div className="px-4 py-3">
-              <div className="text-[9.5px] font-bold tracking-[0.07em]" style={{ color: ORANGE }}>
-                STEP {module.currentStep + 1} OF {module.steps.length}
+      <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
+        {/* What this module is */}
+        <Card className="shrink-0">
+          <div className="px-4 py-2.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+            <input
+              value={module.field}
+              onChange={(e) => updateModule((m) => ({ ...m, field: e.target.value }))}
+              maxLength={18}
+              placeholder="Name this module"
+              className="w-full sm:w-44 sm:shrink-0 text-[13px] font-bold outline-none bg-transparent placeholder:opacity-35"
+              style={{ color: ORANGE }}
+            />
+            <input
+              value={module.goal}
+              onChange={(e) => updateModule((m) => ({ ...m, goal: e.target.value }))}
+              placeholder="What do you want to end up with?"
+              className="flex-1 min-w-0 text-[11px] outline-none bg-transparent placeholder:opacity-35"
+              style={{ color: INK }}
+            />
+          </div>
+        </Card>
+
+        {/* The grid of screens, added one at a time */}
+        <div className="grid gap-2 sm:gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          {module.panels.map((p, i) => (
+            <Card key={p.id} className="flex flex-col h-56">
+              <div className="shrink-0 flex items-center gap-2 px-2.5 h-7" style={{ borderBottom: `1px solid ${LINE}` }}>
+                <span className="text-[9.5px] font-bold tabular-nums opacity-35">{String(i + 1).padStart(2, "0")}</span>
+                <input
+                  value={p.title}
+                  onChange={(e) => updatePanel(p.id, (panel) => ({ ...panel, title: e.target.value }))}
+                  placeholder="Name this screen"
+                  className="flex-1 min-w-0 text-[9.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
+                  style={{ color: ORANGE }}
+                />
+                <button
+                  onClick={() => removePanel(p.id)}
+                  className="shrink-0 opacity-25 hover:opacity-70"
+                  aria-label="Remove screen"
+                >
+                  <X size={11} />
+                </button>
               </div>
-              <input
-                value={step.question}
-                onChange={(e) => updateStep((s) => ({ ...s, question: e.target.value }))}
-                className="w-full mt-0.5 text-[15px] font-bold leading-snug outline-none bg-transparent"
+              <textarea
+                value={p.body}
+                onChange={(e) => updatePanel(p.id, (panel) => ({ ...panel, body: e.target.value }))}
+                placeholder="What goes in here"
+                className="flex-1 min-h-0 w-full resize-none px-3 py-2 text-[12px] leading-[1.5] outline-none placeholder:opacity-35"
                 style={{ color: INK }}
               />
-            </div>
-          </Card>
+            </Card>
+          ))}
 
-          <Card className="flex-1 min-h-0 relative">
-            <div className="h-full w-full flex items-center px-6 sm:px-16 pt-8 pb-14 sm:pt-10 sm:pb-16">
-              {current ? (
-                <p className="text-[15px] sm:text-[19px] leading-[1.5]">{current.text}</p>
-              ) : (
-                <p className="w-full text-center text-[12px] opacity-45">
-                  Nothing to judge yet. Add what you already believe on the right.
-                </p>
-              )}
-            </div>
-
-            {current && (
-              <>
-                <button
-                  onClick={() => setIndex((i) => Math.max(i - 1, 0))}
-                  disabled={index === 0}
-                  className="absolute top-1/2 -translate-y-1/2 left-2 p-1 disabled:opacity-15 hover:opacity-60"
-                  style={{ color: ORANGE }}
-                  aria-label="Previous claim"
-                >
-                  <ChevronLeft size={24} strokeWidth={1.5} />
-                </button>
-                <button
-                  onClick={() => setIndex((i) => Math.min(i + 1, pending.length - 1))}
-                  disabled={index >= pending.length - 1}
-                  className="absolute top-1/2 -translate-y-1/2 right-2 p-1 disabled:opacity-15 hover:opacity-60"
-                  style={{ color: ORANGE }}
-                  aria-label="Next claim"
-                >
-                  <ChevronRight size={24} strokeWidth={1.5} />
-                </button>
-
-                <div className="absolute left-0 right-0 bottom-0 flex items-center gap-3 px-5 pb-3">
-                  <button
-                    onClick={() => judge(current.id, "kept")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-bold tracking-[0.07em] text-white"
-                    style={{ backgroundColor: ORANGE }}
-                  >
-                    <Check size={12} strokeWidth={2.5} /> KEEP
-                  </button>
-                  <button
-                    onClick={() => judge(current.id, "binned")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-bold tracking-[0.07em]"
-                    style={{ border: `1px solid ${FRAME}`, color: INK }}
-                  >
-                    <X size={12} strokeWidth={2.5} /> BIN
-                  </button>
-                  <span className="flex-1" />
-                  <span className="text-[11px] tabular-nums font-bold" style={{ color: ORANGE }}>
-                    {index + 1} / {pending.length}
-                  </span>
-                </div>
-              </>
-            )}
-          </Card>
-
-          <Card className="shrink-0">
-            <form onSubmit={submitClaim} className="flex items-center gap-2 px-3 h-9">
-              <Plus size={13} strokeWidth={2} style={{ color: ORANGE }} />
-              <input
-                value={adding}
-                onChange={(e) => setAdding(e.target.value)}
-                placeholder="Add something to judge"
-                className="flex-1 min-w-0 text-[12px] outline-none bg-transparent placeholder:opacity-40"
-                style={{ color: ORANGE }}
-              />
-              <span className="shrink-0 text-[10px] tabular-nums opacity-40">
-                {kept.length} kept
-              </span>
-            </form>
-          </Card>
+          <button
+            onClick={addPanel}
+            className="h-56 rounded-md flex flex-col items-center justify-center gap-2 hover:bg-[#FFF8F2] transition-colors"
+            style={{ border: `1px dashed ${FRAME}`, color: ORANGE }}
+          >
+            <Plus size={20} strokeWidth={1.5} />
+            <span className="text-[10px] font-bold tracking-[0.07em]">ADD A SCREEN</span>
+          </button>
         </div>
 
+        {/* Where it all lands */}
+        <Card className="shrink-0 flex flex-col" style={{ borderColor: ORANGE }}>
+          <div
+            className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
+            style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
+          >
+            OUTPUT
+          </div>
+          <textarea
+            value={module.output}
+            onChange={(e) => updateModule((m) => ({ ...m, output: e.target.value }))}
+            placeholder={module.goal || "What this module is driving at"}
+            className="w-full h-28 resize-none px-3 py-2 text-[12px] leading-[1.5] outline-none placeholder:opacity-35"
+            style={{ color: INK }}
+          />
+        </Card>
       </div>
     </div>
   );
