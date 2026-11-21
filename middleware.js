@@ -5,7 +5,7 @@ export const config = {
 const COOKIE = "sf_open";
 
 function password() {
-  return process.env.SITE_PASSWORD || "8";
+  return process.env.SITE_PASSWORD || "SF8";
 }
 
 // A short token so the cookie never carries the password itself.
@@ -74,7 +74,7 @@ export default async function middleware(request) {
         status: 303,
         headers: {
           location: "/",
-          "set-cookie": `${COOKIE}=${good}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`,
+          "set-cookie": `${COOKIE}=${good}; Path=/; Max-Age=86400; HttpOnly; Secure; SameSite=Lax`,
         },
       });
     }
