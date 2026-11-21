@@ -203,17 +203,16 @@ export default function Screen() {
       >
         <Card className="flex-1 min-h-0 flex flex-col">
           <div
-            className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
-            style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
+            className="shrink-0 flex items-center gap-2 px-2.5 h-8"
+            style={{ borderBottom: `1px solid ${LINE}` }}
           >
-            MODULE BUILDER
-          </div>
-
-          <div className="shrink-0 px-2.5 py-2" style={{ borderBottom: `1px solid ${LINE}` }}>
+            <span className="shrink-0 text-[9.5px] font-bold tracking-[0.07em]" style={{ color: ORANGE }}>
+              MODULE BUILDER
+            </span>
             <select
               value={space.currentId || ""}
               onChange={(e) => setSpace((s) => ({ ...s, currentId: e.target.value }))}
-              className="w-full h-7 px-2 rounded bg-white text-[11px] outline-none"
+              className="flex-1 min-w-0 h-6 px-1.5 rounded bg-white text-[10.5px] outline-none"
               style={{ border: `1px solid ${FRAME}`, color: INK }}
             >
               {space.modules.map((m) => (
