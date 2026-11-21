@@ -58,30 +58,36 @@ export default function Screen() {
     ? "Drop a file anywhere to begin."
     : ran
     ? "Nothing in those files matches."
-    : "Ask for something in the bar above.";
+    : "Type a command on the right.";
 
   return (
     <div
       className="relative h-screen w-full flex flex-col md:flex-row"
       style={{ backgroundColor: MAIN_BG, color: INK }}
     >
+      {/* Tools area: results only */}
       <div className="flex-1 min-h-0 min-w-0 flex flex-col">
-        <CommandBar onRun={run} disabled={!docs.length} />
         <ResultWindow results={results} index={index} setIndex={setIndex} empty={empty} />
       </div>
 
+      {/* Files on top, commands underneath */}
       <aside
-        className="h-40 md:h-auto md:w-72 shrink-0 border-t md:border-t-0 md:border-l"
+        className="h-[60vh] md:h-auto md:w-72 shrink-0 flex flex-col border-t md:border-t-0 md:border-l"
         style={{ backgroundColor: NAV_BG, borderColor: LINE }}
       >
-        <DropZone
-          docs={docs}
-          busy={busy}
-          error={error}
-          onFiles={addFiles}
-          onRemove={removeDoc}
-          onClear={clearDocs}
-        />
+        <div className="h-1/2 min-h-0">
+          <DropZone
+            docs={docs}
+            busy={busy}
+            error={error}
+            onFiles={addFiles}
+            onRemove={removeDoc}
+            onClear={clearDocs}
+          />
+        </div>
+        <div className="h-1/2 min-h-0 border-t" style={{ borderColor: LINE }}>
+          <CommandBar onRun={run} disabled={!docs.length} />
+        </div>
       </aside>
 
       {dragging && (
