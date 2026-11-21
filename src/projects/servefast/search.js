@@ -63,7 +63,8 @@ export function findPassages(docs, query) {
 
   const hits = [];
   docs.forEach((doc) => {
-    splitPassages(doc.text).forEach((passage, i) => {
+    const passages = splitPassages(doc.text);
+    passages.forEach((passage, i) => {
       const haystack = passage.toLowerCase();
       const matched = terms.filter((t) => haystack.includes(t));
       if (!matched.length) return;
@@ -75,6 +76,9 @@ export function findPassages(docs, query) {
       hits.push({
         id: `${doc.id}-${i}`,
         source: doc.name,
+        doc,
+        place: i + 1,
+        of: passages.length,
         text: passage,
         terms: matched,
         score: matched.length * 1000 + count,

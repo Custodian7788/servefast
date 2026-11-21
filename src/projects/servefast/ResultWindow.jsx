@@ -58,6 +58,50 @@ function Arrow({ dir, onClick, disabled }) {
   );
 }
 
+function shortDate(value) {
+  if (!value) return "";
+  const when = new Date(value);
+  if (Number.isNaN(when.getTime())) return "";
+  return when
+    .toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    .toUpperCase();
+}
+
+function tidyAddress(value) {
+  if (!value) return "";
+  const first = value.split(",")[0].trim();
+  const named = /^(.*?)[<(]/.exec(first);
+  return (named ? named[1] : first).replace(/["']/g, "").trim() || first;
+}
+
+// What the passage came from, along the foot of the card.
+function SourceLine({ hit, index, total }) {
+  const meta = hit.doc?.meta;
+  const title = meta?.subject || hit.source;
+  const bits = [
+    meta?.from ? `from ${tidyAddress(meta.from)}` : null,
+    shortDate(meta?.date),
+    meta?.subject ? hit.source : null,
+    `passage ${hit.place} of ${hit.of}`,
+  ].filter(Boolean);
+
+  return (
+    <div className="absolute left-0 right-0 bottom-0 px-5 pb-3 pt-6 pointer-events-none">
+      <div className="flex items-end justify-between gap-4" style={{ color: INK }}>
+        <div className="min-w-0">
+          <div className="truncate text-[11px] font-bold" title={title}>
+            {title}
+          </div>
+          <div className="truncate text-[10px] opacity-45">{bits.join("  ·  ")}</div>
+        </div>
+        <div className="shrink-0 text-[11px] tabular-nums font-bold" style={{ color: ORANGE }}>
+          {index + 1} / {total}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // One passage at a time, always whole, never scrolled. You toggle through them.
 export default function ResultWindow({ results, index, setIndex, empty }) {
   const total = results.length;
@@ -81,7 +125,7 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
         className="relative h-full w-full rounded-md bg-white overflow-hidden"
         style={{ border: `1px solid ${FRAME}` }}
       >
-        <div className="h-full w-full flex items-center px-16 py-12">
+        <div className="h-full w-full flex items-center px-16 pt-12 pb-20">
           {current ? (
             <FitText max={30} min={11}>
               <p className="whitespace-pre-wrap" style={{ color: INK }}>
@@ -102,15 +146,7 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
           disabled={!total || index >= total - 1}
         />
 
-        <div
-          className="absolute left-0 right-0 bottom-0 flex items-baseline justify-between px-4 pb-2 text-[10px]"
-          style={{ color: INK }}
-        >
-          <span className="truncate opacity-45">{current ? current.source : ""}</span>
-          <span className="tabular-nums shrink-0" style={{ opacity: total ? 1 : 0 }}>
-            {total ? `${index + 1} / ${total}` : "."}
-          </span>
-        </div>
+        {current && <SourceLine hit={current} index={index} total={total} />}
       </div>
     </div>
   );

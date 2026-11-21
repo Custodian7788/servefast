@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { readFileAsText } from "./parse.js";
+import { readFile } from "./parse.js";
 import { clearStoredDocs, loadStoredDocs, storeDocs } from "./store.js";
 
 // Loaded files survive a refresh and only go when you clear them. The copy is
@@ -45,13 +45,16 @@ export function useDocs() {
     await Promise.all(
       files.map(async (file) => {
         try {
-          const text = await readFileAsText(file);
+          const { text, meta } = await readFile(file);
           if (!text || !text.trim() || looksBinary(text)) failed.push(file.name);
           else
             usable.push({
               id: `${file.name}-${file.size}-${file.lastModified}`,
               name: file.name,
               text,
+              meta,
+              size: file.size,
+              addedAt: Date.now(),
               words: (text.match(/\S+/g) || []).length,
             });
         } catch {

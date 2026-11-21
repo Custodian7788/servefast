@@ -86,16 +86,14 @@ export function parseMsg(arrayBuffer) {
     .join(", ");
 
   const body = data.body || htmlToText(data.bodyHtml) || rtfBody(data);
+  const meta = {
+    from: sender,
+    to,
+    date: data.messageDeliveryTime || data.clientSubmitTime || "",
+    subject: data.subject || "",
+  };
 
-  return joinParts(
-    headerBlock({
-      from: sender,
-      to,
-      date: data.messageDeliveryTime || data.clientSubmitTime,
-      subject: data.subject,
-    }),
-    body
-  );
+  return { text: joinParts(headerBlock(meta), body), meta };
 }
 
 // ---- .eml ---------------------------------------------------------------
@@ -177,25 +175,27 @@ function bestBody(section) {
 export function parseEml(raw) {
   const { headers } = splitHeaders(raw);
   const found = bestBody(raw);
+  const meta = {
+    from: decodeWords(headers.from || ""),
+    to: decodeWords(headers.to || ""),
+    date: headers.date || "",
+    subject: decodeWords(headers.subject || ""),
+  };
 
-  return joinParts(
-    headerBlock({
-      from: decodeWords(headers.from || ""),
-      to: decodeWords(headers.to || ""),
-      date: headers.date || "",
-      subject: decodeWords(headers.subject || ""),
-    }),
-    found?.text || ""
-  );
+  return { text: joinParts(headerBlock(meta), found?.text || ""), meta };
 }
 
 // ---- entry point --------------------------------------------------------
 
-export async function readFileAsText(file) {
+// Always returns { text, meta }. meta carries what the file itself knows
+// about: sender, date, subject for a message, nothing much for plain text.
+export async function readFile(file) {
   const name = (file.name || "").toLowerCase();
 
   if (name.endsWith(".msg")) return parseMsg(await file.arrayBuffer());
   if (name.endsWith(".eml")) return parseEml(await file.text());
-  if (name.endsWith(".html") || name.endsWith(".htm")) return htmlToText(await file.text());
-  return file.text();
+  if (name.endsWith(".html") || name.endsWith(".htm")) {
+    return { text: htmlToText(await file.text()), meta: null };
+  }
+  return { text: await file.text(), meta: null };
 }
