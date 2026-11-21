@@ -151,13 +151,17 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
               </span>
             )}
             {current.text}
-            {current.industries?.length > 0 && (
-              <span className="block mt-2 text-[9.5px] font-bold uppercase tracking-[0.06em]" style={{ color: ORANGE }}>
-                {current.industries.join("  ·  ")}
+            {current.effects?.length > 0 && (
+              <span className="block mt-2.5">
+                {current.effects.map((effect, i) => (
+                  <span key={i} className="block mt-1">
+                    <span className="text-[9.5px] font-bold uppercase tracking-[0.06em]" style={{ color: ORANGE }}>
+                      {effect.industry}
+                    </span>
+                    <span className="ml-1.5 text-[11px] opacity-75">{effect.consequence}</span>
+                  </span>
+                ))}
               </span>
-            )}
-            {current.domain && (
-              <span className="block mt-0.5 text-[9px] uppercase tracking-[0.06em] opacity-40">{current.domain}</span>
             )}
           </Fitted>
         ) : (

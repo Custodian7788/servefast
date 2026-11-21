@@ -89,20 +89,28 @@ An item is an EVENT only if it changes one of three things:
 Everything else - commentary, polls, personnel gossip, product launches,
 sport, crime, weather - is not an event. Most items will not qualify.
 
-For each event you keep, write ONE factual sentence of at most 28 words. State
-what happened and who did it. No interpretation, no forecasting, no adjectives
-of significance. Name a domain from: trade, energy, defence, technology, money,
-resources.
+An event only counts if you can name a real industry it lands on. If the
+industry effect is vague, general ("uncertainty", "sentiment") or you would
+have to speculate to state it, drop the item. Most items will not qualify.
 
-Then name the industries it bears on: one to three, from the ordinary
-vocabulary of industries (semiconductors, shipping, defence primes, utilities,
-pharmaceuticals, autos, banks, miners, airlines, construction, retail, oil and
-gas, telecoms, insurers, agriculture, steel, chemicals, aerospace, grid
-equipment, data centres). Only industries the event actually touches - if it
-touches none, leave the list empty.
+For each event you keep, give three things:
+
+1. "headline" - the fact, in one sentence of at most 24 words. What happened
+   and who did it. No interpretation, no forecasting, no adjectives of
+   significance.
+2. "domain" - one of: trade, energy, defence, technology, money, resources.
+3. "effects" - one to three industries this lands on, each with the specific
+   consequence. Name the industry from ordinary vocabulary (semiconductors,
+   shipping, defence primes, utilities, pharmaceuticals, autos, banks, miners,
+   airlines, construction, oil and gas, telecoms, insurers, agriculture,
+   steel, chemicals, aerospace, grid equipment, data centres, and so on).
+   The consequence is one sentence of at most 22 words saying what changes for
+   that industry and in which direction: costs, demand, supply, access to a
+   market, or who is allowed to sell what. Be concrete about who gains and who
+   loses. Never write a consequence that would be true of any news item.
 
 Return JSON only, in this exact shape and nothing else:
-{"events":[{"text":"...","domain":"trade","industries":["semiconductors"],"source":"BBC","url":"https://..."}]}
+{"events":[{"headline":"...","domain":"trade","effects":[{"industry":"semiconductors","consequence":"..."}],"source":"BBC","url":"https://..."}]}
 
 Keep at most 12 events, the most consequential first. If nothing qualifies,
 return {"events":[]}.`;
@@ -157,15 +165,20 @@ export default async function handler(request, response) {
     }
 
     response.status(200).json({
-      events: events.map((event, i) => ({
-        id: `ev-${Date.now()}-${i}`,
-        date: new Date().toISOString().slice(0, 10),
-        text: event.text,
-        domain: event.domain || "",
-        industries: Array.isArray(event.industries) ? event.industries.slice(0, 3) : [],
-        source: event.source || "",
-        url: event.url || "",
-      })),
+      events: events
+        .filter((event) => Array.isArray(event.effects) && event.effects.length)
+        .map((event, i) => ({
+          id: `ev-${Date.now()}-${i}`,
+          date: new Date().toISOString().slice(0, 10),
+          text: event.headline || event.text || "",
+          domain: event.domain || "",
+          effects: event.effects.slice(0, 3).map((effect) => ({
+            industry: effect.industry || "",
+            consequence: effect.consequence || "",
+          })),
+          source: event.source || "",
+          url: event.url || "",
+        })),
       read: items.length,
     });
   } catch (error) {
