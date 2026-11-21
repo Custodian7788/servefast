@@ -33,7 +33,8 @@ function Sidebar() {
         {PROJECTS.map((p) => (
           <NavLink
             key={p.slug}
-            to={`/${p.slug}`}
+            to="/"
+            end
             className="w-full flex items-center px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide"
             style={({ isActive }) => ({ color: isActive ? ORANGE : INK })}
           >
@@ -65,14 +66,14 @@ export default function App() {
       <Route path="/servefast/mobile" element={<ServefastMobile />} />
 
       <Route
-        path="/servefast"
+        path="/"
         element={
           <Shell>
             <Workbench base="/servefast" name="Servefast" />
           </Shell>
         }
       />
-      <Route path="*" element={<Navigate to="/servefast" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
