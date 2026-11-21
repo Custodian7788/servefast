@@ -151,8 +151,13 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
               </span>
             )}
             {current.text}
+            {current.industries?.length > 0 && (
+              <span className="block mt-2 text-[9.5px] font-bold uppercase tracking-[0.06em]" style={{ color: ORANGE }}>
+                {current.industries.join("  ·  ")}
+              </span>
+            )}
             {current.domain && (
-              <span className="ml-1.5 text-[9px] uppercase tracking-[0.06em] opacity-45">{current.domain}</span>
+              <span className="block mt-0.5 text-[9px] uppercase tracking-[0.06em] opacity-40">{current.domain}</span>
             )}
           </Fitted>
         ) : (

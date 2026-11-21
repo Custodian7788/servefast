@@ -94,8 +94,15 @@ what happened and who did it. No interpretation, no forecasting, no adjectives
 of significance. Name a domain from: trade, energy, defence, technology, money,
 resources.
 
+Then name the industries it bears on: one to three, from the ordinary
+vocabulary of industries (semiconductors, shipping, defence primes, utilities,
+pharmaceuticals, autos, banks, miners, airlines, construction, retail, oil and
+gas, telecoms, insurers, agriculture, steel, chemicals, aerospace, grid
+equipment, data centres). Only industries the event actually touches - if it
+touches none, leave the list empty.
+
 Return JSON only, in this exact shape and nothing else:
-{"events":[{"text":"...","domain":"trade","source":"BBC","url":"https://..."}]}
+{"events":[{"text":"...","domain":"trade","industries":["semiconductors"],"source":"BBC","url":"https://..."}]}
 
 Keep at most 12 events, the most consequential first. If nothing qualifies,
 return {"events":[]}.`;
@@ -155,6 +162,7 @@ export default async function handler(request, response) {
         date: new Date().toISOString().slice(0, 10),
         text: event.text,
         domain: event.domain || "",
+        industries: Array.isArray(event.industries) ? event.industries.slice(0, 3) : [],
         source: event.source || "",
         url: event.url || "",
       })),
