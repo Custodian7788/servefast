@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCw, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import Story from "./Story.jsx";
+import Sources from "./Sources.jsx";
 
 // Four tabs per block. They start unnamed - you name them as the block takes
 // shape. The first one is the one wired to the feeds.
@@ -33,11 +34,12 @@ function Fitted({ children }) {
   );
 }
 
-export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, onRemove, onRename }) {
+export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = [], onAdd, onRemove, onRename, onFeeds }) {
   const [tab, setTab] = useState(TABS[0]);
   const [index, setIndex] = useState(0);
   const [layer, setLayer] = useState(0);
   const [pulling, setPulling] = useState(false);
+  const [showSources, setShowSources] = useState(false);
   const [error, setError] = useState(null);
 
   const askedOnce = useRef(false);
@@ -49,7 +51,11 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, o
     setPulling(true);
     setError(null);
     try {
-      const response = await fetch("/api/events");
+      const response = await fetch("/api/events", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ extra: feeds }),
+      });
       const body = await response.text();
       let data;
       try {
@@ -81,7 +87,15 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, o
   }, []);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col">
+    <div className="relative flex-1 min-h-0 flex flex-col">
+      {showSources && (
+        <Sources
+          extra={feeds}
+          onAdd={(url) => onFeeds([...feeds, url])}
+          onRemove={(url) => onFeeds(feeds.filter((f) => f !== url))}
+          onClose={() => setShowSources(false)}
+        />
+      )}
       {/* One item at a time */}
       <div className="flex-1 min-h-0 px-3 py-2">
         {error ? (
@@ -125,6 +139,13 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, o
         </button>
         <span className="flex-1" />
         <button
+          onClick={() => setShowSources(true)}
+          className="text-[9px] font-bold tracking-[0.07em] hover:opacity-70"
+          style={{ color: ORANGE }}
+        >
+          SOURCES
+        </button>
+        <button
           onClick={pull}
           disabled={pulling}
           className="disabled:opacity-40"
@@ -133,19 +154,6 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, onAdd, o
         >
           <RotateCw size={10} strokeWidth={2} className={pulling ? "animate-spin" : ""} />
         </button>
-        {current && (
-          <button
-            onClick={() => {
-              onRemove(tab, current.id);
-              setIndex(0);
-            }}
-            className="opacity-30 hover:opacity-80"
-            style={{ color: INK }}
-            aria-label="Remove item"
-          >
-            <X size={11} />
-          </button>
-        )}
         <span className="text-[9px] tabular-nums font-bold" style={{ color: items.length ? ORANGE : "transparent" }}>
           {items.length ? `${index + 1}/${items.length}` : "."}
         </span>

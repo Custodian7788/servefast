@@ -208,6 +208,8 @@ export default function Screen() {
               <BlockTabs
                 tabs={p.tabs}
                 autoPull={i === 0}
+                feeds={p.feeds || []}
+                onFeeds={(feeds) => updatePanel(p.id, (panel) => ({ ...panel, feeds }))}
                 names={p.tabNames}
                 onRename={(tab, name) =>
                   updatePanel(p.id, (panel) => ({

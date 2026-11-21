@@ -6,8 +6,8 @@ import { FEEDS } from "./feeds.js";
 // line each. The key never leaves the server.
 
 const MAX_PER_FEED = 12;
-const MAX_ITEMS = 220;
-const WINDOW_HOURS = 36;
+const MAX_ITEMS = 320;
+const WINDOW_HOURS = 24;
 
 function stripTags(value = "") {
   return value
@@ -132,7 +132,13 @@ export default async function handler(request, response) {
   }
 
   try {
-    const pulled = (await Promise.all(FEEDS.map(readFeed))).flat();
+    const extra = []
+      .concat(request.body?.extra || [])
+      .filter((url) => typeof url === "string" && /^https?:\/\//i.test(url))
+      .slice(0, 15)
+      .map((url) => ({ source: new URL(url).hostname.replace(/^www\./, ""), url }));
+
+    const pulled = (await Promise.all([...FEEDS, ...extra].map(readFeed))).flat();
     const items = dedupe(recentFirst(pulled)).slice(0, MAX_ITEMS);
 
     if (!items.length) {

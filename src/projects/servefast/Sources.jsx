@@ -1,0 +1,84 @@
+import React, { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { FRAME, INK, LINE, ORANGE } from "../../theme.js";
+
+// Which feeds the block reads, and the ones you have added yourself.
+export default function Sources({ extra = [], onAdd, onRemove, onClose }) {
+  const [builtIn, setBuiltIn] = useState(null);
+  const [draft, setDraft] = useState("");
+
+  useEffect(() => {
+    fetch("/api/sources")
+      .then((r) => r.json())
+      .then((data) => setBuiltIn(data.sources || []))
+      .catch(() => setBuiltIn([]));
+  }, []);
+
+  function submit(e) {
+    e.preventDefault();
+    const url = draft.trim();
+    if (!/^https?:\/\//i.test(url)) return;
+    onAdd(url);
+    setDraft("");
+  }
+
+  return (
+    <div className="absolute inset-0 z-20 flex flex-col bg-white">
+      <div
+        className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
+        style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
+      >
+        <span className="flex-1">
+          SOURCES {builtIn ? `· ${builtIn.length + extra.length}` : ""}
+        </span>
+        <button onClick={onClose} className="opacity-50 hover:opacity-100" style={{ color: INK }} aria-label="Close">
+          <X size={11} />
+        </button>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto px-2.5 py-1.5">
+        {extra.map((url) => (
+          <div key={url} className="group flex items-baseline gap-2 py-[2px] text-[10px]" style={{ color: INK }}>
+            <span className="truncate flex-1" title={url}>
+              {url.replace(/^https?:\/\/(www\.)?/, "")}
+            </span>
+            <button
+              onClick={() => onRemove(url)}
+              className="shrink-0 opacity-0 group-hover:opacity-50 hover:!opacity-100"
+              aria-label="Remove source"
+            >
+              <X size={9} />
+            </button>
+          </div>
+        ))}
+
+        {builtIn === null ? (
+          <div className="text-[10px] opacity-40" style={{ color: INK }}>
+            Loading…
+          </div>
+        ) : (
+          builtIn.map((feed) => (
+            <div key={feed.url} className="flex items-baseline gap-2 py-[2px] text-[10px]" style={{ color: INK }}>
+              <span className="truncate flex-1" title={feed.url}>
+                {feed.source}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+
+      <form onSubmit={submit} className="shrink-0 flex items-center px-2.5 h-7" style={{ borderTop: `1px solid ${LINE}` }}>
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Add a feed URL"
+          className="flex-1 min-w-0 text-[10px] outline-none bg-transparent placeholder:opacity-35"
+          style={{ color: ORANGE }}
+        />
+        <button type="submit" className="text-[9px] font-bold tracking-[0.07em]" style={{ color: ORANGE }}>
+          ADD
+        </button>
+      </form>
+    </div>
+  );
+}
