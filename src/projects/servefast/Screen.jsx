@@ -75,7 +75,7 @@ export default function Screen() {
         className="h-[60vh] md:h-auto md:w-72 shrink-0 flex flex-col border-t md:border-t-0 md:border-l"
         style={{ backgroundColor: NAV_BG, borderColor: LINE }}
       >
-        <div className="h-1/2 min-h-0">
+        <div className="flex-1 min-h-0 p-2">
           <DropZone
             docs={docs}
             busy={busy}
@@ -85,7 +85,7 @@ export default function Screen() {
             onClear={clearDocs}
           />
         </div>
-        <div className="h-1/2 min-h-0 border-t" style={{ borderColor: LINE }}>
+        <div className="h-44 shrink-0 border-t" style={{ borderColor: LINE }}>
           <CommandBar onRun={run} disabled={!docs.length} />
         </div>
       </aside>

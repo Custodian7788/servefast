@@ -1,47 +1,31 @@
 import React, { useState } from "react";
-import { INK, LINE, ORANGE } from "../../theme.js";
+import { INK, LINE } from "../../theme.js";
 
-// Commands are typed here, under the files they act on.
+// Commands are typed here, under the files they act on. Enter runs them.
 export default function CommandBar({ onRun, disabled }) {
   const [value, setValue] = useState("");
 
-  function submit(e) {
-    e.preventDefault();
-    onRun(value);
-  }
-
   return (
-    <form onSubmit={submit} className="h-full flex flex-col p-2 gap-1.5">
-      <div
-        className="px-0.5 text-[10px] font-bold uppercase tracking-wide"
-        style={{ color: INK }}
-      >
-        Command
-      </div>
-
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onRun(value);
+      }}
+      className="h-full p-2"
+    >
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) submit(e);
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            onRun(value);
+          }
         }}
         placeholder={disabled ? "Drop a file first" : "Every passage where I mention the invoice"}
-        className="flex-1 min-h-0 resize-none rounded px-2 py-1.5 text-[12px] leading-snug outline-none bg-white"
+        className="h-full w-full resize-none rounded px-2 py-1.5 text-[12px] leading-snug outline-none bg-white"
         style={{ border: `1.5px solid ${LINE}`, color: INK }}
       />
-
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] opacity-45" style={{ color: INK }}>
-          "quotes" for exact
-        </span>
-        <button
-          type="submit"
-          className="px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wide text-white"
-          style={{ backgroundColor: ORANGE }}
-        >
-          Run
-        </button>
-      </div>
     </form>
   );
 }

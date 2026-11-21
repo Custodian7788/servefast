@@ -3,6 +3,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import FitText from "./FitText.jsx";
 import { INK, LINE, ORANGE } from "../../theme.js";
 
+const CARD = "#FFFFFF";
+const HEAD = "#FBF0DC";
+
 // Marks the asked-for words inside a passage, without touching the rest.
 function highlight(text, terms) {
   if (!terms || !terms.length) return text;
@@ -33,7 +36,7 @@ function highlight(text, terms) {
   merged.forEach(([start, end], i) => {
     if (start > cursor) out.push(text.slice(cursor, start));
     out.push(
-      <mark key={i} style={{ backgroundColor: "#FFE1C2", color: INK }}>
+      <mark key={i} style={{ backgroundColor: "#FFE1C2", color: INK, padding: "0 2px", borderRadius: 2 }}>
         {text.slice(start, end)}
       </mark>
     );
@@ -49,6 +52,7 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
 
   useEffect(() => {
     function onKey(e) {
+      if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
       if (e.key === "ArrowRight") setIndex((i) => Math.min(i + 1, total - 1));
       if (e.key === "ArrowLeft") setIndex((i) => Math.max(i - 1, 0));
     }
@@ -59,9 +63,24 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
   const current = results[index];
 
   return (
-    <div className="flex-1 min-h-0 flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl h-full max-h-[560px] flex flex-col">
-        <div className="flex-1 min-h-0 rounded bg-white p-5" style={{ border: `2px solid ${LINE}` }}>
+    <div className="flex-1 min-h-0 flex items-center justify-center p-5">
+      <div
+        className="w-full max-w-3xl h-full max-h-[620px] flex flex-col rounded overflow-hidden"
+        style={{ backgroundColor: CARD, border: `1px solid ${LINE}` }}
+      >
+        <div
+          className="shrink-0 flex items-center gap-2 px-3 h-7 text-[9px] font-bold uppercase tracking-[0.08em]"
+          style={{ backgroundColor: HEAD, borderBottom: `1px solid ${LINE}`, color: INK }}
+        >
+          <span className="flex-1 truncate normal-case font-normal text-[10px] opacity-60">
+            {current ? current.source : ""}
+          </span>
+          <span className="tabular-nums" style={{ color: total ? ORANGE : INK }}>
+            {total ? `${index + 1} of ${total}` : "No results"}
+          </span>
+        </div>
+
+        <div className="flex-1 min-h-0 px-8 py-7">
           {current ? (
             <FitText>
               <p className="whitespace-pre-wrap" style={{ color: INK }}>
@@ -69,38 +88,33 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
               </p>
             </FitText>
           ) : (
-            <div
-              className="h-full flex items-center justify-center text-[12px] opacity-45"
-              style={{ color: INK }}
-            >
+            <div className="h-full flex items-center justify-center text-[12px] opacity-40" style={{ color: INK }}>
               {empty}
             </div>
           )}
         </div>
 
-        <div className="h-8 shrink-0 flex items-center justify-between text-[11px]" style={{ color: INK }}>
-          <span className="truncate opacity-60">{current ? current.source : ""}</span>
-          <span className="flex items-center gap-2">
-            <button
-              onClick={() => setIndex((i) => Math.max(i - 1, 0))}
-              disabled={!total || index === 0}
-              className="disabled:opacity-25"
-              aria-label="Previous"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span className="tabular-nums" style={{ color: total ? ORANGE : INK }}>
-              {total ? `${index + 1} / ${total}` : "0"}
-            </span>
-            <button
-              onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
-              disabled={!total || index >= total - 1}
-              className="disabled:opacity-25"
-              aria-label="Next"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </span>
+        <div
+          className="shrink-0 flex items-center justify-center gap-6 h-9"
+          style={{ backgroundColor: HEAD, borderTop: `1px solid ${LINE}`, color: INK }}
+        >
+          <button
+            onClick={() => setIndex((i) => Math.max(i - 1, 0))}
+            disabled={!total || index === 0}
+            className="disabled:opacity-20 hover:opacity-60"
+            aria-label="Previous passage"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className="text-[10px] uppercase tracking-[0.08em] opacity-45">Toggle</span>
+          <button
+            onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
+            disabled={!total || index >= total - 1}
+            className="disabled:opacity-20 hover:opacity-60"
+            aria-label="Next passage"
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
       </div>
     </div>
