@@ -103,18 +103,26 @@ For each event you keep, give three things:
    happens next if it says so. Use only what is in the item. Never invent
    detail that is not there.
 2. "domain" - one of: trade, energy, defence, technology, money, resources.
-3. "effects" - one to three industries this lands on, each with the specific
-   consequence. Name the industry from ordinary vocabulary (semiconductors,
-   shipping, defence primes, utilities, pharmaceuticals, autos, banks, miners,
-   airlines, construction, oil and gas, telecoms, insurers, agriculture,
-   steel, chemicals, aerospace, grid equipment, data centres, and so on).
-   The consequence is one sentence of at most 22 words saying what changes for
-   that industry and in which direction: costs, demand, supply, access to a
-   market, or who is allowed to sell what. Be concrete about who gains and who
-   loses. Never write a consequence that would be true of any news item.
+3. "effects" - one to three industries this lands on. For each one give:
+   - "industry": the industry in ordinary vocabulary (semiconductors, autos,
+     defence primes, utilities, pharmaceuticals, banks, miners, airlines,
+     oil and gas, telecoms, steel, chemicals, aerospace, grid equipment,
+     data centres, and so on). Be as specific as the item allows: "chip
+     equipment makers" beats "technology".
+   - "direction": "tailwind", "headwind" or "mixed", from the point of view of
+     companies in that industry.
+   - "consequence": one sentence, at most 22 words, on the mechanism. What
+     physically or legally changes - a cost, a volume, a licence, a market
+     closed or opened - and for whom.
+   - "investing": one sentence, at most 26 words, on what it means for someone
+     putting money into that industry: who gains and who loses by name or by
+     type, how big it is, and how long it lasts. Never recommend buying or
+     selling anything, never name a price target, and never hedge with
+     "could be affected" - if you cannot say something concrete, drop the
+     whole event.
 
 Return JSON only, in this exact shape and nothing else:
-{"events":[{"headline":"...","summary":"...","domain":"trade","effects":[{"industry":"semiconductors","consequence":"..."}],"source":"BBC","url":"https://..."}]}
+{"events":[{"headline":"...","summary":"...","domain":"trade","effects":[{"industry":"chip equipment makers","direction":"headwind","consequence":"...","investing":"..."}],"source":"BBC","url":"https://..."}]}
 
 THE BAR. Before keeping an item, ask: would this change how someone decides
 where to put money in that industry? If the honest answer is no, drop it.
@@ -132,8 +140,14 @@ state doing something specific, a licence granted or refused, a contract
 awarded, a supply route or resource changing hands.
 
 Good: "Japan approved a 1.4 trillion yen subsidy for domestic chip packaging,
-paid against capacity built by 2029." -> semiconductors: domestic packaging
-firms get capital at below-market cost, narrowing Taiwan's advantage.
+paid against capacity built by 2029."
+  industry: chip packaging and test
+  direction: tailwind
+  consequence: Japanese packaging firms get state capital against capacity
+  built by 2029, below the cost of private funding.
+  investing: Domestic packagers and their equipment suppliers gain a funded
+  order book for several years; Taiwanese incumbents lose relative cost
+  advantage.
 Bad: "Tensions rose in the Red Sea." -> shipping: routes face disruption.
 
 Keep at most 8 events, the strongest first. Six good ones beat twelve weak
@@ -209,7 +223,9 @@ export default async function handler(request, response) {
           domain: event.domain || "",
           effects: event.effects.slice(0, 3).map((effect) => ({
             industry: effect.industry || "",
+            direction: effect.direction || "",
             consequence: effect.consequence || "",
+            investing: effect.investing || "",
           })),
           source: event.source || "",
           url: event.url || "",

@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 
-// One story, revealed a layer at a time: headline, then the summary, then
-// what it means for an industry. Nothing scrolls - the type gives way instead.
+// One story. The headline and its age are always on screen; underneath, one
+// view at a time - the summary, then what it means for an industry - toggled
+// left and right by you. Nothing scrolls: the type gives way instead.
 export function sinceLabel(iso) {
   const then = Date.parse(iso);
   if (!then) return "";
@@ -15,7 +17,7 @@ export function sinceLabel(iso) {
   return days === 1 ? "yesterday" : `${days} days ago`;
 }
 
-function Fitted({ children, max = 15, min = 8.5 }) {
+function Fitted({ children, max = 13, min = 8.5 }) {
   const box = useRef(null);
   const inner = useRef(null);
 
@@ -33,83 +35,109 @@ function Fitted({ children, max = 15, min = 8.5 }) {
 
   return (
     <div ref={box} className="h-full w-full overflow-hidden">
-      <div ref={inner} style={{ fontSize: max }}>
-        {children}
-      </div>
+      <div ref={inner}>{children}</div>
     </div>
   );
 }
 
-export const LAYERS = ["Headline", "Summary", "Perspective"];
+export default function Story({ item, view = 0, onView }) {
+  const views = [];
+  if (item.summary) views.push("Summary");
+  if (item.effects?.length) views.push("Perspective");
 
-export default function Story({ item, layer, onLayer }) {
-  const hasSummary = Boolean(item.summary);
-  const hasPerspective = Boolean(item.effects?.length);
-
-  // Only offer the layers this story actually has, so a step never lands on
-  // an empty one. Stories pulled before summaries existed go straight to
-  // perspective.
-  const steps = [
-    hasSummary ? { label: "Summary", show: 1 } : null,
-    hasPerspective ? { label: "Perspective", show: 2 } : null,
-  ].filter(Boolean);
-  const at = steps.findIndex((step) => step.show > layer);
-  const next = at === -1 ? null : steps[at];
+  const at = views.length ? Math.min(view, views.length - 1) : 0;
+  const showing = views[at];
 
   return (
-    <Fitted>
-      {/* Headline, always */}
-      <p className="font-bold leading-[1.3]" style={{ color: INK }}>
-        {item.text}
-        {item.publishedAt && (
-          <span className="ml-2 align-baseline text-[9px] font-bold uppercase tracking-[0.06em] whitespace-nowrap" style={{ color: ORANGE }}>
-            {sinceLabel(item.publishedAt)}
-          </span>
-        )}
-      </p>
-
-      {/* What the story says */}
-      {layer >= 1 && hasSummary && (
-        <p
-          className="mt-2.5 pt-2.5 leading-[1.45] opacity-80"
-          style={{ color: INK, fontSize: "0.82em", borderTop: `1px solid ${LINE}` }}
-        >
-          {item.summary}
+    <div className="h-full w-full flex flex-col">
+      {/* Always on screen */}
+      <div className="shrink-0">
+        <p className="text-[13px] font-bold leading-[1.3]" style={{ color: INK }}>
+          {item.text}
         </p>
-      )}
-
-      {/* What it means */}
-      {layer >= 2 && hasPerspective && (
-        <div className="mt-2.5 pt-2.5" style={{ borderTop: `1px solid ${LINE}` }}>
-          <div className="text-[8.5px] font-bold uppercase tracking-[0.08em] mb-1" style={{ color: ORANGE }}>
-            Perspective
+        {item.publishedAt && (
+          <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.07em]" style={{ color: ORANGE }}>
+            {sinceLabel(item.publishedAt)}
           </div>
-          {item.effects.map((effect, i) => (
-            <div key={i} className="mt-1 leading-[1.4]" style={{ fontSize: "0.82em" }}>
-              <span className="font-bold uppercase tracking-[0.05em]" style={{ color: INK }}>
-                {effect.industry}
-              </span>
-              <span className="mx-1.5 opacity-30" style={{ color: INK }}>
-                —
-              </span>
-              <span className="opacity-80" style={{ color: INK }}>
-                {effect.consequence}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Where you are in the story */}
-      {steps.length > 0 && (
-        <button
-          onClick={() => onLayer(next ? next.show : 0)}
-          className="mt-3 text-[9px] font-bold uppercase tracking-[0.08em] hover:opacity-70"
-          style={{ color: ORANGE }}
-        >
-          {next ? next.label : "Collapse"}
-        </button>
+      {views.length > 0 && (
+        <>
+          {/* Which view you are on */}
+          <div
+            className="shrink-0 mt-2 pt-1.5 flex items-center gap-1.5"
+            style={{ borderTop: `1px solid ${LINE}` }}
+          >
+            <button
+              onClick={() => onView(Math.max(at - 1, 0))}
+              disabled={at === 0}
+              className="disabled:opacity-20 hover:opacity-70"
+              style={{ color: ORANGE }}
+              aria-label="Previous view"
+            >
+              <ChevronLeft size={12} />
+            </button>
+            <span className="flex-1 text-[8.5px] font-bold uppercase tracking-[0.09em]" style={{ color: ORANGE }}>
+              {showing}
+            </span>
+            <button
+              onClick={() => onView(Math.min(at + 1, views.length - 1))}
+              disabled={at >= views.length - 1}
+              className="disabled:opacity-20 hover:opacity-70"
+              style={{ color: ORANGE }}
+              aria-label="Next view"
+            >
+              <ChevronRight size={12} />
+            </button>
+          </div>
+
+          {/* The view itself */}
+          <div className="flex-1 min-h-0 mt-1.5">
+            <Fitted>
+              {showing === "Summary" ? (
+                <p className="leading-[1.45] opacity-85" style={{ color: INK }}>
+                  {item.summary}
+                </p>
+              ) : (
+                item.effects.map((effect, i) => (
+                  <div key={i} className={i ? "mt-2.5" : ""}>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-[0.06em]" style={{ color: INK }}>
+                        {effect.industry}
+                      </span>
+                      {effect.direction && (
+                        <span
+                          className="text-[8px] font-bold uppercase tracking-[0.06em] px-1 rounded-sm"
+                          style={{
+                            color: "#FFFFFF",
+                            backgroundColor:
+                              effect.direction === "tailwind"
+                                ? "#6B9B4B"
+                                : effect.direction === "headwind"
+                                ? "#C0603A"
+                                : "#9A9A9A",
+                          }}
+                        >
+                          {effect.direction}
+                        </span>
+                      )}
+                    </div>
+                    <div className="leading-[1.45] opacity-85" style={{ color: INK }}>
+                      {effect.consequence}
+                    </div>
+                    {effect.investing && (
+                      <div className="mt-0.5 leading-[1.45]" style={{ color: ORANGE }}>
+                        {effect.investing}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </Fitted>
+          </div>
+        </>
       )}
-    </Fitted>
+    </div>
   );
 }

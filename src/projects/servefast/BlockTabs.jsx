@@ -108,7 +108,7 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
             {error}
           </div>
         ) : current ? (
-          <Story item={current} layer={layer} onLayer={setLayer} />
+          <Story item={current} view={layer} onView={setLayer} />
         ) : (
           <div className="h-full flex items-center justify-center text-[10px] opacity-35" style={{ color: INK }}>
             Nothing here yet
