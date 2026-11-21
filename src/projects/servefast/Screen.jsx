@@ -119,7 +119,7 @@ export default function Screen() {
                 setSpace((s) => ({ ...s, currentId: m.id }));
                 setIndex(0);
               }}
-              className="group flex items-center gap-1.5 px-3 rounded-t text-[10.5px] font-bold tracking-[0.04em]"
+              className="group flex items-center justify-center gap-1.5 w-40 px-3 rounded-t text-[10px] font-bold tracking-[0.04em]"
               style={{
                 backgroundColor: active ? MAIN_BG : "transparent",
                 color: active ? ORANGE : INK,
@@ -127,7 +127,7 @@ export default function Screen() {
                 borderBottom: "none",
               }}
             >
-              <span className="truncate max-w-[150px]">{(m.field || "UNTITLED").toUpperCase()}</span>
+              <span className="truncate">{(m.field || "UNTITLED").toUpperCase()}</span>
               <span
                 onClick={(e) => closeModule(m.id, e)}
                 className="opacity-0 group-hover:opacity-45 hover:!opacity-100"
@@ -150,8 +150,12 @@ export default function Screen() {
 
       {/* Steps of this module */}
       <nav
-        className="shrink-0 h-9 flex items-center gap-1 px-3 border-b"
-        style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
+        className="shrink-0 h-9 grid gap-1 px-3 border-b items-center"
+        style={{
+          borderColor: FRAME,
+          backgroundColor: NAV_BG,
+          gridTemplateColumns: `repeat(${module.steps.length}, minmax(0, 1fr))`,
+        }}
       >
         {module.steps.map((s, i) => {
           const active = i === module.currentStep;
@@ -162,7 +166,7 @@ export default function Screen() {
                 updateModule((m) => ({ ...m, currentStep: i }));
                 setIndex(0);
               }}
-              className="px-2.5 h-6 rounded text-[10px] font-bold tracking-[0.06em]"
+              className="h-6 w-full rounded text-[10px] font-bold tracking-[0.06em] truncate px-2"
               style={{
                 backgroundColor: active ? ORANGE : "transparent",
                 color: active ? "#FFFFFF" : INK,
