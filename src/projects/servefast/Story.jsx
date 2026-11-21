@@ -5,8 +5,8 @@ import { INK, LINE, ORANGE } from "../../theme.js";
 // One story. Headline and age stay on screen; underneath, one view at a time,
 // toggled left and right. In Perspective you step through one industry at a
 // time with its own pair of arrows. Two type sizes only: body and label.
-const BODY = 12;
-const LABEL = 9;
+const BODY = 13;
+const LABEL = 9.5;
 
 export function sinceLabel(iso) {
   const then = Date.parse(iso);
@@ -30,7 +30,7 @@ function Fitted({ children }) {
     if (!b || !t) return;
     let size = BODY;
     t.style.fontSize = `${size}px`;
-    while (size > 9 && (t.scrollHeight > b.clientHeight || t.scrollWidth > b.clientWidth)) {
+    while (size > 10 && (t.scrollHeight > b.clientHeight || t.scrollWidth > b.clientWidth)) {
       size -= 0.5;
       t.style.fontSize = `${size}px`;
     }
