@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
     "@kenjiuno/decompressrtf": "^0.1.4",
     "@kenjiuno/msgreader": "^1.29.0",
     "buffer": "^6.0.3",

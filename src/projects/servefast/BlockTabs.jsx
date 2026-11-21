@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, RotateCw, X } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 
 export const TABS = ["EVENTS", "FORCES", "EXPOSURE", "FOCUS"];
@@ -35,6 +35,26 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
   const [index, setIndex] = useState(0);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
+  const [pulling, setPulling] = useState(false);
+  const [error, setError] = useState(null);
+
+  // EVENTS fills itself from the feeds, through the server route that holds
+  // the key. Everything else is typed in.
+  async function pull() {
+    setPulling(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/events");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "That did not work");
+      (data.events || []).forEach((event) => onAdd("EVENTS", event));
+      if (!data.events?.length) setError("Nothing qualified from today's feeds");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPulling(false);
+    }
+  }
 
   const items = tabs?.[tab] || [];
   const current = items[Math.min(index, Math.max(items.length - 1, 0))];
@@ -74,6 +94,17 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
             </button>
           );
         })}
+        {tab === "EVENTS" && (
+          <button
+            onClick={pull}
+            disabled={pulling}
+            className="shrink-0 w-6 flex items-center justify-center disabled:opacity-40"
+            style={{ color: ORANGE }}
+            aria-label="Pull today's events"
+          >
+            <RotateCw size={10} strokeWidth={2} className={pulling ? "animate-spin" : ""} />
+          </button>
+        )}
         <button
           onClick={() => setAdding((a) => !a)}
           className="shrink-0 w-6 flex items-center justify-center"
@@ -101,6 +132,10 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
               style={{ color: INK }}
             />
           </form>
+        ) : error ? (
+          <div className="h-full flex items-center justify-center text-center text-[10px] px-2" style={{ color: "#A33427" }}>
+            {error}
+          </div>
         ) : current ? (
           <Fitted>
             {tab === "EVENTS" && (
@@ -109,6 +144,9 @@ export default function BlockTabs({ tabs, onAdd, onRemove }) {
               </span>
             )}
             {current.text}
+            {current.domain && (
+              <span className="ml-1.5 text-[9px] uppercase tracking-[0.06em] opacity-45">{current.domain}</span>
+            )}
           </Fitted>
         ) : (
           <div className="h-full flex items-center justify-center text-[10px] opacity-35" style={{ color: INK }}>
