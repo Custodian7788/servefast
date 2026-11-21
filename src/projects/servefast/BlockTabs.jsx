@@ -78,58 +78,6 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      {/* Tabs, named by you */}
-      <div className="shrink-0 flex items-stretch h-6" style={{ borderBottom: `1px solid ${LINE}` }}>
-        {TABS.map((id) => {
-          const on = id === tab;
-          return (
-            <div
-              key={id}
-              onClick={(e) => {
-                setTab(id);
-                setIndex(0);
-                setAdding(false);
-                setError(null);
-                e.currentTarget.querySelector("input")?.focus();
-              }}
-              className="flex-1 min-w-0 flex items-center cursor-pointer"
-              style={{ backgroundColor: on ? ORANGE : "transparent", borderRight: `1px solid ${LINE}` }}
-            >
-              <input
-                value={names[id] || ""}
-                readOnly={!on}
-                onChange={(e) => onRename(id, e.target.value)}
-                maxLength={12}
-                className={`w-full bg-transparent text-center text-[8.5px] font-bold tracking-[0.06em] uppercase outline-none ${
-                  on ? "cursor-text" : "cursor-pointer"
-                }`}
-                style={{ color: on ? "#FFFFFF" : INK, caretColor: on ? "#FFFFFF" : INK }}
-              />
-            </div>
-          );
-        })}
-
-        {tab === feedTab && (
-          <button
-            onClick={pull}
-            disabled={pulling}
-            className="shrink-0 w-6 flex items-center justify-center disabled:opacity-40"
-            style={{ color: ORANGE }}
-            aria-label="Pull today's events"
-          >
-            <RotateCw size={10} strokeWidth={2} className={pulling ? "animate-spin" : ""} />
-          </button>
-        )}
-        <button
-          onClick={() => setAdding((a) => !a)}
-          className="shrink-0 w-6 flex items-center justify-center"
-          style={{ color: ORANGE }}
-          aria-label="Add an item"
-        >
-          <Plus size={11} strokeWidth={2} />
-        </button>
-      </div>
-
       {/* One item at a time */}
       <div className="flex-1 min-h-0 px-3 py-2">
         {adding ? (
@@ -200,6 +148,22 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
           <ChevronRight size={13} />
         </button>
         <span className="flex-1" />
+        <button
+          onClick={pull}
+          disabled={pulling}
+          className="disabled:opacity-40"
+          style={{ color: ORANGE }}
+          aria-label="Pull today's events"
+        >
+          <RotateCw size={10} strokeWidth={2} className={pulling ? "animate-spin" : ""} />
+        </button>
+        <button
+          onClick={() => setAdding((a) => !a)}
+          style={{ color: ORANGE }}
+          aria-label="Add an item"
+        >
+          <Plus size={11} strokeWidth={2} />
+        </button>
         {current && (
           <button
             onClick={() => {
