@@ -204,20 +204,18 @@ export default function Screen() {
       >
         <Card className="flex-1 min-h-0 flex flex-col">
           <div
-            className="shrink-0 flex items-stretch h-7"
-            style={{ borderBottom: `1px solid ${LINE}` }}
+            className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
+            style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
           >
-            <span
-              className="shrink-0 flex items-center px-2.5 text-[9.5px] font-bold tracking-[0.07em]"
-              style={{ color: ORANGE }}
-            >
-              MODULE BUILDER
-            </span>
+            MODULE BUILDER
+          </div>
+
+          <div className="shrink-0 p-2.5" style={{ borderBottom: `1px solid ${LINE}` }}>
             <select
               value={building || ""}
               onChange={(e) => setBuilding(e.target.value)}
-              className="flex-1 min-w-0 h-full px-2 bg-white text-[9.5px] font-bold tracking-[0.07em] uppercase outline-none appearance-none cursor-pointer"
-              style={{ borderLeft: `1px solid ${LINE}`, color: INK }}
+              className="w-full h-7 px-2 rounded bg-white text-[11px] outline-none cursor-pointer"
+              style={{ border: `1px solid ${FRAME}`, color: INK }}
             >
               <option value="">Pick a block</option>
               {module.panels.map((panel, i) => (
