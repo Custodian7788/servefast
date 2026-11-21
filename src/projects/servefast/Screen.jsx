@@ -167,9 +167,9 @@ export default function Screen() {
       <div className="flex-1 min-h-0 flex">
       <div className="flex-1 min-w-0 overflow-auto p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
         {/* The grid of screens, added one at a time */}
-        <div className="grid gap-2 sm:gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-2 sm:gap-3 grid-cols-1 lg:grid-cols-2">
           {module.panels.map((p, i) => (
-            <Card key={p.id} className="flex flex-col h-56">
+            <Card key={p.id} className="flex flex-col h-80">
               <div className="shrink-0 flex items-center gap-2 px-2.5 h-7" style={{ borderBottom: `1px solid ${LINE}` }}>
                 <span className="text-[9.5px] font-bold tabular-nums opacity-35">{String(i + 1).padStart(2, "0")}</span>
                 <input
@@ -244,7 +244,7 @@ export default function Screen() {
 
           <button
             onClick={addPanel}
-            className="h-56 rounded-md flex flex-col items-center justify-center gap-2 hover:bg-[#FFF8F2] transition-colors"
+            className="h-80 rounded-md flex flex-col items-center justify-center gap-2 hover:bg-[#FFF8F2] transition-colors"
             style={{ border: `1px dashed ${FRAME}`, color: ORANGE }}
           >
             <Plus size={20} strokeWidth={1.5} />
