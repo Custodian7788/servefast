@@ -32,25 +32,11 @@ function gate(wrong) {
   html,body{height:100%}
   body{margin:0;display:flex;flex-direction:column;background:#FFE9C4;
        font:400 13px "Space Grotesk",ui-sans-serif,system-ui,sans-serif;color:#4B4B4B}
-  header{height:32px;display:flex;align-items:center;padding:0 12px}
-  .logo{display:inline-flex;align-items:baseline;gap:4px;font-weight:700;font-size:24px;
-        line-height:1;letter-spacing:-.005em}
-  .o{color:#E4762F}
   main{flex:1;display:flex;align-items:center;justify-content:center}
   input{width:220px;padding:7px 10px;font:inherit;background:#fff;
         border:2px solid ${wrong ? "#C0392B" : "#4B4B4B"};border-radius:4px;outline:none;color:#4B4B4B}
 </style></head>
 <body>
-  <header>
-    <span class="logo"><span>serve<span class="o">fast</span></span>
-      <svg width="17" height="17" viewBox="10.75 12.25 38.5 39" fill="none">
-        <mask id="m1"><rect x="-10" y="-10" width="72" height="72" fill="#fff"/>
-          <circle cx="34.75" cy="19.25" r="11" fill="#000"/></mask>
-        <rect x="9.25" y="19.25" width="25.5" height="25.5" stroke="#4B4B4B" stroke-width="13" mask="url(#m1)"/>
-        <circle cx="34.75" cy="19.25" r="8" fill="#E4762F"/>
-      </svg>
-    </span>
-  </header>
   <main>
     <form method="POST" action="/__unlock">
       <input type="password" name="p" autofocus autocomplete="current-password" />
