@@ -18,6 +18,8 @@ export default function Screen() {
   const [space, setSpace] = useState({ modules: [], currentId: null });
   const [ready, setReady] = useState(false);
   const [justMade, setJustMade] = useState(null);
+  const [naming, setNaming] = useState(null);
+  const [focused, setFocused] = useState(false);
   const loaded = useRef(false);
 
   useEffect(() => {
@@ -36,6 +38,13 @@ export default function Screen() {
   useEffect(() => {
     if (loaded.current) saveModule(KEY, space);
   }, [space]);
+
+  // A module made just now gets the cursor, so the click clearly did something.
+  useEffect(() => {
+    if (!justMade) return;
+    document.querySelector(`input[data-module="${justMade}"]`)?.focus();
+    setJustMade(null);
+  }, [justMade, space]);
 
   const module = space.modules.find((m) => m.id === space.currentId) || null;
   if (!ready || !module) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
@@ -59,6 +68,7 @@ export default function Screen() {
   function createModule() {
     const made = makeModule();
     setSpace((s) => ({ modules: [...s.modules, made], currentId: made.id }));
+    setJustMade(made.id);
   }
 
   function closeModule(id, e) {
@@ -81,27 +91,30 @@ export default function Screen() {
           return (
             <div
               key={m.id}
-              onClick={() => setSpace((s) => ({ ...s, currentId: m.id }))}
+              onClick={(e) => {
+                setSpace((s) => ({ ...s, currentId: m.id }));
+                e.currentTarget.querySelector("input")?.focus();
+              }}
               className="group shrink-0 flex items-center gap-1 w-32 sm:w-40 h-6 px-2 rounded cursor-pointer"
               style={{
                 backgroundColor: active ? ORANGE : "transparent",
                 border: `1px solid ${active ? ORANGE : FRAME}`,
               }}
             >
-              {active ? (
-                <input
-                  value={m.field}
-                  onChange={(e) => updateModule((mod) => ({ ...mod, field: e.target.value }))}
-                  maxLength={18}
-                  placeholder="NAME IT"
-                  className="flex-1 min-w-0 bg-transparent text-center text-[10px] font-bold tracking-[0.06em] uppercase outline-none placeholder:text-white/60"
-                  style={{ color: "#FFFFFF" }}
-                />
-              ) : (
-                <span className="flex-1 truncate text-center text-[10px] font-bold tracking-[0.06em]" style={{ color: INK }}>
-                  {(m.field || "UNTITLED").toUpperCase()}
-                </span>
-              )}
+              <input
+                value={m.field}
+                data-module={m.id}
+                readOnly={!active}
+                onChange={(e) => updateModule((mod) => ({ ...mod, field: e.target.value }))}
+                onFocus={() => setNaming(m.id)}
+                onBlur={() => setNaming((id) => (id === m.id ? null : id))}
+                maxLength={18}
+                placeholder={naming === m.id ? "" : active ? "NAME IT" : "UNTITLED"}
+                className={`flex-1 min-w-0 bg-transparent text-center text-[10px] font-bold tracking-[0.06em] uppercase outline-none ${
+                  active ? "cursor-text" : "cursor-pointer"
+                }`}
+                style={{ color: active ? "#FFFFFF" : INK, caretColor: active ? "#FFFFFF" : INK }}
+              />
               <span
                 onClick={(e) => closeModule(m.id, e)}
                 className="shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100"
