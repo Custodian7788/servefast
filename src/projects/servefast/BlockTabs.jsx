@@ -40,6 +40,7 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
   const [pulling, setPulling] = useState(false);
   const [error, setError] = useState(null);
 
+  const askedOnce = useRef(false);
   const items = tabs?.[tab] || [];
   const current = items[Math.min(index, Math.max(items.length - 1, 0))];
   const feedTab = TABS[0];
@@ -65,6 +66,13 @@ export default function BlockTabs({ tabs, names = {}, onAdd, onRemove, onRename 
       setPulling(false);
     }
   }
+
+  // Nothing stored yet: bring today's in without being asked.
+  useEffect(() => {
+    if (askedOnce.current) return;
+    askedOnce.current = true;
+    if (!(tabs?.[TABS[0]] || []).length) pull();
+  }, []);
 
   function submit(e) {
     e.preventDefault();

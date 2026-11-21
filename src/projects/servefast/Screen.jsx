@@ -42,7 +42,18 @@ export default function Screen() {
   useEffect(() => {
     loadModule(KEY).then((saved) => {
       if (saved?.modules?.length) {
-        setSpace(saved);
+        setSpace({
+          ...saved,
+          modules: saved.modules.map((m) => ({
+            ...m,
+            panels: (m.panels || []).map((panel) => {
+              const old = panel.tabs?.EVENTS;
+              if (!old?.length) return panel;
+              const { EVENTS, ...rest } = panel.tabs;
+              return { ...panel, tabs: { ...rest, t1: [...(rest.t1 || []), ...EVENTS] } };
+            }),
+          })),
+        });
       } else {
         const first = makeModule();
         setSpace({ modules: [first], currentId: first.id });
