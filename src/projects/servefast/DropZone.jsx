@@ -24,11 +24,11 @@ export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear
         className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 rounded-md cursor-pointer transition-colors bg-white"
         style={{
           border: `1px ${over ? "solid" : "dashed"} ${over ? ORANGE : FRAME}`,
-          color: over ? ORANGE : INK,
+          color: ORANGE,
         }}
       >
         <Plus size={22} strokeWidth={1.25} className={busy ? "animate-pulse" : ""} />
-        <span className="text-[11px] leading-none opacity-60">{busy ? "Reading…" : "Drop files"}</span>
+        <span className="text-[11px] leading-none opacity-55" style={{ color: INK }}>{busy ? "Reading…" : "Drop files"}</span>
       </div>
 
       <input
