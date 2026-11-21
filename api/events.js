@@ -116,8 +116,29 @@ For each event you keep, give three things:
 Return JSON only, in this exact shape and nothing else:
 {"events":[{"headline":"...","summary":"...","domain":"trade","effects":[{"industry":"semiconductors","consequence":"..."}],"source":"BBC","url":"https://..."}]}
 
-Keep at most 12 events, the most consequential first. If nothing qualifies,
-return {"events":[]}.`;
+THE BAR. Before keeping an item, ask: would this change how someone decides
+where to put money in that industry? If the honest answer is no, drop it.
+Specifically, drop:
+- anything whose consequence is a truism ("raises costs", "adds uncertainty",
+  "may affect sentiment", "insurers face higher claims", "shipping faces
+  disruption") unless the item gives the mechanism and the scale
+- second-order guesses you reach by reasoning two steps from a vague headline
+- items where the only industry you can name is insurance or shipping because
+  something bad happened somewhere
+- routine market moves, earnings chatter, forecasts and opinion pieces
+
+Prefer: a named rule with a date, a stated amount of money, a named company or
+state doing something specific, a licence granted or refused, a contract
+awarded, a supply route or resource changing hands.
+
+Good: "Japan approved a 1.4 trillion yen subsidy for domestic chip packaging,
+paid against capacity built by 2029." -> semiconductors: domestic packaging
+firms get capital at below-market cost, narrowing Taiwan's advantage.
+Bad: "Tensions rose in the Red Sea." -> shipping: routes face disruption.
+
+Keep at most 8 events, the strongest first. Six good ones beat twelve weak
+ones, and returning three is fine. If nothing clears the bar, return
+{"events":[]}.`;
 
 export default async function handler(request, response) {
   if (request.method !== "POST" && request.method !== "GET") {
