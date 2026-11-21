@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
-import { INK, LINE, ORANGE } from "../../theme.js";
+import { FRAME, INK, ORANGE } from "../../theme.js";
 
 // Files panel: a plus tile to drop on, then the list of what is loaded.
 export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear }) {
@@ -21,9 +21,9 @@ export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear
           onFiles(e.dataTransfer.files);
         }}
         onClick={() => inputRef.current?.click()}
-        className="shrink-0 h-28 flex flex-col items-center justify-center gap-2 rounded-md cursor-pointer transition-colors bg-white"
+        className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 rounded-md cursor-pointer transition-colors bg-white"
         style={{
-          border: `1px ${over ? "solid" : "dashed"} ${over ? ORANGE : LINE}`,
+          border: `1px ${over ? "solid" : "dashed"} ${over ? ORANGE : FRAME}`,
           color: over ? ORANGE : INK,
         }}
       >
@@ -46,7 +46,7 @@ export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear
         </div>
       )}
 
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="shrink-0 max-h-32 flex flex-col">
         <div className="flex-1 min-h-0 overflow-auto">
           {docs.map((d) => (
             <div key={d.id} className="group flex items-baseline gap-2 py-[3px] text-[11px]" style={{ color: INK }}>

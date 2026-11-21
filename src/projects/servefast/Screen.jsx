@@ -4,7 +4,7 @@ import DropZone from "./DropZone.jsx";
 import ResultWindow from "./ResultWindow.jsx";
 import { useDocs } from "./useDocs.js";
 import { findPassages } from "./search.js";
-import { LINE, MAIN_BG, NAV_BG, INK, ORANGE } from "../../theme.js";
+import { FRAME, MAIN_BG, NAV_BG, INK, ORANGE } from "../../theme.js";
 
 export default function Screen() {
   const { docs, busy, error, addFiles, removeDoc, clearDocs } = useDocs();
@@ -73,9 +73,9 @@ export default function Screen() {
       {/* Files on top, commands underneath */}
       <aside
         className="h-[60vh] md:h-auto md:w-72 shrink-0 flex flex-col border-t md:border-t-0 md:border-l"
-        style={{ backgroundColor: NAV_BG, borderColor: LINE }}
+        style={{ backgroundColor: NAV_BG, borderColor: FRAME }}
       >
-        <div className="flex-1 min-h-0 p-3">
+        <div className="flex-[2] min-h-0 p-3">
           <DropZone
             docs={docs}
             busy={busy}
@@ -85,7 +85,7 @@ export default function Screen() {
             onClear={clearDocs}
           />
         </div>
-        <div className="shrink-0 border-t" style={{ borderColor: LINE }}>
+        <div className="flex-1 min-h-0 border-t" style={{ borderColor: FRAME }}>
           <CommandBar onRun={run} disabled={!docs.length} />
         </div>
       </aside>

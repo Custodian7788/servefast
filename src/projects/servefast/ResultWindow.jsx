@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FitText from "./FitText.jsx";
-import { INK, LINE, ORANGE } from "../../theme.js";
+import { FRAME, INK, ORANGE } from "../../theme.js";
 
 // Marks the asked-for words inside a passage, without touching the rest.
 function highlight(text, terms) {
@@ -82,7 +82,7 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
       <div className="flex-1 min-w-0 h-full max-w-3xl flex flex-col gap-2">
         <div
           className="flex-1 min-h-0 rounded-sm bg-white px-12 py-10 flex items-center"
-          style={{ border: `1px solid ${LINE}` }}
+          style={{ border: `1px solid ${FRAME}` }}
         >
           {current ? (
             <FitText max={30} min={11}>

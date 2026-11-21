@@ -1,5 +1,6 @@
-export const MAIN_BG = "#F6F3EE"; // page
-export const NAV_BG = "#ECE6DC"; // side panel
-export const LINE = "#DED6C9";
+export const MAIN_BG = "#FFFFFF"; // page
+export const NAV_BG = "#FAF8F4"; // side panel, a shade off white
+export const FRAME = "#D9D2C6"; // strong edges: panel divider, cards
+export const LINE = "#ECE7DE"; // soft inner rules
 export const INK = "#4B4B4B";
 export const ORANGE = "#E4762F";
