@@ -55,11 +55,6 @@ export default function Screen() {
     updateModule((m) => ({ ...m, panels: m.panels.filter((p) => p.id !== id) }));
   }
 
-  function createModule() {
-    const made = makeModule();
-    setSpace((s) => ({ modules: [...s.modules, made], currentId: made.id }));
-  }
-
   function closeModule(id, e) {
     e.stopPropagation();
     setSpace((s) => {
@@ -112,14 +107,6 @@ export default function Screen() {
           );
         })}
 
-        <button
-          onClick={createModule}
-          className="px-2 flex items-center hover:opacity-70"
-          style={{ color: ORANGE }}
-          aria-label="New module"
-        >
-          <Plus size={14} strokeWidth={2} />
-        </button>
       </header>
 
       <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
