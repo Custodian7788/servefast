@@ -19,7 +19,7 @@ export function makeStep(title, question, outputLabel) {
 
 // The starting funnel. It is only a suggestion: steps can be renamed, removed
 // or added before any work begins.
-export function makeModule({ field, goal }) {
+export function makeModule({ field = "", goal = "" } = {}) {
   return {
     id: newId("mod"),
     field,
@@ -27,10 +27,10 @@ export function makeModule({ field, goal }) {
     createdAt: Date.now(),
     currentStep: 0,
     steps: [
-      makeStep("Landscape", `What forces are shaping ${field} right now?`, "Areas worth a closer look"),
+      makeStep("Landscape", "What forces are shaping this field right now?", "Areas worth a closer look"),
       makeStep("Narrowing", "Which of those areas deserve real attention, and why?", "The shortlist"),
       makeStep("Testing", "What would have to be true for each one to work out?", "What survives the test"),
-      makeStep("Deciding", `What do I do about it, given the goal: ${goal}?`, "The decision"),
+      makeStep("Deciding", "What do I do about it, given the goal?", "The decision"),
     ],
   };
 }

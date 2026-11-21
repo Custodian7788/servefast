@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
-import Setup from "./Setup.jsx";
 import { addClaim, keptOf, makeModule, pendingOf, setClaimStatus } from "./module.js";
 import { loadModule, saveModule } from "./store.js";
 
@@ -31,14 +30,17 @@ function Label({ children, right }) {
 export default function Screen() {
   const [space, setSpace] = useState(EMPTY);
   const [ready, setReady] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [index, setIndex] = useState(0);
   const [adding, setAdding] = useState("");
   const loaded = useRef(false);
 
   useEffect(() => {
     loadModule(KEY).then((saved) => {
-      if (saved && Array.isArray(saved.modules)) setSpace(saved);
+      if (saved && saved.modules?.length) setSpace(saved);
+      else {
+        const first = makeModule();
+        setSpace({ modules: [first], currentId: first.id });
+      }
       loaded.current = true;
       setReady(true);
     });
@@ -64,22 +66,12 @@ export default function Screen() {
     return () => window.removeEventListener("keydown", onKey);
   }, [pending.length]);
 
-  if (!ready) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
+  if (!ready || !module) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
 
-  function createModule(seed) {
-    const made = makeModule(seed);
+  function createModule() {
+    const made = makeModule();
     setSpace((s) => ({ modules: [...s.modules, made], currentId: made.id }));
-    setCreating(false);
     setIndex(0);
-  }
-
-  if (!module || creating) {
-    return (
-      <Setup
-        onCreate={createModule}
-        onCancel={space.modules.length ? () => setCreating(false) : null}
-      />
-    );
   }
 
   function updateModule(fn) {
@@ -135,7 +127,7 @@ export default function Screen() {
                 borderBottom: "none",
               }}
             >
-              <span className="truncate max-w-[150px]">{m.field.toUpperCase()}</span>
+              <span className="truncate max-w-[150px]">{(m.field || "UNTITLED").toUpperCase()}</span>
               <span
                 onClick={(e) => closeModule(m.id, e)}
                 className="opacity-0 group-hover:opacity-45 hover:!opacity-100"
@@ -147,7 +139,7 @@ export default function Screen() {
         })}
 
         <button
-          onClick={() => setCreating(true)}
+          onClick={createModule}
           className="px-2 flex items-center hover:opacity-70"
           style={{ color: ORANGE }}
           aria-label="New module"
@@ -186,6 +178,22 @@ export default function Screen() {
       <div className="flex-1 min-h-0 flex">
         <div className="flex-1 min-w-0 p-3 flex flex-col gap-3">
           <Card className="shrink-0">
+            <div className="px-4 pt-3 pb-2 flex items-baseline gap-3" style={{ borderBottom: `1px solid ${LINE}` }}>
+              <input
+                value={module.field}
+                onChange={(e) => updateModule((m) => ({ ...m, field: e.target.value }))}
+                placeholder="Name this module"
+                className="w-44 shrink-0 text-[13px] font-bold outline-none bg-transparent placeholder:opacity-35"
+                style={{ color: ORANGE }}
+              />
+              <input
+                value={module.goal}
+                onChange={(e) => updateModule((m) => ({ ...m, goal: e.target.value }))}
+                placeholder="What do you want to end up with?"
+                className="flex-1 min-w-0 text-[11px] outline-none bg-transparent placeholder:opacity-35"
+                style={{ color: INK }}
+              />
+            </div>
             <div className="px-4 py-3">
               <div className="text-[9.5px] font-bold tracking-[0.07em]" style={{ color: ORANGE }}>
                 STEP {module.currentStep + 1} OF {module.steps.length}
