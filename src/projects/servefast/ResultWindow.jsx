@@ -49,11 +49,11 @@ function Arrow({ dir, onClick, disabled }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="shrink-0 w-10 flex items-center justify-center disabled:opacity-15 hover:opacity-60 transition-opacity"
-      style={{ color: INK }}
+      className={`absolute top-1/2 -translate-y-1/2 ${dir === "left" ? "left-2" : "right-2"} p-1 disabled:opacity-15 hover:opacity-60 transition-opacity`}
+      style={{ color: ORANGE }}
       aria-label={dir === "left" ? "Previous passage" : "Next passage"}
     >
-      <Icon size={26} strokeWidth={1.5} />
+      <Icon size={24} strokeWidth={1.5} />
     </button>
   );
 }
@@ -76,14 +76,12 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
   const current = results[index];
 
   return (
-    <div className="flex-1 min-h-0 flex items-center justify-center gap-1 px-4 py-8">
-      <Arrow dir="left" onClick={() => setIndex((i) => Math.max(i - 1, 0))} disabled={!total || index === 0} />
-
-      <div className="flex-1 min-w-0 h-full max-w-3xl flex flex-col gap-2">
-        <div
-          className="flex-1 min-h-0 rounded-sm bg-white px-12 py-10 flex items-center"
-          style={{ border: `1px solid ${FRAME}` }}
-        >
+    <div className="flex-1 min-h-0 p-3">
+      <div
+        className="relative h-full w-full rounded-md bg-white overflow-hidden"
+        style={{ border: `1px solid ${FRAME}` }}
+      >
+        <div className="h-full w-full flex items-center px-16 py-12">
           {current ? (
             <FitText max={30} min={11}>
               <p className="whitespace-pre-wrap" style={{ color: INK }}>
@@ -91,25 +89,29 @@ export default function ResultWindow({ results, index, setIndex, empty }) {
               </p>
             </FitText>
           ) : (
-            <div className="w-full text-center text-[12px] opacity-35" style={{ color: INK }}>
+            <div className="w-full text-center text-[12px] opacity-45" style={{ color: INK }}>
               {empty}
             </div>
           )}
         </div>
 
-        <div className="h-4 shrink-0 flex items-baseline justify-between text-[10px]" style={{ color: INK }}>
-          <span className="truncate opacity-40">{current ? current.source : ""}</span>
-          <span className="tabular-nums shrink-0" style={{ color: total ? ORANGE : "transparent" }}>
+        <Arrow dir="left" onClick={() => setIndex((i) => Math.max(i - 1, 0))} disabled={!total || index === 0} />
+        <Arrow
+          dir="right"
+          onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
+          disabled={!total || index >= total - 1}
+        />
+
+        <div
+          className="absolute left-0 right-0 bottom-0 flex items-baseline justify-between px-4 pb-2 text-[10px]"
+          style={{ color: INK }}
+        >
+          <span className="truncate opacity-45">{current ? current.source : ""}</span>
+          <span className="tabular-nums shrink-0" style={{ opacity: total ? 1 : 0 }}>
             {total ? `${index + 1} / ${total}` : "."}
           </span>
         </div>
       </div>
-
-      <Arrow
-        dir="right"
-        onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
-        disabled={!total || index >= total - 1}
-      />
     </div>
   );
 }
