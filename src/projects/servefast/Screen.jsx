@@ -147,37 +147,6 @@ export default function Screen() {
         </button>
       </header>
 
-      {/* Steps of this module */}
-      <nav
-        className="shrink-0 h-9 grid gap-1 px-3 border-b items-center"
-        style={{
-          borderColor: FRAME,
-          backgroundColor: NAV_BG,
-          gridTemplateColumns: `repeat(${module.steps.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {module.steps.map((s, i) => {
-          const active = i === module.currentStep;
-          return (
-            <button
-              key={s.id}
-              onClick={() => {
-                updateModule((m) => ({ ...m, currentStep: i }));
-                setIndex(0);
-              }}
-              className="h-6 w-full rounded text-[10px] font-bold tracking-[0.06em] truncate px-2"
-              style={{
-                backgroundColor: active ? ORANGE : "transparent",
-                color: active ? "#FFFFFF" : INK,
-                border: `1px solid ${active ? ORANGE : FRAME}`,
-              }}
-            >
-              {i + 1}. {s.title.toUpperCase()}
-            </button>
-          );
-        })}
-      </nav>
-
       <div className="flex-1 min-h-0 flex">
         <div className="flex-1 min-w-0 p-3 flex flex-col gap-3">
           <Card className="shrink-0">
