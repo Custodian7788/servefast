@@ -37,7 +37,7 @@ export default function DropZone({ docs, busy, error, onFiles, onRemove, onClear
         ref={inputRef}
         type="file"
         multiple
-        accept=".txt,.md,.markdown,.csv,.json,.html,.eml,text/*"
+        accept=".msg,.eml,.txt,.md,.markdown,.csv,.json,.html,text/*"
         className="hidden"
         onChange={(e) => onFiles(e.target.files)}
       />

@@ -1,11 +1,13 @@
 import { useCallback, useState } from "react";
+import { readFileAsText } from "./parse.js";
 
 // Dropped files are held in memory only. Nothing is written to the browser, so
 // a browser reset cannot lose anything. Saving will go to the server once
 // accounts exist.
 
-// PDF, Word and Outlook files are containers, not text: reading them as text
-// gives mojibake, so they are refused until a parser is added.
+// PDF and Word are containers, not text: reading them as text gives mojibake,
+// so they are refused until a parser is added. Outlook .msg and .eml are
+// handled properly in parse.js.
 function looksBinary(text) {
   if (!text) return false;
   const sample = text.slice(0, 4000);
@@ -24,33 +26,39 @@ export function useDocs() {
     if (!files.length) return;
     setBusy(true);
     setError(null);
-    try {
-      const read = await Promise.all(
-        files.map(async (file) => ({
-          id: `${file.name}-${file.size}-${file.lastModified}`,
-          name: file.name,
-          text: await file.text(),
-        }))
+
+    const usable = [];
+    const failed = [];
+
+    await Promise.all(
+      files.map(async (file) => {
+        try {
+          const text = await readFileAsText(file);
+          if (!text || !text.trim() || looksBinary(text)) failed.push(file.name);
+          else
+            usable.push({
+              id: `${file.name}-${file.size}-${file.lastModified}`,
+              name: file.name,
+              text,
+            });
+        } catch {
+          failed.push(file.name);
+        }
+      })
+    );
+
+    if (failed.length) {
+      const needsParser = failed.some((n) => /.(pdf|docx?|pptx?|xlsx?)$/i.test(n));
+      setError(
+        `Could not read ${failed.join(", ")}${needsParser ? " – PDF and Office files still need a parser." : "."}`
       );
-
-      const unreadable = read.filter((d) => looksBinary(d.text));
-      const usable = read.filter((d) => !looksBinary(d.text));
-
-      if (unreadable.length) {
-        setError(
-          `${unreadable.map((d) => d.name).join(", ")} is not plain text yet – PDF, Word and .msg need a parser.`
-        );
-      }
-
-      setDocs((prev) => {
-        const seen = new Set(prev.map((d) => d.id));
-        return [...prev, ...usable.filter((d) => !seen.has(d.id))];
-      });
-    } catch {
-      setError("One of those files could not be read.");
-    } finally {
-      setBusy(false);
     }
+
+    setDocs((prev) => {
+      const seen = new Set(prev.map((d) => d.id));
+      return [...prev, ...usable.filter((d) => !seen.has(d.id))];
+    });
+    setBusy(false);
   }, []);
 
   const removeDoc = useCallback((id) => setDocs((prev) => prev.filter((d) => d.id !== id)), []);
