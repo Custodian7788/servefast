@@ -6,6 +6,19 @@ import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
 
+// What a block can be made to do. Nothing behind these yet.
+const FUNCTIONS = [
+  "CHART",
+  "CHECKLIST",
+  "COMPARISON",
+  "QUESTIONS",
+  "RESEARCH",
+  "SHORTLIST",
+  "SOURCES",
+  "SUMMARY",
+  "TIMELINE",
+];
+
 function Card({ children, className = "", style }) {
   return (
     <div className={`rounded-md bg-white overflow-hidden ${className}`} style={{ border: `1px solid ${FRAME}`, ...style }}>
@@ -20,6 +33,7 @@ export default function Screen() {
   const [justMade, setJustMade] = useState(null);
   const [naming, setNaming] = useState(null);
   const [building, setBuilding] = useState(null);
+  const [fn, setFn] = useState(null);
   const [focused, setFocused] = useState(false);
   const loaded = useRef(false);
 
@@ -207,7 +221,7 @@ export default function Screen() {
             className="shrink-0 flex items-center px-2.5 h-7 text-[9.5px] font-bold tracking-[0.07em]"
             style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
           >
-            MODULE BUILDER
+            BLOCK BUILDER
           </div>
 
           <div className="shrink-0 p-2.5" style={{ borderBottom: `1px solid ${LINE}` }}>
@@ -221,6 +235,22 @@ export default function Screen() {
               {module.panels.map((panel, i) => (
                 <option key={panel.id} value={panel.id}>
                   {String(i + 1).padStart(2, "0")} {panel.title || "Untitled"}
+                </option>
+              ))}
+            </select>
+
+            {/* What that block does. Placeholder until the functions exist. */}
+            <select
+              value={fn || ""}
+              onChange={(e) => setFn(e.target.value)}
+              disabled={!building}
+              className="mt-2 w-full h-7 px-2 rounded bg-white text-[11px] outline-none cursor-pointer disabled:opacity-35 disabled:cursor-default"
+              style={{ border: `1px solid ${FRAME}`, color: INK }}
+            >
+              <option value="">Select functionality</option>
+              {FUNCTIONS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
                 </option>
               ))}
             </select>
