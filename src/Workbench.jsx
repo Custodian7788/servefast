@@ -109,7 +109,7 @@ export default function Workbench({ base, name }) {
         >
           <BrowserChrome
             name={name}
-            url={`servefast.com${path}`}
+            url={`servefast.com${path.replace(`${base}/desktop`, "")}`}
             onBack={() => frameRef.current?.contentWindow?.history.back()}
             onForward={() => frameRef.current?.contentWindow?.history.forward()}
             onReload={() => setReloads((n) => n + 1)}
