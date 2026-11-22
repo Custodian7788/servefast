@@ -85,4 +85,22 @@ export const FEEDS = [
   { source: "WELT", url: "https://www.welt.de/feeds/latest.rss" },
   { source: "Wired", url: "https://www.wired.com/feed/rss" },
   { source: "WSJ World", url: "https://feeds.content.dowjones.io/public/rss/RSSWorldNews" },
+
+  // Finance desks and geopolitics shops, checked live; Bloomberg, Reuters and
+  // Investopedia have no open feed of their own, so they come through Google News
+  { source: "Atlantic Council", url: "https://www.atlanticcouncil.org/feed/" },
+  { source: "Bloomberg", url: "https://news.google.com/rss/search?q=site:bloomberg.com+when:1d&hl=en-GB&gl=GB&ceid=GB:en" },
+  { source: "Business Insider", url: "https://www.businessinsider.com/rss" },
+  { source: "Forbes Business", url: "https://www.forbes.com/business/feed/" },
+  { source: "Foreign Affairs", url: "https://www.foreignaffairs.com/rss.xml" },
+  { source: "Foreign Policy", url: "https://foreignpolicy.com/feed/" },
+  { source: "Fortune", url: "https://fortune.com/feed/" },
+  { source: "Geopolitical Futures", url: "https://geopoliticalfutures.com/feed/" },
+  { source: "Investing.com", url: "https://www.investing.com/rss/news.rss" },
+  { source: "Investopedia", url: "https://news.google.com/rss/search?q=site:investopedia.com+when:1d&hl=en-GB&gl=GB&ceid=GB:en" },
+  { source: "NerdWallet", url: "https://www.nerdwallet.com/blog/feed/" },
+  { source: "Politico", url: "https://rss.politico.com/politics-news.xml" },
+  { source: "Reuters", url: "https://news.google.com/rss/search?q=site:reuters.com+when:1d&hl=en-GB&gl=GB&ceid=GB:en" },
+  { source: "TradingView", url: "https://www.tradingview.com/feed/" },
+  { source: "Yahoo Finance", url: "https://feeds.finance.yahoo.com/rss/2.0/headline?s=%5EGSPC&region=US&lang=en-US" },
 ];
