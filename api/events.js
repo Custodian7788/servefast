@@ -61,8 +61,8 @@ async function readFeed({ source, url }) {
   }
 }
 
-function recentFirst(items) {
-  const cutoff = Date.now() - WINDOW_HOURS * 60 * 60 * 1000;
+function recentFirst(items, sinceMs) {
+  const cutoff = sinceMs || Date.now() - WINDOW_HOURS * 60 * 60 * 1000;
   return items
     .map((item) => ({ ...item, at: Date.parse(item.published) || Date.now() }))
     .filter((item) => item.at >= cutoff)
@@ -148,11 +148,14 @@ export default async function handler(request, response) {
       .slice(0, 15)
       .map((url) => ({ source: new URL(url).hostname.replace(/^www\./, ""), url }));
 
+    const since = Number(request.body?.since) || 0;
+    const topUp = since > 0 && Date.now() - since < WINDOW_HOURS * 60 * 60 * 1000;
+
     const pulled = (await Promise.all([...FEEDS, ...extra].map(readFeed))).flat();
-    const items = dedupe(recentFirst(pulled)).slice(0, MAX_ITEMS);
+    const items = dedupe(recentFirst(pulled, topUp ? since : 0)).slice(0, MAX_ITEMS);
 
     if (!items.length) {
-      response.status(200).json({ events: [], read: 0 });
+      response.status(200).json({ events: [], read: 0, topUp });
       return;
     }
 
@@ -164,9 +167,10 @@ export default async function handler(request, response) {
 
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
-      model: "claude-opus-5-5",
-      max_tokens: 16000,
-      output_config: { effort: "medium" },
+      // A full sweep earns the better model; a 15 minute top-up does not.
+      model: topUp ? "claude-haiku-5-5" : "claude-opus-5-5",
+      max_tokens: topUp ? 8000 : 16000,
+      output_config: { effort: topUp ? "low" : "medium" },
       system: SYSTEM,
       messages: [{ role: "user", content: `Today is ${new Date().toISOString().slice(0, 10)}.\n\n${lines}` }],
     });
@@ -206,6 +210,7 @@ export default async function handler(request, response) {
           url: event.url || "",
         })),
       read: items.length,
+      topUp,
     });
   } catch (error) {
     response.status(500).json({ error: error?.message || "Something went wrong" });

@@ -62,14 +62,14 @@ export default function BlockTabs({
   const current = items[Math.min(index, Math.max(items.length - 1, 0))];
   const feedTab = TABS[0];
 
-  async function pull() {
-    setPulling(true);
+  async function pull(topUp = false) {
+    if (!topUp) setPulling(true);
     setError(null);
     try {
       const response = await fetch("/api/events", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ extra: feeds }),
+        body: JSON.stringify({ extra: feeds, since: topUp ? lastPull : 0 }),
       });
       const body = await response.text();
       let data;
@@ -80,7 +80,15 @@ export default function BlockTabs({
       }
       if (!response.ok) throw new Error(data.error || "That did not work");
       const pulled = data.events || [];
-      if (!pulled.length) {
+      if (topUp) {
+        // Newest on top, nothing lost, no duplicates.
+        if (pulled.length) {
+          const seen = new Set(items.map((i) => i.text));
+          const fresh = pulled.filter((e) => !seen.has(e.text));
+          if (fresh.length) onReplace(feedTab, [...fresh, ...items].slice(0, 60));
+        }
+        onPulled?.(Date.now(), (data.read || 0) + (read || 0));
+      } else if (!pulled.length) {
         setError("Nothing qualified from today's feeds");
       } else {
         onReplace(feedTab, pulled);
@@ -93,7 +101,7 @@ export default function BlockTabs({
     } catch (err) {
       setError(err.message);
     } finally {
-      setPulling(false);
+      if (!topUp) setPulling(false);
     }
   }
 
@@ -106,8 +114,11 @@ export default function BlockTabs({
       if (stale) pull();
     }
     const timer = setInterval(() => {
-      if (!pulling && (!lastPull || Date.now() - lastPull > 60 * 60 * 1000)) pull();
-    }, 5 * 60 * 1000);
+      if (pulling) return;
+      if (!lastPull) pull();
+      else if (Date.now() - lastPull > 24 * 60 * 60 * 1000) pull();
+      else pull(true);
+    }, 15 * 60 * 1000);
     return () => clearInterval(timer);
   }, [autoPull, lastPull, pulling]);
 
