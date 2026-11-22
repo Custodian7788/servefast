@@ -5,8 +5,8 @@ import { FEEDS } from "./feeds.js";
 // change the rules, the costs or who supplies whom, rewritten as one factual
 // line each. The key never leaves the server.
 
-const MAX_PER_FEED = 12;
-const MAX_ITEMS = 320;
+const MAX_PER_FEED = 20;
+const MAX_ITEMS = 600;
 const WINDOW_HOURS = 24;
 
 function stripTags(value = "") {
@@ -150,9 +150,10 @@ paid against capacity built by 2029."
   advantage.
 Bad: "Tensions rose in the Red Sea." -> shipping: routes face disruption.
 
-Keep at most 8 events, the strongest first. Six good ones beat twelve weak
-ones, and returning three is fine. If nothing clears the bar, return
-{"events":[]}.`;
+Keep up to 20 events. Order them by domain so related ones sit together -
+all the trade ones, then energy, then defence, and so on - and put the
+strongest first within each domain. Quality still rules: never pad the list to
+reach a number. If nothing clears the bar, return {"events":[]}.`;
 
 export default async function handler(request, response) {
   if (request.method !== "POST" && request.method !== "GET") {
