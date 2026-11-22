@@ -40,6 +40,7 @@ export default function BlockTabs({
   autoPull = false,
   feeds = [],
   lastPull,
+  read = 0,
   onAdd,
   onRemove,
   onRename,
@@ -83,7 +84,7 @@ export default function BlockTabs({
         setError("Nothing qualified from today's feeds");
       } else {
         onReplace(feedTab, pulled);
-        onPulled?.(Date.now());
+        onPulled?.(Date.now(), data.read || 0);
         setTab(feedTab);
         setIndex(0);
         setLayer(0);
@@ -145,6 +146,14 @@ export default function BlockTabs({
           </div>
         ) : (
           <div className="h-full overflow-y-auto">
+            {read > 0 && (
+              <div
+                className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.06em] opacity-55"
+                style={{ color: INK, borderBottom: `1px solid ${LINE}` }}
+              >
+                {items.length} kept from {read.toLocaleString("en-GB")} read · last 24 hours
+              </div>
+            )}
             {items.map((item, i) => (
               <button
                 key={item.id}

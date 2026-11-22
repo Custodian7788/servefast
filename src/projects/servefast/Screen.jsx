@@ -244,7 +244,8 @@ export default function Screen() {
                 autoPull={i === 0}
                 feeds={p.feeds || []}
                 lastPull={p.lastPull}
-                onPulled={(at) => updatePanel(p.id, (panel) => ({ ...panel, lastPull: at }))}
+                read={p.lastRead || 0}
+                onPulled={(at, read) => updatePanel(p.id, (panel) => ({ ...panel, lastPull: at, lastRead: read }))}
                 onStatus={(info) => setStatus((prev) => (prev[p.id]?.pulling === info.pulling && prev[p.id]?.lastPull === info.lastPull ? prev : { ...prev, [p.id]: info }))}
                 onReplace={(tab, list) =>
                   updatePanel(p.id, (panel) => ({
