@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Plus, RotateCw, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, RotateCw, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
@@ -35,6 +35,8 @@ export default function Screen() {
   const [naming, setNaming] = useState(null);
   const [confirming, setConfirming] = useState(null);
   const [status, setStatus] = useState({});
+  const [page, setPage] = useState(0);
+  const PER_PAGE = 2;
 
   // "pulled 12 min ago", in the block's title row.
   function sinceShort(at) {
@@ -173,14 +175,62 @@ export default function Screen() {
         >
           <Plus size={14} strokeWidth={2} />
         </button>
+
+        <span className="flex-1" />
+
+        {/* Where you are across the blocks */}
+        <div className="shrink-0 flex items-center gap-2 pr-1">
+          <button
+            onClick={() => setPage((n) => Math.max(n - 1, 0))}
+            disabled={page === 0}
+            className="disabled:opacity-20 hover:opacity-70"
+            style={{ color: ORANGE }}
+            aria-label="Blocks left"
+          >
+            <ChevronLeft size={14} />
+          </button>
+          <span className="flex items-center gap-1">
+            {module.panels.map((p, i) => {
+              const here = Math.floor(i / PER_PAGE) === page;
+              return (
+                <span
+                  key={p.id}
+                  onClick={() => setPage(Math.floor(i / PER_PAGE))}
+                  title={p.title || `Block ${i + 1}`}
+                  className="cursor-pointer rounded-sm"
+                  style={{
+                    width: here ? 14 : 7,
+                    height: 5,
+                    backgroundColor: here ? ORANGE : FRAME,
+                  }}
+                />
+              );
+            })}
+          </span>
+          <button
+            onClick={() =>
+              setPage((n) => Math.min(n + 1, Math.floor(module.panels.length / PER_PAGE)))
+            }
+            disabled={page >= Math.floor(module.panels.length / PER_PAGE)}
+            className="disabled:opacity-20 hover:opacity-70"
+            style={{ color: ORANGE }}
+            aria-label="Blocks right"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 min-h-0 flex">
-      <div className="flex-1 min-w-0 overflow-auto p-2 sm:p-3 flex flex-col gap-2 sm:gap-3">
-        {/* The grid of screens, added one at a time */}
-        <div className="grid gap-2 sm:gap-3 grid-cols-1 lg:grid-cols-2">
+      <div className="flex-1 min-w-0 overflow-hidden p-2 sm:p-3">
+        {/* Blocks fill the height; the view shifts sideways a page at a time */}
+        <div
+          className="h-full flex transition-transform duration-300"
+          style={{ transform: `translateX(-${page * 100}%)` }}
+        >
           {module.panels.map((p, i) => (
-            <Card key={p.id} className="flex flex-col h-80">
+            <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
+            <Card className="flex flex-col h-full">
               <div className="shrink-0 flex items-center gap-2 px-2.5 h-7" style={{ borderBottom: `1px solid ${LINE}` }}>
                 <span className="text-[11.5px] font-bold tabular-nums opacity-35">{String(i + 1).padStart(2, "0")}</span>
                 <input
@@ -278,16 +328,22 @@ export default function Screen() {
                 }
               />
             </Card>
+            </div>
           ))}
 
-          <button
-            onClick={addPanel}
-            className="h-80 rounded-md flex flex-col items-center justify-center gap-2 hover:bg-[#FFF8F2] transition-colors"
-            style={{ border: `1px dashed ${FRAME}`, color: ORANGE }}
-          >
-            <Plus size={20} strokeWidth={1.5} />
-            <span className="text-[12px] font-bold tracking-[0.07em]">ADD A BLOCK</span>
-          </button>
+          <div className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
+            <button
+              onClick={() => {
+                addPanel();
+                setPage(Math.floor(module.panels.length / PER_PAGE));
+              }}
+              className="w-full h-full rounded-md flex flex-col items-center justify-center gap-2 hover:bg-[#FFF8F2] transition-colors"
+              style={{ border: `1px dashed ${FRAME}`, color: ORANGE }}
+            >
+              <Plus size={20} strokeWidth={1.5} />
+              <span className="text-[12px] font-bold tracking-[0.07em]">ADD A BLOCK</span>
+            </button>
+          </div>
         </div>
 
       </div>
