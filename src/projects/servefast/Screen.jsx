@@ -237,8 +237,12 @@ export default function Screen() {
                   value={p.title}
                   onChange={(e) => updatePanel(p.id, (panel) => ({ ...panel, title: e.target.value }))}
                   placeholder="Name this block"
-                  className="flex-1 min-w-0 text-[11.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
-                  style={{ color: ORANGE }}
+                  className="shrink-0 text-[11.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
+                  style={{
+                    color: ORANGE,
+                    width: `${Math.max((p.title || "Name this block").length, 6) + 1}ch`,
+                    maxWidth: "60%",
+                  }}
                 />
                 {i === 0 && confirming !== p.id && (
                   <>
@@ -263,6 +267,7 @@ export default function Screen() {
                     </button>
                   </>
                 )}
+                <span className="flex-1" />
                 {confirming === p.id ? (
                   <span className="shrink-0 flex items-center gap-1.5 text-[12px] font-bold tracking-[0.06em]">
                     <span style={{ color: INK }}>DELETE?</span>
@@ -282,10 +287,11 @@ export default function Screen() {
                 ) : (
                   <button
                     onClick={() => setConfirming(p.id)}
-                    className="shrink-0 opacity-25 hover:opacity-70"
+                    className="shrink-0 flex items-center justify-center rounded-full transition-colors hover:bg-[#C0392B] hover:text-white"
+                    style={{ width: 16, height: 16, border: "1.5px solid #C0392B", color: "#C0392B" }}
                     aria-label="Remove block"
                   >
-                    <X size={11} />
+                    <X size={10} strokeWidth={3} />
                   </button>
                 )}
               </div>
