@@ -188,17 +188,21 @@ export default function Screen() {
             {module.panels.map((p, i) => {
               const here = Math.floor(i / PER_PAGE) === page;
               return (
-                <span
+                <button
                   key={p.id}
                   onClick={() => setPage(Math.floor(i / PER_PAGE))}
                   title={p.title || `Block ${i + 1}`}
-                  className="cursor-pointer rounded-sm"
+                  className="flex items-center justify-center rounded-sm text-[9px] font-bold tabular-nums transition-colors"
                   style={{
-                    width: here ? 14 : 7,
-                    height: 5,
-                    backgroundColor: here ? ORANGE : FRAME,
+                    width: 16,
+                    height: 16,
+                    color: here ? "#FFFFFF" : INK,
+                    backgroundColor: here ? ORANGE : "transparent",
+                    border: `1px solid ${here ? ORANGE : FRAME}`,
                   }}
-                />
+                >
+                  {i + 1}
+                </button>
               );
             })}
           </span>
@@ -228,7 +232,7 @@ export default function Screen() {
             <Card className="flex flex-col h-full">
               <div className="shrink-0 flex items-center gap-2 px-2.5 h-8" style={{ borderBottom: `1px solid ${LINE}` }}>
                 <span className="shrink-0 text-[11.5px] font-bold tabular-nums opacity-35">
-                  {String(i + 1).padStart(2, "0")}
+                  {i + 1}
                 </span>
                 <input
                   value={p.title}
