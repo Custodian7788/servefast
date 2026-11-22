@@ -226,8 +226,8 @@ export default function Screen() {
           {module.panels.map((p, i) => (
             <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
             <Card className="flex flex-col h-full">
-              <div className="shrink-0 flex items-center gap-0 px-2.5 h-8" style={{ borderBottom: `1px solid ${LINE}` }}>
-                <span className="shrink-0 mr-2 text-[11.5px] font-bold tabular-nums opacity-35">
+              <div className="shrink-0 flex items-center gap-2 px-2.5 h-8" style={{ borderBottom: `1px solid ${LINE}` }}>
+                <span className="shrink-0 text-[11.5px] font-bold tabular-nums opacity-35">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <input
@@ -237,7 +237,7 @@ export default function Screen() {
                   className="shrink-0 text-[11.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
                   style={{
                     color: ORANGE,
-                    width: `${Math.max((p.title || "Name this block").length, 6) + 1}ch`,
+                    width: `${Math.max((p.title || "Name this block").length, 6)}ch`,
                     maxWidth: "60%",
                   }}
                 />
@@ -246,7 +246,7 @@ export default function Screen() {
                     <button
                       onClick={() => status[p.id]?.refresh?.()}
                       disabled={status[p.id]?.pulling}
-                      className="shrink-0 ml-2 disabled:opacity-40 hover:opacity-70"
+                      className="shrink-0 disabled:opacity-40 hover:opacity-70"
                       style={{ color: ORANGE }}
                       aria-label="Refresh now"
                     >
@@ -257,7 +257,7 @@ export default function Screen() {
                       />
                     </button>
                     <span
-                      className="shrink-0 ml-2 text-[10px] font-bold uppercase tracking-[0.06em] opacity-45"
+                      className="shrink-0 text-[10px] font-bold uppercase tracking-[0.06em] opacity-45"
                       style={{ color: INK }}
                     >
                       {status[p.id]?.pulling ? "reading…" : sinceShort(p.lastPull)}
