@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, RotateCw, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, RotateCw, Rss, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
@@ -243,6 +243,14 @@ export default function Screen() {
                 />
                 {i === 0 && (
                   <>
+                    <button
+                      onClick={() => status[p.id]?.openSources?.()}
+                      className="shrink-0 hover:opacity-70"
+                      style={{ color: ORANGE }}
+                      aria-label="Sources"
+                    >
+                      <Rss size={11} strokeWidth={2} />
+                    </button>
                     <button
                       onClick={() => status[p.id]?.refresh?.()}
                       disabled={status[p.id]?.pulling}

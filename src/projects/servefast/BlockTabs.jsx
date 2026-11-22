@@ -113,7 +113,7 @@ export default function BlockTabs({
 
   // The title row shows the state of play and holds the refresh.
   useEffect(() => {
-    onStatus?.({ pulling, lastPull, refresh: pull });
+    onStatus?.({ pulling, lastPull, refresh: pull, openSources: () => setShowSources(true) });
   }, [pulling, lastPull, feeds.length]);
 
   return (
@@ -224,13 +224,6 @@ export default function BlockTabs({
           </>
         ) : (
           <>
-            <button
-              onClick={() => setShowSources(true)}
-              className="text-[11px] font-bold tracking-[0.07em] hover:opacity-70"
-              style={{ color: ORANGE }}
-            >
-              SOURCES
-            </button>
             <span className="flex-1" />
             <span className="text-[11px] tabular-nums font-bold" style={{ color: items.length ? ORANGE : "transparent" }}>
               {items.length || "."}
