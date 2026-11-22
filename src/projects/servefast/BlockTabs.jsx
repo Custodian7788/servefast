@@ -129,7 +129,7 @@ export default function BlockTabs({
       <div className="flex-1 min-h-0">
         {pulling ? (
           <div className="h-full flex items-center justify-center text-[12px] tracking-[0.06em] uppercase" style={{ color: ORANGE }}>
-            <span className="animate-pulse">Reading the feeds…</span>
+            <span className="animate-pulse">Working on the feeds. Please wait.</span>
           </div>
         ) : error ? (
           <div className="h-full flex items-center justify-center text-center text-[12px] px-3" style={{ color: "#A33427" }}>
