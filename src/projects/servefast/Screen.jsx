@@ -271,6 +271,11 @@ export default function Screen() {
                       {status[p.id]?.pulling ? "reading…" : sinceShort(p.lastPull)}
                     </span>
                     {p.lastRead > 0 && (
+                      <span className="shrink-0 opacity-25 select-none" style={{ color: INK }}>
+                        |
+                      </span>
+                    )}
+                    {p.lastRead > 0 && (
                       <span
                         className="shrink-0 text-[10px] font-bold uppercase tracking-[0.06em] opacity-45"
                         style={{ color: INK }}
