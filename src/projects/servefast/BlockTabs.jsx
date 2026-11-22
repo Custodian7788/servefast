@@ -151,7 +151,7 @@ export default function BlockTabs({
                 className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.06em] opacity-55"
                 style={{ color: INK, borderBottom: `1px solid ${LINE}` }}
               >
-                {items.length} kept from {read.toLocaleString("en-GB")} read · last 24 hours
+                {items.length} filtered from {read.toLocaleString("en-GB")}
               </div>
             )}
             {items.map((item, i) => (
