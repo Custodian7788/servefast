@@ -138,7 +138,7 @@ export default function Screen() {
                 onBlur={() => setNaming((id) => (id === m.id ? null : id))}
                 maxLength={18}
                 placeholder={naming === m.id ? "" : active ? "NAME IT" : "UNTITLED"}
-                className={`flex-1 min-w-0 bg-transparent text-center text-[11px] font-bold tracking-[0.06em] uppercase outline-none ${
+                className={`flex-1 min-w-0 bg-transparent text-center text-[12px] font-bold tracking-[0.06em] uppercase outline-none ${
                   active ? "cursor-text" : "cursor-pointer"
                 }`}
                 style={{ color: active ? "#FFFFFF" : INK, caretColor: active ? "#FFFFFF" : INK }}
@@ -171,16 +171,16 @@ export default function Screen() {
           {module.panels.map((p, i) => (
             <Card key={p.id} className="flex flex-col h-80">
               <div className="shrink-0 flex items-center gap-2 px-2.5 h-7" style={{ borderBottom: `1px solid ${LINE}` }}>
-                <span className="text-[10.5px] font-bold tabular-nums opacity-35">{String(i + 1).padStart(2, "0")}</span>
+                <span className="text-[11.5px] font-bold tabular-nums opacity-35">{String(i + 1).padStart(2, "0")}</span>
                 <input
                   value={p.title}
                   onChange={(e) => updatePanel(p.id, (panel) => ({ ...panel, title: e.target.value }))}
                   placeholder="Name this block"
-                  className="flex-1 min-w-0 text-[10.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
+                  className="flex-1 min-w-0 text-[11.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
                   style={{ color: ORANGE }}
                 />
                 {confirming === p.id ? (
-                  <span className="shrink-0 flex items-center gap-1.5 text-[11px] font-bold tracking-[0.06em]">
+                  <span className="shrink-0 flex items-center gap-1.5 text-[12px] font-bold tracking-[0.06em]">
                     <span style={{ color: INK }}>DELETE?</span>
                     <button
                       onClick={() => {
@@ -248,14 +248,14 @@ export default function Screen() {
             style={{ border: `1px dashed ${FRAME}`, color: ORANGE }}
           >
             <Plus size={20} strokeWidth={1.5} />
-            <span className="text-[11px] font-bold tracking-[0.07em]">ADD A BLOCK</span>
+            <span className="text-[12px] font-bold tracking-[0.07em]">ADD A BLOCK</span>
           </button>
         </div>
 
         {/* Where it all lands */}
         <Card className="shrink-0 mt-auto flex flex-col" style={{ borderColor: ORANGE }}>
           <div
-            className="shrink-0 flex items-center px-2.5 h-7 text-[10.5px] font-bold tracking-[0.07em]"
+            className="shrink-0 flex items-center px-2.5 h-7 text-[11.5px] font-bold tracking-[0.07em]"
             style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
           >
             OUTPUT
@@ -263,7 +263,7 @@ export default function Screen() {
           <textarea
             value={module.output}
             onChange={(e) => updateModule((m) => ({ ...m, output: e.target.value }))}
-            className="w-full h-28 resize-none px-3 py-2 text-[13px] leading-[1.5] outline-none placeholder:opacity-35"
+            className="w-full h-28 resize-none px-3 py-2 text-[14px] leading-[1.5] outline-none placeholder:opacity-35"
             style={{ color: INK }}
           />
         </Card>
@@ -276,7 +276,7 @@ export default function Screen() {
       >
         <Card className="flex-1 min-h-0 flex flex-col">
           <div
-            className="shrink-0 flex items-center px-2.5 h-7 text-[10.5px] font-bold tracking-[0.07em]"
+            className="shrink-0 flex items-center px-2.5 h-7 text-[11.5px] font-bold tracking-[0.07em]"
             style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
           >
             BLOCK BUILDER
@@ -290,7 +290,7 @@ export default function Screen() {
                 const picked = module.panels.find((panel) => panel.id === e.target.value);
                 setFn(picked?.kind || "");
               }}
-              className="w-full h-7 px-2 rounded bg-white text-[12px] outline-none cursor-pointer"
+              className="w-full h-7 px-2 rounded bg-white text-[13px] outline-none cursor-pointer"
               style={{ border: `1px solid ${FRAME}`, color: INK }}
             >
               <option value="">Pick a block</option>
@@ -311,7 +311,7 @@ export default function Screen() {
                 }
               }}
               disabled={!building}
-              className="mt-2 w-full h-7 px-2 rounded bg-white text-[12px] outline-none cursor-pointer disabled:opacity-35 disabled:cursor-default"
+              className="mt-2 w-full h-7 px-2 rounded bg-white text-[13px] outline-none cursor-pointer disabled:opacity-35 disabled:cursor-default"
               style={{ border: `1px solid ${FRAME}`, color: INK }}
             >
               <option value="">Select functionality</option>
