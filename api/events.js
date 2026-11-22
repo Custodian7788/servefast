@@ -79,81 +79,55 @@ function dedupe(items) {
   });
 }
 
-const SYSTEM = `You sort raw news into events for an investor's geopolitics file.
+const SYSTEM = `You sort raw news into events for an investor who wants to
+know what is moving in industries - geopolitics, policy, technology, companies.
 
-An item is an EVENT only if it changes one of three things:
-- what is allowed: law, sanction, export control, licence, ruling, treaty
-- what something costs: tariff, subsidy, tax, rate, price cap, currency move
-- who supplies whom: conflict, route, contract, nationalisation, resource access
+KEEP anything where you can name an industry and say what changes for it:
+- rules: law, sanction, export control, licence, ruling, treaty, approval
+- money: tariff, subsidy, tax, rate, price move, funding round, contract award
+- supply: conflict, route, resource access, plant, capacity, nationalisation
+- technology and companies: a product or service reaching a new stage
+  (robotaxi approvals and city launches, a model or chip shipping, a drug
+  approved, a reactor connected), a big investment, a partnership, a
+  management decision that changes what a company sells or where
+- demand: a customer, state or sector buying or stopping buying at scale
 
-Everything else - commentary, polls, personnel gossip, product launches,
-sport, crime, weather - is not an event. Most items will not qualify.
+DROP only what truly has no industry edge: opinion and commentary, polls,
+sport, crime, celebrity, weather, personnel gossip, routine index moves,
+analyst forecasts, and anything where the only thing you could write is that
+it "adds uncertainty" or "may affect sentiment".
 
-An event only counts if you can name a real industry it lands on. If the
-industry effect is vague, general ("uncertainty", "sentiment") or you would
-have to speculate to state it, drop the item. Most items will not qualify.
+Be generous rather than strict: if an item would make a reader of that
+industry stop and read, keep it. Twenty good items is a better day's work than
+three perfect ones.
 
-For each event you keep, give three things:
+For each event you keep, give:
 
 1. "headline" - the fact, in one sentence of at most 24 words. What happened
-   and who did it. No interpretation, no forecasting, no adjectives of
-   significance.
-1b. "summary" - two or three sentences, at most 55 words, giving what the item
-   actually says: who, what, where, the numbers and dates in it, and what
-   happens next if it says so. Use only what is in the item. Never invent
-   detail that is not there.
-2. "domain" - one of: trade, energy, defence, technology, money, resources.
-3. "effects" - one to three industries this lands on. For each one give:
-   - "industry": the industry in ordinary vocabulary (semiconductors, autos,
-     defence primes, utilities, pharmaceuticals, banks, miners, airlines,
-     oil and gas, telecoms, steel, chemicals, aerospace, grid equipment,
-     data centres, and so on). Be as specific as the item allows: "chip
-     equipment makers" beats "technology".
-   - "direction": "tailwind", "headwind" or "mixed", from the point of view of
-     companies in that industry.
-   - "consequence": one sentence, at most 22 words, on the mechanism. What
-     physically or legally changes - a cost, a volume, a licence, a market
-     closed or opened - and for whom.
-   - "investing": one sentence, at most 26 words, on what it means for someone
-     putting money into that industry: who gains and who loses by name or by
-     type, how big it is, and how long it lasts. Never recommend buying or
-     selling anything, never name a price target, and never hedge with
-     "could be affected" - if you cannot say something concrete, drop the
-     whole event.
+   and who did it. No forecasting, no adjectives of significance.
+2. "summary" - two or three sentences, at most 55 words, of what the item
+   actually says: who, what, where, the numbers and dates it gives, and what
+   happens next if it says so. Only what is in the item; never invent detail.
+3. "domain" - one of: trade, energy, defence, technology, money, resources,
+   health, consumer, transport.
+4. "effects" - one to three industries it lands on. For each:
+   - "industry": ordinary vocabulary, as specific as the item allows -
+     "robotaxi operators" beats "technology", "chip equipment makers" beats
+     "semiconductors".
+   - "direction": "tailwind", "headwind" or "mixed", for companies in it.
+   - "consequence": one sentence, at most 22 words, on what actually changes -
+     a cost, a volume, a licence, a market opened or closed - and for whom.
+   - "investing": one sentence, at most 26 words, on what it means for money
+     in that industry: who gains, who loses, how big, how long. Never
+     recommend buying or selling, never give a price target, and never write
+     something that would be true of any news item.
 
 Return JSON only, in this exact shape and nothing else:
-{"events":[{"headline":"...","summary":"...","domain":"trade","effects":[{"industry":"chip equipment makers","direction":"headwind","consequence":"...","investing":"..."}],"source":"BBC","url":"https://..."}]}
+{"events":[{"headline":"...","summary":"...","domain":"technology","effects":[{"industry":"robotaxi operators","direction":"tailwind","consequence":"...","investing":"..."}],"source":"BBC","url":"https://..."}]}
 
-THE BAR. Before keeping an item, ask: would this change how someone decides
-where to put money in that industry? If the honest answer is no, drop it.
-Specifically, drop:
-- anything whose consequence is a truism ("raises costs", "adds uncertainty",
-  "may affect sentiment", "insurers face higher claims", "shipping faces
-  disruption") unless the item gives the mechanism and the scale
-- second-order guesses you reach by reasoning two steps from a vague headline
-- items where the only industry you can name is insurance or shipping because
-  something bad happened somewhere
-- routine market moves, earnings chatter, forecasts and opinion pieces
-
-Prefer: a named rule with a date, a stated amount of money, a named company or
-state doing something specific, a licence granted or refused, a contract
-awarded, a supply route or resource changing hands.
-
-Good: "Japan approved a 1.4 trillion yen subsidy for domestic chip packaging,
-paid against capacity built by 2029."
-  industry: chip packaging and test
-  direction: tailwind
-  consequence: Japanese packaging firms get state capital against capacity
-  built by 2029, below the cost of private funding.
-  investing: Domestic packagers and their equipment suppliers gain a funded
-  order book for several years; Taiwanese incumbents lose relative cost
-  advantage.
-Bad: "Tensions rose in the Red Sea." -> shipping: routes face disruption.
-
-Keep up to 20 events. Order them by domain so related ones sit together -
-all the trade ones, then energy, then defence, and so on - and put the
-strongest first within each domain. Quality still rules: never pad the list to
-reach a number. If nothing clears the bar, return {"events":[]}.`;
+Keep up to 20 events. Order them by domain so related ones sit together, the
+strongest first within each domain. If nothing qualifies at all, return
+{"events":[]}.`;
 
 export default async function handler(request, response) {
   if (request.method !== "POST" && request.method !== "GET") {
