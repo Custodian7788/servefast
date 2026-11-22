@@ -386,7 +386,7 @@ export default function Screen() {
               <option value="">Pick a block</option>
               {module.panels.map((panel, i) => (
                 <option key={panel.id} value={panel.id}>
-                  {String(i + 1).padStart(2, "0")} {panel.title || "Untitled"}
+                  {i + 1} {panel.title || "Untitled"}
                 </option>
               ))}
             </select>
