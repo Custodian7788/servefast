@@ -270,6 +270,14 @@ export default function Screen() {
                     >
                       {status[p.id]?.pulling ? "reading…" : sinceShort(p.lastPull)}
                     </span>
+                    {p.lastRead > 0 && (
+                      <span
+                        className="shrink-0 text-[10px] font-bold uppercase tracking-[0.06em] opacity-45"
+                        style={{ color: INK }}
+                      >
+                        {(p.tabs?.t1 || []).length} filtered from {p.lastRead.toLocaleString("en-GB")}
+                      </span>
+                    )}
                   </>
                 )}
                 <span className="flex-1" />

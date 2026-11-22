@@ -146,14 +146,6 @@ export default function BlockTabs({
           </div>
         ) : (
           <div className="h-full overflow-y-auto">
-            {read > 0 && (
-              <div
-                className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.06em] opacity-55"
-                style={{ color: INK, borderBottom: `1px solid ${LINE}` }}
-              >
-                {items.length} filtered from {read.toLocaleString("en-GB")}
-              </div>
-            )}
             {items.map((item, i) => (
               <button
                 key={item.id}
@@ -182,8 +174,11 @@ export default function BlockTabs({
         )}
       </div>
 
-      {/* Where you are */}
-      <div className="shrink-0 flex items-center gap-2 px-2 h-7" style={{ borderTop: `1px solid ${LINE}` }}>
+      {/* Where you are, while reading */}
+      <div
+        className={`shrink-0 flex items-center gap-2 px-2 ${reading ? "h-7" : "h-0 overflow-hidden"}`}
+        style={{ borderTop: reading ? `1px solid ${LINE}` : "none" }}
+      >
         {reading ? (
           <>
             <button
@@ -222,14 +217,7 @@ export default function BlockTabs({
               {index + 1}/{items.length}
             </span>
           </>
-        ) : (
-          <>
-            <span className="flex-1" />
-            <span className="text-[11px] tabular-nums font-bold" style={{ color: items.length ? ORANGE : "transparent" }}>
-              {items.length || "."}
-            </span>
-          </>
-        )}
+        ) : null}
       </div>
     </div>
   );
