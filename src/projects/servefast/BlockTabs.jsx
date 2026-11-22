@@ -82,10 +82,12 @@ export default function BlockTabs({
       const pulled = data.events || [];
       if (topUp) {
         // Newest on top, nothing lost, no duplicates.
-        if (pulled.length) {
-          const seen = new Set(items.map((i) => i.text));
-          const fresh = pulled.filter((e) => !seen.has(e.text));
-          if (fresh.length) onReplace(feedTab, [...fresh, ...items].slice(0, 60));
+        const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+        const kept = items.filter((i) => !i.publishedAt || Date.parse(i.publishedAt) >= dayAgo);
+        const seen = new Set(kept.map((i) => i.text));
+        const fresh = pulled.filter((e) => !seen.has(e.text));
+        if (fresh.length || kept.length !== items.length) {
+          onReplace(feedTab, [...fresh, ...kept].slice(0, 60));
         }
         onPulled?.(Date.now(), (data.read || 0) + (read || 0));
       } else if (!pulled.length) {
@@ -124,8 +126,12 @@ export default function BlockTabs({
 
   // The title row shows the state of play and holds the refresh.
   useEffect(() => {
-    onStatus?.({ pulling, lastPull, refresh: pull, openSources: () => setShowSources(true) });
-  }, [pulling, lastPull, feeds.length]);
+    const refresh = () => {
+      const fresh = lastPull && Date.now() - lastPull < 24 * 60 * 60 * 1000;
+      pull(Boolean(fresh && items.length));
+    };
+    onStatus?.({ pulling, lastPull, refresh, openSources: () => setShowSources(true) });
+  }, [pulling, lastPull, feeds.length, items.length]);
 
   return (
     <div className="relative flex-1 min-h-0 flex flex-col">
