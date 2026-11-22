@@ -8,6 +8,23 @@ import Sources from "./Sources.jsx";
 // shape. The first one is the one wired to the feeds.
 export const TABS = ["t1", "t2", "t3", "t4"];
 
+// The carve-up people actually track, each one an ETF sector.
+export const CATEGORIES = [
+  "AI",
+  "Autonomous and EV",
+  "Biotech and health tech",
+  "Clean energy and grid",
+  "Cloud and data centres",
+  "Cybersecurity",
+  "Defence tech",
+  "Fintech",
+  "Internet and platforms",
+  "Robotics and automation",
+  "Semiconductors",
+  "Software",
+  "Space",
+];
+
 // Shrinks an item until it fits its box: nothing inside a block ever scrolls.
 function Fitted({ children }) {
   const box = useRef(null);
@@ -52,13 +69,15 @@ export default function BlockTabs({
   const [tab, setTab] = useState(TABS[0]);
   const [index, setIndex] = useState(0);
   const [reading, setReading] = useState(false);
+  const [category, setCategory] = useState("");
   const [layer, setLayer] = useState(0);
   const [pulling, setPulling] = useState(false);
   const [showSources, setShowSources] = useState(false);
   const [error, setError] = useState(null);
 
   const askedOnce = useRef(false);
-  const items = tabs?.[tab] || [];
+  const all = tabs?.[tab] || [];
+  const items = category ? all.filter((i) => i.category === category) : all;
   const current = items[Math.min(index, Math.max(items.length - 1, 0))];
   const feedTab = TABS[0];
 
@@ -83,10 +102,10 @@ export default function BlockTabs({
       if (topUp) {
         // Newest on top, nothing lost, no duplicates.
         const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
-        const kept = items.filter((i) => !i.publishedAt || Date.parse(i.publishedAt) >= dayAgo);
+        const kept = all.filter((i) => !i.publishedAt || Date.parse(i.publishedAt) >= dayAgo);
         const seen = new Set(kept.map((i) => i.text));
         const fresh = pulled.filter((e) => !seen.has(e.text));
-        if (fresh.length || kept.length !== items.length) {
+        if (fresh.length || kept.length !== all.length) {
           onReplace(feedTab, [...fresh, ...kept].slice(0, 60));
         }
         onPulled?.(Date.now(), (data.read || 0) + (read || 0));
@@ -128,10 +147,10 @@ export default function BlockTabs({
   useEffect(() => {
     const refresh = () => {
       const fresh = lastPull && Date.now() - lastPull < 24 * 60 * 60 * 1000;
-      pull(Boolean(fresh && items.length));
+      pull(Boolean(fresh && all.length));
     };
     onStatus?.({ pulling, lastPull, refresh, openSources: () => setShowSources(true) });
-  }, [pulling, lastPull, feeds.length, items.length]);
+  }, [pulling, lastPull, feeds.length, all.length]);
 
   return (
     <div className="relative flex-1 min-h-0 flex flex-col">
@@ -162,7 +181,29 @@ export default function BlockTabs({
             <Story item={current} view={layer} onView={setLayer} />
           </div>
         ) : (
-          <div className="h-full overflow-y-auto">
+          <div className="h-full flex flex-col">
+            <div className="shrink-0 px-2 py-1.5" style={{ borderBottom: `1px solid ${LINE}` }}>
+              <select
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setIndex(0);
+                }}
+                className="w-full h-6 px-1.5 rounded bg-white text-[11px] outline-none cursor-pointer"
+                style={{ border: `1px solid ${LINE}`, color: INK }}
+              >
+                <option value="">All categories · {all.length}</option>
+                {CATEGORIES.map((name) => {
+                  const n = all.filter((i) => i.category === name).length;
+                  return (
+                    <option key={name} value={name} disabled={!n}>
+                      {name} · {n}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto">
             {items.map((item, i) => (
               <button
                 key={item.id}
@@ -187,6 +228,12 @@ export default function BlockTabs({
                 )}
               </button>
             ))}
+            {!items.length && (
+              <div className="p-3 text-[12px] opacity-40" style={{ color: INK }}>
+                Nothing in that category today
+              </div>
+            )}
+            </div>
           </div>
         )}
       </div>

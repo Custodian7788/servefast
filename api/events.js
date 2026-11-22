@@ -108,8 +108,11 @@ For each event you keep, give:
 2. "summary" - two or three sentences, at most 55 words, of what the item
    actually says: who, what, where, the numbers and dates it gives, and what
    happens next if it says so. Only what is in the item; never invent detail.
-3. "domain" - one of: trade, energy, defence, technology, money, resources,
-   health, consumer, transport.
+3. "category" - exactly one of these, the closest fit:
+   AI, Semiconductors, Software, Cloud and data centres, Cybersecurity,
+   Robotics and automation, Autonomous and EV, Defence tech, Space, Fintech,
+   Biotech and health tech, Clean energy and grid, Internet and platforms.
+   If an item fits none of them even loosely, drop the item.
 4. "effects" - one to three industries it lands on. For each:
    - "industry": ordinary vocabulary, as specific as the item allows -
      "robotaxi operators" beats "technology", "chip equipment makers" beats
@@ -123,10 +126,10 @@ For each event you keep, give:
      something that would be true of any news item.
 
 Return JSON only, in this exact shape and nothing else:
-{"events":[{"headline":"...","summary":"...","domain":"technology","effects":[{"industry":"robotaxi operators","direction":"tailwind","consequence":"...","investing":"..."}],"source":"BBC","url":"https://..."}]}
+{"events":[{"headline":"...","summary":"...","category":"Autonomous and EV","effects":[{"industry":"robotaxi operators","direction":"tailwind","consequence":"...","investing":"..."}],"source":"BBC","url":"https://..."}]}
 
-Keep up to 20 events. Order them by domain so related ones sit together, the
-strongest first within each domain. If nothing qualifies at all, return
+Keep up to 20 events. Order them by category so related ones sit together, the
+strongest first within each category. If nothing qualifies at all, return
 {"events":[]}.`;
 
 export default async function handler(request, response) {
@@ -199,7 +202,7 @@ export default async function handler(request, response) {
           text: event.headline || event.text || "",
           summary: event.summary || "",
           publishedAt: new Date(publishedByUrl.get(event.url) || Date.now()).toISOString(),
-          domain: event.domain || "",
+          category: event.category || "",
           effects: event.effects.slice(0, 3).map((effect) => ({
             industry: effect.industry || "",
             direction: effect.direction || "",
