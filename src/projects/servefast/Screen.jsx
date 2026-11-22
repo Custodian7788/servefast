@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, RotateCw, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
@@ -34,6 +34,17 @@ export default function Screen() {
   const [justMade, setJustMade] = useState(null);
   const [naming, setNaming] = useState(null);
   const [confirming, setConfirming] = useState(null);
+  const [status, setStatus] = useState({});
+
+  // "pulled 12 min ago", in the block's title row.
+  function sinceShort(at) {
+    if (!at) return "never";
+    const mins = Math.max(0, Math.round((Date.now() - at) / 60000));
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.round(mins / 60);
+    return hrs < 24 ? `${hrs} hr ago` : `${Math.round(hrs / 24)} d ago`;
+  }
   const [building, setBuilding] = useState(null);
   const [fn, setFn] = useState(null);
   const [focused, setFocused] = useState(false);
@@ -179,6 +190,29 @@ export default function Screen() {
                   className="flex-1 min-w-0 text-[11.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
                   style={{ color: ORANGE }}
                 />
+                {i === 0 && confirming !== p.id && (
+                  <>
+                    <span
+                      className="shrink-0 text-[10px] font-bold uppercase tracking-[0.06em] opacity-45"
+                      style={{ color: INK }}
+                    >
+                      {status[p.id]?.pulling ? "reading…" : sinceShort(p.lastPull)}
+                    </span>
+                    <button
+                      onClick={() => status[p.id]?.refresh?.()}
+                      disabled={status[p.id]?.pulling}
+                      className="shrink-0 disabled:opacity-40 hover:opacity-70"
+                      style={{ color: ORANGE }}
+                      aria-label="Refresh now"
+                    >
+                      <RotateCw
+                        size={11}
+                        strokeWidth={2}
+                        className={status[p.id]?.pulling ? "animate-spin" : ""}
+                      />
+                    </button>
+                  </>
+                )}
                 {confirming === p.id ? (
                   <span className="shrink-0 flex items-center gap-1.5 text-[12px] font-bold tracking-[0.06em]">
                     <span style={{ color: INK }}>DELETE?</span>
@@ -209,6 +243,9 @@ export default function Screen() {
                 tabs={p.tabs}
                 autoPull={i === 0}
                 feeds={p.feeds || []}
+                lastPull={p.lastPull}
+                onPulled={(at) => updatePanel(p.id, (panel) => ({ ...panel, lastPull: at }))}
+                onStatus={(info) => setStatus((prev) => (prev[p.id]?.pulling === info.pulling && prev[p.id]?.lastPull === info.lastPull ? prev : { ...prev, [p.id]: info }))}
                 onReplace={(tab, list) =>
                   updatePanel(p.id, (panel) => ({
                     ...panel,

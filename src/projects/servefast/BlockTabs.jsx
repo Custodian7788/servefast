@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, List } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
-import Story from "./Story.jsx";
+import Story, { sinceLabel } from "./Story.jsx";
 import Sources from "./Sources.jsx";
 
 // Four tabs per block. They start unnamed - you name them as the block takes
@@ -34,9 +34,23 @@ function Fitted({ children }) {
   );
 }
 
-export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = [], onAdd, onRemove, onRename, onFeeds, onReplace }) {
+export default function BlockTabs({
+  tabs,
+  names = {},
+  autoPull = false,
+  feeds = [],
+  lastPull,
+  onAdd,
+  onRemove,
+  onRename,
+  onFeeds,
+  onReplace,
+  onPulled,
+  onStatus,
+}) {
   const [tab, setTab] = useState(TABS[0]);
   const [index, setIndex] = useState(0);
+  const [reading, setReading] = useState(false);
   const [layer, setLayer] = useState(0);
   const [pulling, setPulling] = useState(false);
   const [showSources, setShowSources] = useState(false);
@@ -69,9 +83,11 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
         setError("Nothing qualified from today's feeds");
       } else {
         onReplace(feedTab, pulled);
+        onPulled?.(Date.now());
         setTab(feedTab);
         setIndex(0);
         setLayer(0);
+        setReading(false);
       }
     } catch (err) {
       setError(err.message);
@@ -80,12 +96,24 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
     }
   }
 
-  // Nothing stored yet: bring today's in without being asked.
+  const stale = !lastPull || Date.now() - lastPull > 60 * 60 * 1000;
+
   useEffect(() => {
-    if (askedOnce.current) return;
-    askedOnce.current = true;
-    if (autoPull && !(tabs?.[TABS[0]] || []).length) pull();
-  }, []);
+    if (!autoPull) return;
+    if (!askedOnce.current) {
+      askedOnce.current = true;
+      if (stale) pull();
+    }
+    const timer = setInterval(() => {
+      if (!pulling && (!lastPull || Date.now() - lastPull > 60 * 60 * 1000)) pull();
+    }, 5 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [autoPull, lastPull, pulling]);
+
+  // The title row shows the state of play and holds the refresh.
+  useEffect(() => {
+    onStatus?.({ pulling, lastPull, refresh: pull });
+  }, [pulling, lastPull, feeds.length]);
 
   return (
     <div className="relative flex-1 min-h-0 flex flex-col">
@@ -97,71 +125,109 @@ export default function BlockTabs({ tabs, names = {}, autoPull = false, feeds = 
           onClose={() => setShowSources(false)}
         />
       )}
-      {/* One item at a time */}
-      <div className="flex-1 min-h-0 px-3 py-2">
+      {/* The list, or the story you picked */}
+      <div className="flex-1 min-h-0">
         {pulling ? (
           <div className="h-full flex items-center justify-center text-[12px] tracking-[0.06em] uppercase" style={{ color: ORANGE }}>
             <span className="animate-pulse">Reading the feeds…</span>
           </div>
         ) : error ? (
-          <div className="h-full flex items-center justify-center text-center text-[12px] px-2" style={{ color: "#A33427" }}>
+          <div className="h-full flex items-center justify-center text-center text-[12px] px-3" style={{ color: "#A33427" }}>
             {error}
           </div>
-        ) : current ? (
-          <Story item={current} view={layer} onView={setLayer} />
-        ) : (
+        ) : !items.length ? (
           <div className="h-full flex items-center justify-center text-[12px] opacity-35" style={{ color: INK }}>
             Nothing here yet
+          </div>
+        ) : reading && current ? (
+          <div className="h-full px-3 py-2">
+            <Story item={current} view={layer} onView={setLayer} />
+          </div>
+        ) : (
+          <div className="h-full overflow-y-auto">
+            {items.map((item, i) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setIndex(i);
+                  setLayer(0);
+                  setReading(true);
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
+                style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
+              >
+                <span className="block text-[13px] leading-[1.35]" style={{ color: INK }}>
+                  {item.text}
+                </span>
+                {item.publishedAt && (
+                  <span
+                    className="block mt-0.5 text-[10px] font-bold uppercase tracking-[0.06em] opacity-60"
+                    style={{ color: ORANGE }}
+                  >
+                    {sinceLabel(item.publishedAt)}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Move through them */}
-      <div className="shrink-0 flex items-center gap-2 px-2 h-6" style={{ borderTop: `1px solid ${LINE}` }}>
-        <button
-          onClick={() => {
-            setLayer(0);
-            setIndex((i) => Math.max(i - 1, 0));
-          }}
-          disabled={!items.length || index === 0}
-          className="disabled:opacity-20"
-          style={{ color: ORANGE }}
-          aria-label="Previous"
-        >
-          <ChevronLeft size={13} />
-        </button>
-        <button
-          onClick={() => {
-            setLayer(0);
-            setIndex((i) => Math.min(i + 1, items.length - 1));
-          }}
-          disabled={!items.length || index >= items.length - 1}
-          className="disabled:opacity-20"
-          style={{ color: ORANGE }}
-          aria-label="Next"
-        >
-          <ChevronRight size={13} />
-        </button>
-        <span className="flex-1" />
-        <button
-          onClick={() => setShowSources(true)}
-          className="text-[11px] font-bold tracking-[0.07em] hover:opacity-70"
-          style={{ color: ORANGE }}
-        >
-          SOURCES
-        </button>
-        <button
-          onClick={pull}
-          disabled={pulling}
-          className="disabled:opacity-40"
-          style={{ color: ORANGE }}
-          aria-label="Pull today's events"
-        >
-          <RotateCw size={10} strokeWidth={2} className={pulling ? "animate-spin" : ""} />
-        </button>
-        <span className="text-[11px] tabular-nums font-bold" style={{ color: items.length ? ORANGE : "transparent" }}>
-          {items.length ? `${index + 1}/${items.length}` : "."}
-        </span>
+      {/* Where you are */}
+      <div className="shrink-0 flex items-center gap-2 px-2 h-7" style={{ borderTop: `1px solid ${LINE}` }}>
+        {reading ? (
+          <>
+            <button
+              onClick={() => setReading(false)}
+              className="flex items-center gap-1 text-[11px] font-bold tracking-[0.07em] hover:opacity-70"
+              style={{ color: ORANGE }}
+            >
+              <List size={12} /> LIST
+            </button>
+            <span className="flex-1" />
+            <button
+              onClick={() => {
+                setLayer(0);
+                setIndex((i) => Math.max(i - 1, 0));
+              }}
+              disabled={index === 0}
+              className="disabled:opacity-20"
+              style={{ color: ORANGE }}
+              aria-label="Previous story"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              onClick={() => {
+                setLayer(0);
+                setIndex((i) => Math.min(i + 1, items.length - 1));
+              }}
+              disabled={index >= items.length - 1}
+              className="disabled:opacity-20"
+              style={{ color: ORANGE }}
+              aria-label="Next story"
+            >
+              <ChevronRight size={14} />
+            </button>
+            <span className="text-[11px] tabular-nums font-bold" style={{ color: ORANGE }}>
+              {index + 1}/{items.length}
+            </span>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setShowSources(true)}
+              className="text-[11px] font-bold tracking-[0.07em] hover:opacity-70"
+              style={{ color: ORANGE }}
+            >
+              SOURCES
+            </button>
+            <span className="flex-1" />
+            <span className="text-[11px] tabular-nums font-bold" style={{ color: items.length ? ORANGE : "transparent" }}>
+              {items.length || "."}
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
