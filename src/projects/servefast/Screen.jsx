@@ -33,7 +33,6 @@ export default function Screen() {
   const [ready, setReady] = useState(false);
   const [justMade, setJustMade] = useState(null);
   const [naming, setNaming] = useState(null);
-  const [confirming, setConfirming] = useState(null);
   const [status, setStatus] = useState({});
   const [page, setPage] = useState(0);
   const PER_PAGE = 2;
@@ -100,10 +99,6 @@ export default function Screen() {
 
   function addPanel() {
     updateModule((m) => ({ ...m, panels: [...m.panels, makePanel()] }));
-  }
-
-  function removePanel(id) {
-    updateModule((m) => ({ ...m, panels: m.panels.filter((p) => p.id !== id) }));
   }
 
   function createModule() {
@@ -244,7 +239,7 @@ export default function Screen() {
                     maxWidth: "60%",
                   }}
                 />
-                {i === 0 && confirming !== p.id && (
+                {i === 0 && (
                   <>
                     <span
                       className="shrink-0 text-[10px] font-bold uppercase tracking-[0.06em] opacity-45"
@@ -268,32 +263,15 @@ export default function Screen() {
                   </>
                 )}
                 <span className="flex-1" />
-                {confirming === p.id ? (
-                  <span className="shrink-0 flex items-center gap-1.5 text-[12px] font-bold tracking-[0.06em]">
-                    <span style={{ color: INK }}>DELETE?</span>
-                    <button
-                      onClick={() => {
-                        removePanel(p.id);
-                        setConfirming(null);
-                      }}
-                      style={{ color: "#A33427" }}
-                    >
-                      YES
-                    </button>
-                    <button onClick={() => setConfirming(null)} style={{ color: INK }} className="opacity-50">
-                      NO
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setConfirming(p.id)}
-                    className="shrink-0 flex items-center justify-center rounded-full transition-colors hover:bg-[#C0392B] hover:text-white"
-                    style={{ width: 16, height: 16, border: "1.5px solid #C0392B", color: "#C0392B" }}
-                    aria-label="Remove block"
-                  >
-                    <X size={10} strokeWidth={3} />
-                  </button>
-                )}
+                {/* Nothing behind this yet: deleting a block is a big deal. */}
+                <button
+                  onClick={() => {}}
+                  className="shrink-0 flex items-center justify-center rounded-full transition-colors hover:bg-[#C0392B] hover:text-white"
+                  style={{ width: 16, height: 16, border: "1.5px solid #C0392B", color: "#C0392B" }}
+                  aria-label="Remove block"
+                >
+                  <X size={10} strokeWidth={3} />
+                </button>
               </div>
               <BlockTabs
                 tabs={p.tabs}
