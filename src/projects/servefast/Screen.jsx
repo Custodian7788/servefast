@@ -391,17 +391,24 @@ export default function Screen() {
           ))}
 
           <div className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
-            <button
-              onClick={() => {
-                addPanel();
-                setSlot(module.panels.length + 2 - PER_PAGE);
-              }}
-              className="w-full h-full rounded-md flex flex-col items-center justify-center gap-2 hover:bg-[#FFF8F2] transition-colors"
-              style={{ border: `1px dashed ${FRAME}`, color: ORANGE }}
+            {/* The frame is not the button. Only the words are, so a stray
+                click in the empty space does not make a block. */}
+            <div
+              className="w-full h-full rounded-md flex flex-col items-center justify-center"
+              style={{ border: `1px dashed ${FRAME}` }}
             >
-              <Plus size={20} strokeWidth={1.5} />
-              <span className="text-[12px] font-bold tracking-[0.07em]">ADD A BLOCK</span>
-            </button>
+              <button
+                onClick={() => {
+                  addPanel();
+                  setSlot(module.panels.length + 2 - PER_PAGE);
+                }}
+                className="flex flex-col items-center gap-2 px-3 py-2 rounded hover:bg-[#FFF8F2] transition-colors"
+                style={{ color: ORANGE }}
+              >
+                <Plus size={20} strokeWidth={1.5} />
+                <span className="text-[12px] font-bold tracking-[0.07em]">ADD A BLOCK</span>
+              </button>
+            </div>
           </div>
         </div>
 
