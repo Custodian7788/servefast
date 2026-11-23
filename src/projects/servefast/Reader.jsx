@@ -7,6 +7,52 @@ import { sinceLabel } from "./Story.jsx";
 // An article, read inside the block. The site's own page cannot be framed -
 // news sites forbid it - so the server fetches it and we set the text
 // ourselves. Nothing here costs anything: no model is involved.
+// Half the sites refuse to be read, so when one does you paste the article
+// in yourself. It is kept against that story, so it is there next time and
+// Perspective works from it.
+function Paste({ item, reason, onSaved }) {
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function save() {
+    if (text.trim().length < 80) return;
+    setSaving(true);
+    fetch("/api/read", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url: item.url, text }),
+    })
+      .then((r) => r.json())
+      .then((data) => onSaved(data))
+      .catch(() => setSaving(false));
+  }
+
+  return (
+    <div className="mt-4 pt-3 flex flex-col gap-2" style={{ borderTop: `1px solid ${LINE}` }}>
+      <p className="text-[11px] leading-[1.5] opacity-50" style={{ color: INK }}>
+        {reason}. It is open in the other window: copy the article and paste it here.
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onPaste={() => setTimeout(save, 0)}
+        placeholder="Paste the article"
+        className="no-bar w-full h-40 p-2 text-[13px] leading-[1.5] outline-none resize-none"
+        style={{ border: `1px solid ${LINE}`, color: INK }}
+      />
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving || text.trim().length < 80}
+        className="self-start px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#FFF3E8] disabled:opacity-30"
+        style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
+      >
+        {saving ? "Keeping it" : "Keep it"}
+      </button>
+    </div>
+  );
+}
+
 export default function Reader({ item, onBack, onOpenOut = openStory }) {
   const [state, setState] = useState({ loading: true });
   const top = useRef(null);
@@ -99,18 +145,7 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
             Fetching the article
           </p>
         ) : state.blocked ? (
-          <div className="mt-5">
-            <p className="text-[13px] leading-[1.5]" style={{ color: INK }}>
-              {state.reason}
-            </p>
-            <button
-              onClick={(e) => onOpenOut?.(e, item.url)}
-              className="mt-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
-              style={{ color: ORANGE }}
-            >
-              Read it at the source <ExternalLink size={12} />
-            </button>
-          </div>
+          <Paste item={item} reason={state.reason} onSaved={(data) => setState({ loading: false, ...data })} />
         ) : (
           <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${LINE}` }}>
             {(state.paragraphs || []).map((p, i) =>

@@ -114,63 +114,59 @@ export const CATEGORIES = [
   "Internet and platforms",
 ];
 
-const SIFT = `You sort a day of raw headlines for an investor who follows technology
-industries. You decide what is worth listing and you tidy the wording. You
-never summarise the story and you never explain it.
+const SIFT = `You sort a day of raw headlines for an investor in listed
+technology companies. You decide what is worth listing and you tidy the
+wording. You never summarise the story and you never explain it.
 
-THE TEST, and it is the only one that matters: can you name a company whose
-revenue, costs, licences or market this story actually changes? Name it and
-keep the item. Cannot name one, drop the item. No exceptions, however
-important the news is in itself.
+THE TEST, and it is the only one. Would someone who owns shares in a named
+company want to know this today, because it changes what that company will
+earn, spend, sell or be allowed to do? Name that company and keep the item.
+Cannot name one, drop it. Importance in the world is not the test: wars,
+elections and summits are important and still fail it.
 
-A company counts when the story reaches its accounts: it is in the story, or
-it plainly sells into, buys from, competes with or is regulated by what the
-story describes. "Chipmakers" is not a company. "Nvidia" is.
+KEEP only these, and only with a named company:
+- results, guidance, revenue, margins, an earnings date, a profit warning
+- an order, a contract award, a customer win or loss, a supply deal
+- a product or service reaching a real stage: shipping, approved, launched
+  in a named market, connected, certified
+- a plant, a capacity decision, a shortage, a price change in an input
+- an acquisition, a merger, a stake, a funding round, an IPO, a spin-off
+- a regulator acting on named firms: an export control, a licence, a fine,
+  an antitrust ruling, an approval, a standard with a date
+- a chief executive, chief financial officer or founder arriving or leaving
+- a named competitor taking share from another named company
 
-KEEP, where the test is passed:
-- rules: an export control, sanction, licence, ruling, approval or standard
-  that lands on named firms
-- money: a tariff, subsidy, rate, contract award, funding round, order or
-  price move with a figure attached
-- supply: a plant, a capacity decision, a shortage, a nationalisation, a
-  route closed, where you can say whose supply it is
-- technology: a product or service reaching a real stage - shipping,
-  approved, launched in a city, connected to the grid - by a named firm
-- demand: a named customer, state or sector buying or stopping buying at
-  scale
+DROP everything else. These keep getting through and must not:
+- summits, conferences, climate talks, COP, declarations, communiques
+- diplomacy, elections, polls, cabinet changes, party politics, protest
+- wars, troop movements, fleets, exercises, border incidents, unless the
+  story names a contract or a named supplier
+- aid, relief, recovery and humanitarian packages
+- consumer marketing, design refreshes, sponsorships, rebrands, a firm
+  targeting a new sort of buyer
+- opinion, commentary, explainers, analyst forecasts, price targets,
+  stock tips, best-stocks lists, what-to-watch pieces
+- crime, sport, celebrity, weather, personnel gossip below the top table
+- index moves, market recaps, a share price that moved with no cause given
+- anything whose only point is that something adds uncertainty, raises
+  questions or may affect sentiment
 
-DROP, and these are the ones that keep getting through:
-- summits, conferences, climate talks, declarations, communiques, COP and
-  the rest, however they end. A summit that collapses changes no company's
-  accounts this week.
-- diplomacy, elections, polls, cabinet appointments, party politics, protest
-- aid, relief and recovery packages, disaster response, humanitarian funding
-- troop movements, fleets, exercises, border incidents, unless a named
-  contract or a named supplier is in the story
-- consumer product marketing, a firm "targeting younger buyers", design
-  refreshes, sponsorships, rebrands
-- opinion, commentary, analyst forecasts, price targets, "stock to watch"
-- crime, sport, celebrity, weather, personnel gossip, routine index moves
-- anything where the only thing you could write is that it "adds
-  uncertainty", "raises questions" or "may affect sentiment"
-
-Be strict. Thirty items that each name a company beat a hundred that read
-like a newspaper front page. Drop near-duplicates of the same event, keeping
-the clearest one.
+Be hard about it. Twenty items that each name a company and a change beat a
+hundred that read like a newspaper front page. An empty list is a fine
+answer on a quiet day. Drop near-duplicates, keeping the clearest.
 
 Every kept item sits in exactly one of these categories:
 ${CATEGORIES.join(", ")}.
-If a headline fits none of them even loosely, drop the item. Do not stretch a
-category to fit: a flood relief package is not Clean energy and grid, and a
-camera marketed at young people is not Robotics and automation.
+If a headline fits none of them even loosely, drop the item. Never stretch a
+category to fit.
 
 For each one you keep, give:
 - "n": the number printed in front of the headline.
 - "category": one of the list above.
-- "company": the one company the story lands on hardest, by name. If you
-  cannot fill this in, you should have dropped the item.
+- "company": the one listed company the story lands on hardest, by name. If
+  you cannot fill this in, you should have dropped the item.
 - "headline": the same fact, tidied into one plain sentence of at most 20
-  words. Strip the outlet's branding, the clickbait and the trailing dash.
+  words. Strip the outlet branding, the clickbait and the trailing dash.
   Never add a fact that is not already in the headline you were given.
 
 Return JSON only, nothing else, at most ${KEEP} items, strongest first:

@@ -100,7 +100,21 @@ export default async function handler(request, response) {
   }
 
   try {
-    const body = await readArticle(url);
+    // Prefer the body we already hold, whether it was fetched or pasted in
+    // by hand. Only go to the site when we have nothing.
+    let body = "";
+    if (ready && url) {
+      try {
+        const held = await get(`sf:read:${crypto.createHash("sha256").update(url).digest("hex").slice(0, 24)}`);
+        if (held) {
+          const parsed = JSON.parse(held);
+          body = (parsed.paragraphs || []).map((p) => p.text).join("\n\n").slice(0, 12000);
+        }
+      } catch {
+        // Fall through to fetching it.
+      }
+    }
+    if (!body) body = await readArticle(url);
 
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({

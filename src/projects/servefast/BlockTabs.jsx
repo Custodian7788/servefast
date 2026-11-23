@@ -3,6 +3,7 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
 import Sources from "./Sources.jsx";
+import openStory from "./openStory.js";
 
 // Four tabs per block. They start unnamed - you name them as the block takes
 // shape. The first one is the one wired to the feeds.
@@ -303,7 +304,12 @@ export default function BlockTabs({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => go({ readingId: item.id })}
+                  onClick={(e) => {
+                    go({ readingId: item.id });
+                    // Always open the original too: half the sites cannot be
+                    // read by us, and you want it in front of you either way.
+                    openStory(e, item.url);
+                  }}
                   className="block w-full text-left px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
                   style={{
                     borderTop: i ? `1px solid ${LINE}` : "none",

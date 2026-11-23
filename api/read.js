@@ -84,6 +84,37 @@ export default async function handler(request, response) {
 
   const key = `sf:read:${crypto.createHash("sha256").update(url).digest("hex").slice(0, 24)}`;
 
+  // Text pasted in by hand. Around half the sites refuse to be fetched, so
+  // this is how those stories get their body, and it is kept like any other.
+  const pasted = typeof request.body?.text === "string" ? request.body.text.trim() : "";
+  if (pasted) {
+    const paragraphs = pasted
+      .split(/\n+/)
+      .map((line) => line.replace(/[ \t]+/g, " ").trim())
+      .filter((line) => line.length > 1)
+      .slice(0, MAX_PARAGRAPHS)
+      .map((line) => ({ kind: "text", text: line }));
+
+    const out = {
+      title: "",
+      site: new URL(url).hostname.replace(/^www\./, ""),
+      url,
+      words: pasted.split(/\s+/).filter(Boolean).length,
+      paragraphs,
+      pasted: true,
+    };
+
+    if (ready) {
+      try {
+        await set(key, JSON.stringify(out), TTL_DAYS * 24 * 60 * 60);
+      } catch {
+        // The text still comes back even if it could not be kept.
+      }
+    }
+    response.status(200).json({ ...out, cached: false });
+    return;
+  }
+
   try {
     if (ready) {
       const kept = await get(key);
