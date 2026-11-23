@@ -9,16 +9,32 @@ const KEY = "workspace";
 
 // What a block can be made to do. Nothing behind these yet.
 const FUNCTIONS = [
-  "CHART",
-  "CHECKLIST",
-  "COMPARISON",
-  "QUESTIONS",
-  "RESEARCH",
-  "SHORTLIST",
-  "SOURCES",
-  "SUMMARY",
-  "TIMELINE",
+  "Chart",
+  "Checklist",
+  "Comparison",
+  "Questions",
+  "Research",
+  "Shortlist",
+  "Sources",
+  "Summary",
+  "Timeline",
 ];
+
+// Block names are typed in all sorts of ways. A dropdown reads better with one
+// capital at the front and the rest left alone, so acronyms survive.
+function sentence(value = "") {
+  const text = value.trim();
+  if (!text) return "";
+  const plain = new Set(["AND", "OR", "THE", "OF", "A", "AN", "IN", "ON", "TO", "FOR", "BY", "WITH"]);
+  const words = text
+    .split(" ")
+    .map((word) =>
+      word === word.toUpperCase() && word.length > 1 && !plain.has(word) ? word : word.toLowerCase()
+    );
+  const first = words[0];
+  words[0] = first.charAt(0).toUpperCase() + first.slice(1);
+  return words.join(" ");
+}
 
 function Card({ children, className = "", style }) {
   return (
@@ -411,7 +427,7 @@ export default function Screen() {
               <option value="">Pick a block</option>
               {module.panels.map((panel, i) => (
                 <option key={panel.id} value={panel.id}>
-                  {i + 1} {panel.title || "Untitled"}
+                  {i + 1} {sentence(panel.title) || "Untitled"}
                 </option>
               ))}
             </select>
