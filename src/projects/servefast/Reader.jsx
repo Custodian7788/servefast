@@ -12,6 +12,10 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
   const top = useRef(null);
 
   useEffect(() => {
+    if (!item?.url) {
+      setState({ loading: false });
+      return undefined;
+    }
     let alive = true;
     setState({ loading: true });
     top.current?.scrollTo({ top: 0 });
@@ -28,7 +32,18 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
     return () => {
       alive = false;
     };
-  }, [item.id, item.url]);
+  }, [item?.id, item?.url]);
+
+  // Nothing picked yet. The block waits rather than showing a broken shell.
+  if (!item) {
+    return (
+      <div className="h-full flex items-center justify-center px-6 text-center">
+        <p className="text-[12px] leading-[1.6] opacity-35" style={{ color: INK }}>
+          Pick a headline on the left and it opens here
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">
