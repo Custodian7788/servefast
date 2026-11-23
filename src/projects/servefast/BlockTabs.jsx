@@ -225,7 +225,31 @@ export default function BlockTabs({
                 <ChevronDown size={14} />
               </button>
 
-              <span className="flex-1 h-px" style={{ backgroundColor: LINE }}>
+              {at.first > 0 && (
+                <button
+                  type="button"
+                  onClick={() => listRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+                  className="shrink-0 text-[10px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
+                  style={{ color: ORANGE }}
+                >
+                  Top
+                </button>
+              )}
+
+              {/* The line is a track: click along it to jump. */}
+              <button
+                type="button"
+                aria-label="Jump through the list"
+                onClick={(e) => {
+                  const box = listRef.current;
+                  if (!box) return;
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const part = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+                  box.scrollTo({ top: part * (box.scrollHeight - box.clientHeight), behavior: "smooth" });
+                }}
+                className="flex-1 h-4 flex items-center"
+              >
+              <span className="block w-full h-px" style={{ backgroundColor: LINE }}>
                 <span
                   className="block h-px transition-[width] duration-200"
                   style={{
@@ -234,6 +258,7 @@ export default function BlockTabs({
                   }}
                 />
               </span>
+              </button>
 
               <span
                 className="shrink-0 text-[10px] font-bold uppercase tracking-[0.06em] tabular-nums opacity-45"
