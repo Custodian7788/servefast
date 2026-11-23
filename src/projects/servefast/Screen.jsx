@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCw, Rss, X } from "lucide-react";
+import { RotateCw, Rss } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
@@ -95,8 +95,6 @@ export default function Screen() {
   }, [justMade, space]);
 
   const module = space.modules.find((m) => m.id === space.currentId) || null;
-  // One extra slot for the ADD A BLOCK tile at the end.
-  const maxSlot = Math.max((module?.panels.length || 0) - PER_PAGE, 0);
 
   // The leftmost block on screen. It lives in the workspace, not in this
   // component, so a refresh puts you back where you were.
@@ -104,13 +102,6 @@ export default function Screen() {
   const openStoryItem =
     (listPanel?.tabs?.t1 || []).find((i) => i.id === listPanel?.view?.readingId) || null;
 
-  const slot = Math.min(space.slot || 0, maxSlot);
-  function setSlot(next) {
-    setSpace((s) => {
-      const at = typeof next === "function" ? next(s.slot || 0) : next;
-      return { ...s, slot: Math.max(0, at) };
-    });
-  }
   if (!ready || !module) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
 
   function updateModule(fn) {
@@ -182,83 +173,20 @@ export default function Screen() {
 
         <span className="flex-1" />
 
-        {/* Where you are across the blocks */}
-        <div className="shrink-0 flex items-center gap-2 pr-1">
-          <button
-            onClick={() => setSlot((n) => Math.max(n - 1, 0))}
-            disabled={slot === 0}
-            className="disabled:opacity-20 hover:opacity-70"
-            style={{ color: ORANGE }}
-            aria-label="Blocks left"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <span className="flex items-center gap-1">
-            {module.panels.map((p, i) => {
-              const here = i >= slot && i < slot + PER_PAGE;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setSlot(Math.min(i, maxSlot))}
-                  title={p.title || `Block ${i + 1}`}
-                  className="rounded-sm transition-colors"
-                  style={{
-                    width: 16,
-                    height: 16,
-                    backgroundColor: here ? ORANGE : "transparent",
-                    border: `1px solid ${here ? ORANGE : FRAME}`,
-                  }}
-                />
-              );
-            })}
-          </span>
-          <button
-            onClick={() => setSlot((n) => Math.min(n + 1, maxSlot))}
-            disabled={slot >= maxSlot}
-            className="disabled:opacity-20 hover:opacity-70"
-            style={{ color: ORANGE }}
-            aria-label="Blocks right"
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
       </header>
 
       <div className="flex-1 min-h-0 flex">
       <div className="flex-1 min-w-0 overflow-hidden p-2 sm:p-3">
-        {/* Blocks fill the height; the view shifts sideways one block at a time */}
-        <div
-          className="h-full flex transition-transform duration-300"
-          style={{ transform: `translateX(-${slot * (100 / PER_PAGE)}%)` }}
-        >
+        {/* Both blocks fill the height, side by side. */}
+        <div className="h-full flex">
           {module.panels.map((p, i) => (
             <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
             <Card className="flex flex-col h-full">
-              <div className="shrink-0 flex items-center gap-2 px-2.5 h-8" style={{ borderBottom: `1px solid ${LINE}` }}>
-                <span
-                  className="shrink-0 text-[11.5px] font-bold tracking-[0.07em]"
-                  style={{ color: ORANGE }}
-                >
-                  {i + 1}
-                </span>
-                <input
-                  value={p.title}
-                  onChange={(e) => updatePanel(p.id, (panel) => ({ ...panel, title: e.target.value }))}
-                  placeholder="Name this block"
-                  className="shrink-0 text-[11.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
-                  style={{
-                    color: ORANGE,
-                    // A ch is the width of a zero, but these are capitals with
-                    // letter spacing, so the box needs more than one per letter.
-                    width: (() => {
-                      const len = Math.max((p.title || "Name this block").length, 6);
-                      return `calc(${len}ch + ${(len * 0.07).toFixed(2)}em + 4px)`;
-                    })(),
-                    maxWidth: "75%",
-                  }}
-                />
-                {i === 0 && (
-                  <>
+              {/* Only the list block has a header: the feeds, the refresh,
+                  and what the last sweep found. The block beside it draws its
+                  own. */}
+              {i === 0 && (
+                <div className="shrink-0 flex items-center gap-2 px-2.5 h-8" style={{ borderBottom: `1px solid ${LINE}` }}>
                     <button
                       onClick={() => status[p.id]?.openSources?.()}
                       className="shrink-0 hover:opacity-70"
@@ -299,10 +227,9 @@ export default function Screen() {
                         {(p.tabs?.t1 || []).length} filtered from {p.lastRead.toLocaleString("en-GB")}
                       </span>
                     )}
-                  </>
-                )}
-                <span className="flex-1" />
-              </div>
+                  <span className="flex-1" />
+                </div>
+              )}
               {i === 1 ? (
                 <Reader key={openStoryItem?.id || "none"} item={openStoryItem} />
               ) : (
