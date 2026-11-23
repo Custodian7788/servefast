@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
 import Sources from "./Sources.jsx";
-import Reader from "./Reader.jsx";
 
 // Four tabs per block. They start unnamed - you name them as the block takes
 // shape. The first one is the one wired to the feeds.
@@ -53,44 +52,6 @@ export default function BlockTabs({
   const go = (patch) => onView?.(patch);
 
   const askedOnce = useRef(false);
-
-  // A story opens in its own window rather than a tab, sized to sit beside
-  // this one on a wide monitor. The window is named, so the next story you
-  // click lands in the same one instead of piling up.
-  function openStory(event, url) {
-    if (!url) return;
-    // Leave the browser's own shortcuts alone: a middle click or a ctrl click
-    // should still make a tab.
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-    event.preventDefault();
-
-    // Measured off this window, not the screen, so it sits over the right
-    // third of the browser you are already in, at the same height.
-    const ownWidth = window.outerWidth || window.screen?.availWidth || 1440;
-    const ownHeight = window.outerHeight || window.screen?.availHeight || 900;
-    const ownLeft = window.screenX ?? window.screenLeft ?? 0;
-    const ownTop = window.screenY ?? window.screenTop ?? 0;
-
-    const width = Math.max(Math.round(ownWidth / 3), 420);
-    const features = [
-      "popup=yes",
-      `width=${width}`,
-      `height=${ownHeight}`,
-      `left=${ownLeft + ownWidth - width}`,
-      `top=${ownTop}`,
-      "noopener",
-      "noreferrer",
-    ].join(",");
-
-    const opened = window.open(url, "servefastReading", features);
-    // A blocked popup should still get the person to the article.
-    if (!opened) window.open(url, "_blank", "noopener,noreferrer");
-    else opened.focus();
-  }
-  const all = tabs?.[TABS[0]] || [];
-  const items = category ? all.filter((i) => i.category === category) : all;
-  const open = readingId ? all.find((i) => i.id === readingId) : null;
-  const feedTab = TABS[0];
 
   // A sweep costs under a cent, so there is nothing clever to do: read the
   // feeds, keep the last twelve hours, replace the list.
@@ -174,8 +135,6 @@ export default function BlockTabs({
           >
             {error}
           </div>
-        ) : open ? (
-          <Reader item={open} onBack={() => go({ readingId: null })} onOpenOut={openStory} />
         ) : !all.length ? (
           <div className="h-full flex items-center justify-center text-[12px] opacity-35" style={{ color: INK }}>
             Nothing here yet

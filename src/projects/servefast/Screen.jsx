@@ -1,24 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, RotateCw, Rss, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw, Rss, X } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
+import Reader from "./Reader.jsx";
 import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
-
-// What a block can be made to do. Nothing behind these yet.
-const FUNCTIONS = [
-  "Chart",
-  "Checklist",
-  "Comparison",
-  "Questions",
-  "Research",
-  "Shortlist",
-  "Sources",
-  "Summary",
-  "Timeline",
-];
 
 // Block names are typed in all sorts of ways. A dropdown reads better with one
 // capital at the front and the rest left alone, so acronyms survive.
@@ -62,8 +50,6 @@ export default function Screen() {
     const hrs = Math.round(mins / 60);
     return hrs < 24 ? `${hrs} hr ago` : `${Math.round(hrs / 24)} d ago`;
   }
-  const [building, setBuilding] = useState(null);
-  const [fn, setFn] = useState(null);
   const [focused, setFocused] = useState(false);
   const loaded = useRef(false);
 
@@ -104,10 +90,14 @@ export default function Screen() {
 
   const module = space.modules.find((m) => m.id === space.currentId) || null;
   // One extra slot for the ADD A BLOCK tile at the end.
-  const maxSlot = Math.max((module?.panels.length || 0) + 1 - PER_PAGE, 0);
+  const maxSlot = Math.max((module?.panels.length || 0) - PER_PAGE, 0);
 
   // The leftmost block on screen. It lives in the workspace, not in this
   // component, so a refresh puts you back where you were.
+  const listPanel = module?.panels?.[0] || null;
+  const openStoryItem =
+    (listPanel?.tabs?.t1 || []).find((i) => i.id === listPanel?.view?.readingId) || null;
+
   const slot = Math.min(space.slot || 0, maxSlot);
   function setSlot(next) {
     setSpace((s) => {
@@ -145,12 +135,6 @@ export default function Screen() {
       return rest;
     });
     setConfirmDelete(null);
-  }
-
-  function createModule() {
-    const made = makeModule();
-    setSpace((s) => ({ modules: [...s.modules, made], currentId: made.id }));
-    setJustMade(made.id);
   }
 
   function closeModule(id, e) {
@@ -207,15 +191,6 @@ export default function Screen() {
             </div>
           );
         })}
-
-        <button
-          onClick={createModule}
-          className="px-2 flex items-center hover:opacity-70"
-          style={{ color: ORANGE }}
-          aria-label="New module"
-        >
-          <Plus size={14} strokeWidth={2} />
-        </button>
 
         <span className="flex-1" />
 
@@ -349,6 +324,9 @@ export default function Screen() {
                   <X size={10} strokeWidth={3} />
                 </button>
               </div>
+              {i === 1 ? (
+                <Reader key={openStoryItem?.id || "none"} item={openStoryItem} />
+              ) : (
               <BlockTabs
                 tabs={p.tabs}
                 view={p.view}
@@ -391,84 +369,13 @@ export default function Screen() {
                   }))
                 }
               />
+              )}
             </Card>
             </div>
           ))}
-
-          <div className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
-            {/* The frame is not the button. Only the words are, so a stray
-                click in the empty space does not make a block. */}
-            <div
-              className="w-full h-full rounded-md flex flex-col items-center justify-center"
-              style={{ border: `1px dashed ${FRAME}` }}
-            >
-              <button
-                onClick={() => {
-                  addPanel();
-                  setSlot(module.panels.length + 2 - PER_PAGE);
-                }}
-                className="flex flex-col items-center gap-2 px-3 py-2 rounded hover:bg-[#FFF8F2] transition-colors"
-                style={{ color: ORANGE }}
-              >
-                <Plus size={20} strokeWidth={1.5} />
-                <span className="text-[12px] font-bold tracking-[0.07em]">ADD A BLOCK</span>
-              </button>
-            </div>
-          </div>
         </div>
-
       </div>
 
-      {/* Reserved for building modules. Nothing behind it yet. */}
-      <aside
-        className="w-72 shrink-0 border-l hidden md:flex flex-col p-3"
-        style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
-      >
-        <Card className="flex-1 min-h-0 flex flex-col">
-          <div className="shrink-0 p-2.5" style={{ borderBottom: `1px solid ${LINE}` }}>
-            <select
-              value={building || ""}
-              onChange={(e) => {
-                setBuilding(e.target.value);
-                const picked = module.panels.find((panel) => panel.id === e.target.value);
-                setFn(picked?.kind || "");
-              }}
-              className="w-full h-7 px-2 rounded bg-white text-[13px] outline-none cursor-pointer"
-              style={{ border: `1px solid ${FRAME}`, color: INK }}
-            >
-              <option value="">Pick a block</option>
-              {module.panels.map((panel, i) => (
-                <option key={panel.id} value={panel.id}>
-                  {i + 1} {sentence(panel.title) || "Untitled"}
-                </option>
-              ))}
-            </select>
-
-            {/* What that block does. Placeholder until the functions exist. */}
-            <select
-              value={fn || ""}
-              onChange={(e) => {
-                setFn(e.target.value);
-                if (building) {
-                  updatePanel(building, (panel) => ({ ...panel, kind: e.target.value }));
-                }
-              }}
-              disabled={!building}
-              className="mt-2 w-full h-7 px-2 rounded bg-white text-[13px] outline-none cursor-pointer disabled:opacity-35 disabled:cursor-default"
-              style={{ border: `1px solid ${FRAME}`, color: INK }}
-            >
-              <option value="">Select functionality</option>
-              {FUNCTIONS.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex-1 min-h-0" />
-        </Card>
-      </aside>
       </div>
 
       {confirmDelete && (

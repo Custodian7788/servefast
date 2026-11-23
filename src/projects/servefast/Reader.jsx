@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ExternalLink } from "lucide-react";
+import openStory from "./openStory.js";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
 
 // An article, read inside the block. The site's own page cannot be framed -
 // news sites forbid it - so the server fetches it and we set the text
 // ourselves. Nothing here costs anything: no model is involved.
-export default function Reader({ item, onBack, onOpenOut }) {
+export default function Reader({ item, onBack, onOpenOut = openStory }) {
   const [state, setState] = useState({ loading: true });
   const top = useRef(null);
 
@@ -35,13 +36,15 @@ export default function Reader({ item, onBack, onOpenOut }) {
         className="shrink-0 flex items-center gap-2 px-2.5 h-7"
         style={{ borderBottom: `1px solid ${LINE}` }}
       >
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
-          style={{ color: ORANGE }}
-        >
-          <ChevronLeft size={12} /> List
-        </button>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
+            style={{ color: ORANGE }}
+          >
+            <ChevronLeft size={12} /> List
+          </button>
+        )}
         <span className="flex-1" />
         {item.source && (
           <span
