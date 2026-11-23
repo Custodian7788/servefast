@@ -51,6 +51,35 @@ export default function BlockTabs({
   const go = (patch) => onView?.(patch);
 
   const askedOnce = useRef(false);
+
+  // A story opens in its own window rather than a tab, sized to sit beside
+  // this one on a wide monitor. The window is named, so the next story you
+  // click lands in the same one instead of piling up.
+  function openStory(event, url) {
+    if (!url) return;
+    // Leave the browser's own shortcuts alone: a middle click or a ctrl click
+    // should still make a tab.
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
+
+    const screenWidth = window.screen?.availWidth || window.outerWidth || 1440;
+    const screenHeight = window.screen?.availHeight || window.outerHeight || 900;
+    const width = Math.round(screenWidth / 2);
+    const features = [
+      "popup=yes",
+      `width=${width}`,
+      `height=${screenHeight}`,
+      `left=${screenWidth - width}`,
+      "top=0",
+      "noopener",
+      "noreferrer",
+    ].join(",");
+
+    const opened = window.open(url, "servefastReading", features);
+    // A blocked popup should still get the person to the article.
+    if (!opened) window.open(url, "_blank", "noopener,noreferrer");
+    else opened.focus();
+  }
   const all = tabs?.[TABS[0]] || [];
   const items = category ? all.filter((i) => i.category === category) : all;
   const feedTab = TABS[0];
@@ -171,6 +200,7 @@ export default function BlockTabs({
                   href={item.url || undefined}
                   target="_blank"
                   rel="noreferrer noopener"
+                  onClick={(e) => openStory(e, item.url)}
                   className="block px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
                   style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
                 >
