@@ -8,6 +8,9 @@ import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
 
+// A module is two blocks: the list, and the one that works on it.
+const BLOCKS = 2;
+
 // Block names are typed in all sorts of ways. A dropdown reads better with one
 // capital at the front and the rest left alone, so acronyms survive.
 function sentence(value = "") {
@@ -57,18 +60,22 @@ export default function Screen() {
       if (saved?.modules?.length) {
         setSpace({
           ...saved,
-          modules: saved.modules.map((m) => ({
-            ...m,
-            panels: (m.panels || []).map((panel) => {
+          modules: saved.modules.map((m) => {
+            const panels = (m.panels || []).map((panel) => {
               const old = panel.tabs?.EVENTS;
               if (!old?.length) return panel;
               const { EVENTS, ...rest } = panel.tabs;
               return { ...panel, tabs: { ...rest, t1: [...(rest.t1 || []), ...EVENTS] } };
-            }),
-          })),
+            });
+            // The module is two blocks by design: the list and the one beside
+            // it. A module that has lost one gets it back.
+            while (panels.length < BLOCKS) panels.push(makePanel());
+            return { ...m, panels };
+          }),
         });
       } else {
         const first = makeModule();
+        while (first.panels.length < BLOCKS) first.panels.push(makePanel());
         setSpace({ modules: [first], currentId: first.id });
       }
       loaded.current = true;
