@@ -231,9 +231,6 @@ export default function Screen() {
             <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
             <Card className="flex flex-col h-full">
               <div className="shrink-0 flex items-center gap-2 px-2.5 h-8" style={{ borderBottom: `1px solid ${LINE}` }}>
-                <span className="shrink-0 text-[11.5px] font-bold tabular-nums opacity-35">
-                  {i + 1}
-                </span>
                 <input
                   value={p.title}
                   onChange={(e) => updatePanel(p.id, (panel) => ({ ...panel, title: e.target.value }))}
