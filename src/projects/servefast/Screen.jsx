@@ -285,8 +285,13 @@ export default function Screen() {
                   className="shrink-0 text-[11.5px] font-bold tracking-[0.07em] uppercase outline-none bg-transparent placeholder:opacity-35"
                   style={{
                     color: ORANGE,
-                    width: `${Math.max((p.title || "Name this block").length, 6)}ch`,
-                    maxWidth: "60%",
+                    // A ch is the width of a zero, but these are capitals with
+                    // letter spacing, so the box needs more than one per letter.
+                    width: (() => {
+                      const len = Math.max((p.title || "Name this block").length, 6);
+                      return `calc(${len}ch + ${(len * 0.07).toFixed(2)}em + 4px)`;
+                    })(),
+                    maxWidth: "75%",
                   }}
                 />
                 {i === 0 && (
