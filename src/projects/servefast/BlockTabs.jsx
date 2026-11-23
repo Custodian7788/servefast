@@ -126,7 +126,9 @@ export default function BlockTabs({
     }
   }
 
-  const stale = !lastPull || Date.now() - lastPull > 60 * 60 * 1000;
+  // A full sweep is the one expensive call, so an open does not set one off
+  // unless the block is genuinely out of date.
+  const stale = !lastPull || Date.now() - lastPull > 12 * 60 * 60 * 1000;
 
   useEffect(() => {
     if (!autoPull) return;
@@ -136,8 +138,9 @@ export default function BlockTabs({
     }
     const timer = setInterval(() => {
       if (pulling) return;
-      if (!lastPull) pull();
-      else if (Date.now() - lastPull > 24 * 60 * 60 * 1000) pull();
+      // Nobody is looking, so nothing is spent.
+      if (typeof document !== "undefined" && document.hidden) return;
+      if (!lastPull || Date.now() - lastPull > 24 * 60 * 60 * 1000) pull();
       else pull(true);
     }, 15 * 60 * 1000);
     return () => clearInterval(timer);
