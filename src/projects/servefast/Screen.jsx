@@ -38,7 +38,6 @@ export default function Screen() {
   const [justMade, setJustMade] = useState(null);
   const [naming, setNaming] = useState(null);
   const [status, setStatus] = useState({});
-  const [confirmDelete, setConfirmDelete] = useState(null);
   const PER_PAGE = 2;
 
   // "pulled 12 min ago", in the block's title row.
@@ -117,24 +116,6 @@ export default function Screen() {
 
   function addPanel() {
     updateModule((m) => ({ ...m, panels: [...m.panels, makePanel()] }));
-  }
-
-  function removePanel(id) {
-    // Never leave the module with nothing in it, and never leave the paging
-    // sitting past the end.
-    const left = module.panels.filter((p) => p.id !== id);
-    const panels = left.length ? left : [makePanel()];
-    const ceiling = Math.max(panels.length + 1 - PER_PAGE, 0);
-    setSpace((s) => ({
-      ...s,
-      slot: Math.min(s.slot || 0, ceiling),
-      modules: s.modules.map((m) => (m.id === s.currentId ? { ...m, panels } : m)),
-    }));
-    setStatus((prev) => {
-      const { [id]: gone, ...rest } = prev;
-      return rest;
-    });
-    setConfirmDelete(null);
   }
 
   function closeModule(id, e) {
@@ -314,15 +295,6 @@ export default function Screen() {
                   </>
                 )}
                 <span className="flex-1" />
-                {/* Deleting a block is a big deal, so it asks first. */}
-                <button
-                  onClick={() => setConfirmDelete(p.id)}
-                  className="shrink-0 flex items-center justify-center rounded-full transition-colors hover:bg-[#C0392B] hover:text-white"
-                  style={{ width: 16, height: 16, border: "1.5px solid #C0392B", color: "#C0392B" }}
-                  aria-label="Remove block"
-                >
-                  <X size={10} strokeWidth={3} />
-                </button>
               </div>
               {i === 1 ? (
                 <Reader key={openStoryItem?.id || "none"} item={openStoryItem} />
@@ -378,60 +350,7 @@ export default function Screen() {
 
       </div>
 
-      {confirmDelete && (
-        <Confirm
-          onYes={() => removePanel(confirmDelete)}
-          onNo={() => setConfirmDelete(null)}
-        />
-      )}
     </div>
   );
 }
 
-// Asked before a block goes. Square corners, one framed card, two buttons of
-// equal width, Escape and the backdrop both meaning no.
-function Confirm({ onYes, onNo }) {
-  useEffect(() => {
-    const key = (e) => {
-      if (e.key === "Escape") onNo();
-      if (e.key === "Enter") onYes();
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [onYes, onNo]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-6"
-      style={{ backgroundColor: "rgba(43,43,43,0.28)" }}
-      onClick={onNo}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[320px] bg-white"
-        style={{ border: `2px solid ${FRAME}`, boxShadow: "0 10px 30px rgba(43,43,43,0.18)" }}
-      >
-        <p className="px-5 pt-5 pb-4 text-[13px] leading-[1.5] text-center" style={{ color: INK }}>
-          Are you sure you would like to delete this block?
-        </p>
-        <div className="flex" style={{ borderTop: `1px solid ${FRAME}` }}>
-          <button
-            onClick={onNo}
-            className="flex-1 h-10 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#FFF3E8]"
-            style={{ color: INK, borderRight: `1px solid ${FRAME}` }}
-          >
-            No
-          </button>
-          <button
-            onClick={onYes}
-            autoFocus
-            className="flex-1 h-10 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#C0392B] hover:text-white"
-            style={{ color: "#C0392B" }}
-          >
-            Yes
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
