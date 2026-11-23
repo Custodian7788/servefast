@@ -1,6 +1,28 @@
-// Opens an article in its own browser window rather than a tab, sized to sit
-// over the right third of this one. The window is named, so a second story
-// lands in the same window instead of piling up.
+// Opens an article in its own browser window rather than a tab, parked over
+// the right third of this one at the same height.
+//
+// A named window only takes its size and position from the features string
+// the first time it is created, so later clicks would land in whatever size
+// it had drifted to. We keep the handle and set it every time instead.
+
+let reading = null;
+
+function placement() {
+  const screenWidth = window.screen?.availWidth || 1440;
+  const screenHeight = window.screen?.availHeight || 900;
+  const ownWidth = window.outerWidth || screenWidth;
+  const ownHeight = window.outerHeight || screenHeight;
+  const ownLeft = window.screenX ?? window.screenLeft ?? 0;
+  const ownTop = window.screenY ?? window.screenTop ?? 0;
+
+  const width = Math.min(Math.max(Math.round(ownWidth / 3), 520), screenWidth);
+  const height = Math.min(ownHeight, screenHeight);
+  const left = Math.max(Math.min(ownLeft + ownWidth - width, screenWidth - width), 0);
+  const top = Math.max(Math.min(ownTop, screenHeight - height), 0);
+
+  return { width, height, left, top };
+}
+
 export default function openStory(event, url) {
   if (!url) return;
   // Leave the browser's own shortcuts alone: ctrl or middle click still makes
@@ -8,23 +30,34 @@ export default function openStory(event, url) {
   if (event?.metaKey || event?.ctrlKey || event?.shiftKey) return;
   event?.preventDefault?.();
 
-  const ownWidth = window.outerWidth || window.screen?.availWidth || 1440;
-  const ownHeight = window.outerHeight || window.screen?.availHeight || 900;
-  const ownLeft = window.screenX ?? window.screenLeft ?? 0;
-  const ownTop = window.screenY ?? window.screenTop ?? 0;
-  const width = Math.max(Math.round(ownWidth / 3), 420);
-
+  const { width, height, left, top } = placement();
   const features = [
     "popup=yes",
     `width=${width}`,
-    `height=${ownHeight}`,
-    `left=${ownLeft + ownWidth - width}`,
-    `top=${ownTop}`,
-    "noopener",
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
     "noreferrer",
   ].join(",");
 
-  const opened = window.open(url, "servefastReading", features);
-  if (!opened) window.open(url, "_blank", "noopener,noreferrer");
-  else opened.focus();
+  try {
+    if (reading && !reading.closed) {
+      reading.location.href = url;
+    } else {
+      reading = window.open(url, "servefastReading", features);
+    }
+
+    if (!reading) {
+      // Popups are blocked. A tab is better than nothing.
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // Put it back where it belongs, whatever it had drifted to.
+    reading.resizeTo(width, height);
+    reading.moveTo(left, top);
+    reading.focus();
+  } catch {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 }
