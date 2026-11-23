@@ -35,8 +35,6 @@ export default function Screen() {
   const [naming, setNaming] = useState(null);
   const [status, setStatus] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
-  // The leftmost block on screen. The arrows move it one block, not one page.
-  const [slot, setSlot] = useState(0);
   const PER_PAGE = 2;
 
   // "pulled 12 min ago", in the block's title row.
@@ -91,6 +89,16 @@ export default function Screen() {
   const module = space.modules.find((m) => m.id === space.currentId) || null;
   // One extra slot for the ADD A BLOCK tile at the end.
   const maxSlot = Math.max((module?.panels.length || 0) + 1 - PER_PAGE, 0);
+
+  // The leftmost block on screen. It lives in the workspace, not in this
+  // component, so a refresh puts you back where you were.
+  const slot = Math.min(space.slot || 0, maxSlot);
+  function setSlot(next) {
+    setSpace((s) => {
+      const at = typeof next === "function" ? next(s.slot || 0) : next;
+      return { ...s, slot: Math.max(0, at) };
+    });
+  }
   if (!ready || !module) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
 
   function updateModule(fn) {
@@ -106,14 +114,16 @@ export default function Screen() {
   }
 
   function removePanel(id) {
-    updateModule((m) => {
-      const left = m.panels.filter((p) => p.id !== id);
-      // Never leave the module with nothing in it, and never leave the paging
-      // sitting past the end.
-      const panels = left.length ? left : [makePanel()];
-      setSlot((at) => Math.min(at, Math.max(panels.length + 1 - PER_PAGE, 0)));
-      return { ...m, panels };
-    });
+    // Never leave the module with nothing in it, and never leave the paging
+    // sitting past the end.
+    const left = module.panels.filter((p) => p.id !== id);
+    const panels = left.length ? left : [makePanel()];
+    const ceiling = Math.max(panels.length + 1 - PER_PAGE, 0);
+    setSpace((s) => ({
+      ...s,
+      slot: Math.min(s.slot || 0, ceiling),
+      modules: s.modules.map((m) => (m.id === s.currentId ? { ...m, panels } : m)),
+    }));
     setStatus((prev) => {
       const { [id]: gone, ...rest } = prev;
       return rest;
@@ -320,6 +330,10 @@ export default function Screen() {
               </div>
               <BlockTabs
                 tabs={p.tabs}
+                view={p.view}
+                onView={(patch) =>
+                  updatePanel(p.id, (panel) => ({ ...panel, view: { ...(panel.view || {}), ...patch } }))
+                }
                 autoPull={i === 0}
                 feeds={p.feeds || []}
                 lastPull={p.lastPull}

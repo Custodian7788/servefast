@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 
@@ -77,13 +77,7 @@ function Toggle({ label, at, of, onBack, onNext }) {
   );
 }
 
-export default function Story({ item, view = 0, onView }) {
-  const [effectAt, setEffectAt] = useState(0);
-
-  useEffect(() => {
-    setEffectAt(0);
-  }, [item.id]);
-
+export default function Story({ item, view = 0, onView, effectAt = 0, onEffect }) {
   const views = [];
   if (item.summary) views.push("Summary");
   if (item.effects?.length) views.push("Perspective");
@@ -183,8 +177,8 @@ export default function Story({ item, view = 0, onView }) {
             label="Industry"
             at={Math.min(effectAt, effects.length - 1)}
             of={effects.length}
-            onBack={() => setEffectAt((i) => Math.max(i - 1, 0))}
-            onNext={() => setEffectAt((i) => Math.min(i + 1, effects.length - 1))}
+            onBack={() => onEffect?.(Math.max(effectAt - 1, 0))}
+            onNext={() => onEffect?.(Math.min(effectAt + 1, effects.length - 1))}
           />
         </div>
       )}

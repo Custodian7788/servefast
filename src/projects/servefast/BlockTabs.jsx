@@ -53,6 +53,8 @@ function Fitted({ children }) {
 
 export default function BlockTabs({
   tabs,
+  view,
+  onView,
   names = {},
   autoPull = false,
   feeds = [],
@@ -67,13 +69,20 @@ export default function BlockTabs({
   onStatus,
 }) {
   const [tab, setTab] = useState(TABS[0]);
-  const [index, setIndex] = useState(0);
-  const [reading, setReading] = useState(false);
-  const [category, setCategory] = useState("");
-  const [layer, setLayer] = useState(0);
   const [pulling, setPulling] = useState(false);
   const [showSources, setShowSources] = useState(false);
   const [error, setError] = useState(null);
+
+  // Where you were last looking. Kept in the workspace rather than in this
+  // component, so a refresh lands on the same story, the same view and the
+  // same industry.
+  const where = view || {};
+  const index = where.index || 0;
+  const reading = Boolean(where.reading);
+  const category = where.category || "";
+  const layer = where.layer || 0;
+  const effectAt = where.effectAt || 0;
+  const go = (patch) => onView?.(patch);
 
   const askedOnce = useRef(false);
   const all = tabs?.[tab] || [];
@@ -115,9 +124,7 @@ export default function BlockTabs({
         onReplace(feedTab, pulled);
         onPulled?.(Date.now(), data.read || 0);
         setTab(feedTab);
-        setIndex(0);
-        setLayer(0);
-        setReading(false);
+        go({ index: 0, layer: 0, effectAt: 0, reading: false });
       }
     } catch (err) {
       setError(err.message);
@@ -181,17 +188,20 @@ export default function BlockTabs({
           </div>
         ) : reading && current ? (
           <div className="h-full px-3 py-2">
-            <Story item={current} view={layer} onView={setLayer} />
+            <Story
+            item={current}
+            view={layer}
+            onView={(n) => go({ layer: n })}
+            effectAt={effectAt}
+            onEffect={(n) => go({ effectAt: n })}
+          />
           </div>
         ) : (
           <div className="h-full flex flex-col">
             <div className="shrink-0 px-2 py-1.5" style={{ borderBottom: `1px solid ${LINE}` }}>
               <select
                 value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  setIndex(0);
-                }}
+                onChange={(e) => go({ category: e.target.value, index: 0, layer: 0, effectAt: 0 })}
                 className="w-full h-6 px-1.5 rounded bg-white text-[11px] outline-none cursor-pointer"
                 style={{ border: `1px solid ${LINE}`, color: INK }}
               >
@@ -210,11 +220,7 @@ export default function BlockTabs({
             {items.map((item, i) => (
               <button
                 key={item.id}
-                onClick={() => {
-                  setIndex(i);
-                  setLayer(0);
-                  setReading(true);
-                }}
+                onClick={() => go({ index: i, layer: 0, effectAt: 0, reading: true })}
                 className="w-full text-left px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
                 style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
               >
@@ -249,7 +255,7 @@ export default function BlockTabs({
         {reading ? (
           <>
             <button
-              onClick={() => setReading(false)}
+              onClick={() => go({ reading: false })}
               className="flex items-center gap-1 text-[11px] font-bold tracking-[0.07em] hover:opacity-70"
               style={{ color: ORANGE }}
             >
@@ -257,10 +263,7 @@ export default function BlockTabs({
             </button>
             <span className="flex-1" />
             <button
-              onClick={() => {
-                setLayer(0);
-                setIndex((i) => Math.max(i - 1, 0));
-              }}
+              onClick={() => go({ index: Math.max(index - 1, 0), layer: 0, effectAt: 0 })}
               disabled={index === 0}
               className="disabled:opacity-20"
               style={{ color: ORANGE }}
@@ -269,10 +272,7 @@ export default function BlockTabs({
               <ChevronLeft size={14} />
             </button>
             <button
-              onClick={() => {
-                setLayer(0);
-                setIndex((i) => Math.min(i + 1, items.length - 1));
-              }}
+              onClick={() => go({ index: Math.min(index + 1, items.length - 1), layer: 0, effectAt: 0 })}
               disabled={index >= items.length - 1}
               className="disabled:opacity-20"
               style={{ color: ORANGE }}
