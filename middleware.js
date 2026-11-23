@@ -27,11 +27,11 @@ function gate(wrong) {
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet" />
 <style>
   html,body{height:100%}
   body{margin:0;display:flex;flex-direction:column;background:#FFE9C4;
-       font:400 13px "Space Grotesk",ui-sans-serif,system-ui,sans-serif;color:#4B4B4B}
+       font:400 13px "IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;color:#4B4B4B}
   main{flex:1;display:flex;align-items:center;justify-content:center}
   input{width:5ch;padding:6px 8px;text-align:center;letter-spacing:.08em;font:inherit;background:#fff;
         border:2px solid ${wrong ? "#C0392B" : "#4B4B4B"};border-radius:4px;outline:none;color:#4B4B4B}

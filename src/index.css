@@ -5,7 +5,14 @@ button {
 }
 
 :root {
-  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Plex at 700 reads heavy at these sizes, so bold lands on 600. */
+.font-bold,
+strong,
+b {
+  font-weight: 600;
 }
 
 input:focus::placeholder,
