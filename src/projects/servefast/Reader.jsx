@@ -148,7 +148,10 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
 function Strip({ item }) {
   return (
     <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `1px solid ${LINE}` }}>
-      <div className="shrink-0 flex items-center justify-center h-7">
+      <div
+        className="shrink-0 flex items-center justify-center h-7"
+        style={{ borderBottom: `1px solid ${LINE}` }}
+      >
         <span
           className="font-bold uppercase tracking-[0.12em] text-[10.5px]"
           style={{ color: ORANGE }}
