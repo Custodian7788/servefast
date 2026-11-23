@@ -62,15 +62,20 @@ export default function BlockTabs({
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
     event.preventDefault();
 
-    const screenWidth = window.screen?.availWidth || window.outerWidth || 1440;
-    const screenHeight = window.screen?.availHeight || window.outerHeight || 900;
-    const width = Math.round(screenWidth / 2);
+    // Measured off this window, not the screen, so it sits over the right
+    // third of the browser you are already in, at the same height.
+    const ownWidth = window.outerWidth || window.screen?.availWidth || 1440;
+    const ownHeight = window.outerHeight || window.screen?.availHeight || 900;
+    const ownLeft = window.screenX ?? window.screenLeft ?? 0;
+    const ownTop = window.screenY ?? window.screenTop ?? 0;
+
+    const width = Math.max(Math.round(ownWidth / 3), 420);
     const features = [
       "popup=yes",
       `width=${width}`,
-      `height=${screenHeight}`,
-      `left=${screenWidth - width}`,
-      "top=0",
+      `height=${ownHeight}`,
+      `left=${ownLeft + ownWidth - width}`,
+      `top=${ownTop}`,
       "noopener",
       "noreferrer",
     ].join(",");
