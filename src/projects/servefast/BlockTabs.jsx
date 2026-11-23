@@ -55,16 +55,26 @@ export default function BlockTabs({
   // The list has no scrollbar. It moves one headline at a time on the two
   // buttons, and says where in the chain you are.
   const listRef = useRef(null);
-  const [at, setAt] = useState({ first: 0, end: false });
+  const [at, setAt] = useState({ first: 0, end: false, cut: Infinity });
 
+  // A headline half off the bottom edge is worse than a gap, so the first row
+  // that does not fit whole is hidden along with everything under it.
   function measure() {
     const box = listRef.current;
     if (!box) return;
     const rows = Array.from(box.children);
     const top = box.scrollTop;
+    const bottom = top + box.clientHeight;
+
     let first = rows.findIndex((row) => row.offsetTop >= top - 2);
     if (first < 0) first = Math.max(rows.length - 1, 0);
-    setAt({ first, end: top + box.clientHeight >= box.scrollHeight - 2 });
+
+    let cut = rows.findIndex((row, i) => i >= first && row.offsetTop + row.offsetHeight > bottom + 2);
+    if (cut < 0) cut = rows.length;
+    // Never hide everything: a row taller than the block still shows.
+    if (cut <= first) cut = first + 1;
+
+    setAt({ first, cut, end: bottom >= box.scrollHeight - 2 });
   }
 
   function step(direction) {
@@ -86,6 +96,15 @@ export default function BlockTabs({
     const id = requestAnimationFrame(measure);
     return () => cancelAnimationFrame(id);
   }, [category, tabs?.[TABS[0]]?.length]);
+
+  // A block that changes size changes how many rows fit whole.
+  useEffect(() => {
+    const box = listRef.current;
+    if (!box || typeof ResizeObserver === "undefined") return undefined;
+    const watch = new ResizeObserver(() => measure());
+    watch.observe(box);
+    return () => watch.disconnect();
+  }, []);
 
   const askedOnce = useRef(false);
   const feedTab = TABS[0];
@@ -280,7 +299,10 @@ export default function BlockTabs({
                   type="button"
                   onClick={() => go({ readingId: item.id })}
                   className="block w-full text-left px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
-                  style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
+                  style={{
+                    borderTop: i ? `1px solid ${LINE}` : "none",
+                    visibility: i >= at.cut ? "hidden" : "visible",
+                  }}
                 >
                   <span className="block text-[13px] leading-[1.35]" style={{ color: INK }}>
                     {item.text}
