@@ -34,7 +34,9 @@ export default function Screen() {
   const [justMade, setJustMade] = useState(null);
   const [naming, setNaming] = useState(null);
   const [status, setStatus] = useState({});
-  const [page, setPage] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  // The leftmost block on screen. The arrows move it one block, not one page.
+  const [slot, setSlot] = useState(0);
   const PER_PAGE = 2;
 
   // "pulled 12 min ago", in the block's title row.
@@ -87,6 +89,8 @@ export default function Screen() {
   }, [justMade, space]);
 
   const module = space.modules.find((m) => m.id === space.currentId) || null;
+  // One extra slot for the ADD A BLOCK tile at the end.
+  const maxSlot = Math.max((module?.panels.length || 0) + 1 - PER_PAGE, 0);
   if (!ready || !module) return <div className="h-screen w-full" style={{ backgroundColor: MAIN_BG }} />;
 
   function updateModule(fn) {
@@ -99,6 +103,22 @@ export default function Screen() {
 
   function addPanel() {
     updateModule((m) => ({ ...m, panels: [...m.panels, makePanel()] }));
+  }
+
+  function removePanel(id) {
+    updateModule((m) => {
+      const left = m.panels.filter((p) => p.id !== id);
+      // Never leave the module with nothing in it, and never leave the paging
+      // sitting past the end.
+      const panels = left.length ? left : [makePanel()];
+      setSlot((at) => Math.min(at, Math.max(panels.length + 1 - PER_PAGE, 0)));
+      return { ...m, panels };
+    });
+    setStatus((prev) => {
+      const { [id]: gone, ...rest } = prev;
+      return rest;
+    });
+    setConfirmDelete(null);
   }
 
   function createModule() {
@@ -176,8 +196,8 @@ export default function Screen() {
         {/* Where you are across the blocks */}
         <div className="shrink-0 flex items-center gap-2 pr-1">
           <button
-            onClick={() => setPage((n) => Math.max(n - 1, 0))}
-            disabled={page === 0}
+            onClick={() => setSlot((n) => Math.max(n - 1, 0))}
+            disabled={slot === 0}
             className="disabled:opacity-20 hover:opacity-70"
             style={{ color: ORANGE }}
             aria-label="Blocks left"
@@ -186,11 +206,11 @@ export default function Screen() {
           </button>
           <span className="flex items-center gap-1">
             {module.panels.map((p, i) => {
-              const here = Math.floor(i / PER_PAGE) === page;
+              const here = i >= slot && i < slot + PER_PAGE;
               return (
                 <button
                   key={p.id}
-                  onClick={() => setPage(Math.floor(i / PER_PAGE))}
+                  onClick={() => setSlot(Math.min(i, maxSlot))}
                   title={p.title || `Block ${i + 1}`}
                   className="flex items-center justify-center rounded-sm text-[9px] font-bold tabular-nums transition-colors"
                   style={{
@@ -207,10 +227,8 @@ export default function Screen() {
             })}
           </span>
           <button
-            onClick={() =>
-              setPage((n) => Math.min(n + 1, Math.floor(module.panels.length / PER_PAGE)))
-            }
-            disabled={page >= Math.floor(module.panels.length / PER_PAGE)}
+            onClick={() => setSlot((n) => Math.min(n + 1, maxSlot))}
+            disabled={slot >= maxSlot}
             className="disabled:opacity-20 hover:opacity-70"
             style={{ color: ORANGE }}
             aria-label="Blocks right"
@@ -222,10 +240,10 @@ export default function Screen() {
 
       <div className="flex-1 min-h-0 flex">
       <div className="flex-1 min-w-0 overflow-hidden p-2 sm:p-3">
-        {/* Blocks fill the height; the view shifts sideways a page at a time */}
+        {/* Blocks fill the height; the view shifts sideways one block at a time */}
         <div
           className="h-full flex transition-transform duration-300"
-          style={{ transform: `translateX(-${page * 100}%)` }}
+          style={{ transform: `translateX(-${slot * (100 / PER_PAGE)}%)` }}
         >
           {module.panels.map((p, i) => (
             <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
@@ -290,9 +308,9 @@ export default function Screen() {
                   </>
                 )}
                 <span className="flex-1" />
-                {/* Nothing behind this yet: deleting a block is a big deal. */}
+                {/* Deleting a block is a big deal, so it asks first. */}
                 <button
-                  onClick={() => {}}
+                  onClick={() => setConfirmDelete(p.id)}
                   className="shrink-0 flex items-center justify-center rounded-full transition-colors hover:bg-[#C0392B] hover:text-white"
                   style={{ width: 16, height: 16, border: "1.5px solid #C0392B", color: "#C0392B" }}
                   aria-label="Remove block"
@@ -346,7 +364,7 @@ export default function Screen() {
             <button
               onClick={() => {
                 addPanel();
-                setPage(Math.floor(module.panels.length / PER_PAGE));
+                setSlot(module.panels.length + 2 - PER_PAGE);
               }}
               className="w-full h-full rounded-md flex flex-col items-center justify-center gap-2 hover:bg-[#FFF8F2] transition-colors"
               style={{ border: `1px dashed ${FRAME}`, color: ORANGE }}
@@ -365,13 +383,6 @@ export default function Screen() {
         style={{ borderColor: FRAME, backgroundColor: NAV_BG }}
       >
         <Card className="flex-1 min-h-0 flex flex-col">
-          <div
-            className="shrink-0 flex items-center px-2.5 h-7 text-[11.5px] font-bold tracking-[0.07em]"
-            style={{ borderBottom: `1px solid ${LINE}`, color: ORANGE }}
-          >
-            BLOCK BUILDER
-          </div>
-
           <div className="shrink-0 p-2.5" style={{ borderBottom: `1px solid ${LINE}` }}>
             <select
               value={building || ""}
@@ -416,6 +427,61 @@ export default function Screen() {
           <div className="flex-1 min-h-0" />
         </Card>
       </aside>
+      </div>
+
+      {confirmDelete && (
+        <Confirm
+          onYes={() => removePanel(confirmDelete)}
+          onNo={() => setConfirmDelete(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Asked before a block goes. Square corners, one framed card, two buttons of
+// equal width, Escape and the backdrop both meaning no.
+function Confirm({ onYes, onNo }) {
+  useEffect(() => {
+    const key = (e) => {
+      if (e.key === "Escape") onNo();
+      if (e.key === "Enter") onYes();
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [onYes, onNo]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      style={{ backgroundColor: "rgba(43,43,43,0.28)" }}
+      onClick={onNo}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[320px] bg-white"
+        style={{ border: `2px solid ${FRAME}`, boxShadow: "0 10px 30px rgba(43,43,43,0.18)" }}
+      >
+        <p className="px-5 pt-5 pb-4 text-[13px] leading-[1.5] text-center" style={{ color: INK }}>
+          Are you sure you would like to delete this block?
+        </p>
+        <div className="flex" style={{ borderTop: `1px solid ${FRAME}` }}>
+          <button
+            onClick={onNo}
+            className="flex-1 h-10 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#FFF3E8]"
+            style={{ color: INK, borderRight: `1px solid ${FRAME}` }}
+          >
+            No
+          </button>
+          <button
+            onClick={onYes}
+            autoFocus
+            className="flex-1 h-10 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#C0392B] hover:text-white"
+            style={{ color: "#C0392B" }}
+          >
+            Yes
+          </button>
+        </div>
       </div>
     </div>
   );
