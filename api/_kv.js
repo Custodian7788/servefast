@@ -22,9 +22,12 @@ export async function get(key) {
   return body?.result ?? null;
 }
 
-export async function set(key, value) {
+export async function set(key, value, ttlSeconds) {
   if (!ready) return false;
-  const response = await fetch(`${BASE}/set/${encodeURIComponent(key)}`, {
+  const path = ttlSeconds
+    ? `set/${encodeURIComponent(key)}?EX=${Math.floor(ttlSeconds)}`
+    : `set/${encodeURIComponent(key)}`;
+  const response = await fetch(`${BASE}/${path}`, {
     method: "POST",
     headers: { authorization: `Bearer ${TOKEN}`, "content-type": "text/plain" },
     body: value,

@@ -1,29 +1,21 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { FEEDS } from "./feeds.js";
 
-// Pulls a wide set of public feeds, then has Claude keep only the items that
-// change the rules, the costs or who supplies whom, rewritten as one factual
-// line each. The key never leaves the server.
+// Builds the day's list and nothing more.
 //
-// Two stages, because sending 600 full items to Opus costs about forty cents a
-// sweep and most of them are going to be thrown away:
-//   1. Haiku reads the headlines alone and says which numbers are worth it.
-//   2. Opus reads only those, in full, and writes the summary and perspective.
-// The money is in the second stage, so the first one keeps it small.
+// Reading a wide set of feeds is free. Deciding which headlines are worth
+// listing costs about a tenth of a cent for the whole day, because the small
+// model sees titles only. Summaries and perspectives are not written here:
+// they are written by api/story.js when someone actually opens a story, and
+// cached after, so nothing is paid for that nobody reads.
 
 const MAX_PER_FEED = 20;
 const MAX_ITEMS = 600;
 const WINDOW_HOURS = 24;
-const KEEP = 20; // events a sweep returns at most
+const KEEP = 100; // headlines a sweep lists at most
 
 const SIFT_MODEL = "claude-haiku-5-5";
-const WRITE_MODEL = "claude-opus-5-5";
-
-// Dollars per million tokens, so a response can say what it just cost.
-const PRICES = {
-  "claude-haiku-5-5": { in: 0.1, out: 0.5 },
-  "claude-opus-5-5": { in: 4, out: 20 },
-};
+const PRICES = { "claude-haiku-5-5": { in: 0.1, out: 0.5 } };
 
 function spend(model, usage) {
   const price = PRICES[model];
@@ -122,9 +114,9 @@ export const CATEGORIES = [
   "Internet and platforms",
 ];
 
-const SIFT = `You are the first pass over a day of raw headlines for an investor
-who follows technology industries. You only decide what is worth reading. You
-never summarise and you never explain.
+const SIFT = `You sort a day of raw headlines for an investor who follows
+technology industries. You decide what is worth listing and you tidy the
+wording. You never summarise the story and you never explain it.
 
 KEEP a headline when you can name an industry and say what changes for it:
 - rules: law, sanction, export control, licence, ruling, treaty, approval
@@ -138,66 +130,33 @@ KEEP a headline when you can name an industry and say what changes for it:
 
 DROP only what truly has no industry edge: opinion and commentary, polls,
 sport, crime, celebrity, weather, personnel gossip, routine index moves,
-analyst forecasts, and anything where the only thing you could write is that it
-"adds uncertainty" or "may affect sentiment".
+analyst forecasts, and anything where the only thing you could write is that
+it "adds uncertainty" or "may affect sentiment".
 
 Be generous rather than strict: if a headline would make a reader of that
-industry stop and read, keep it. Twenty good items is a better day's work than
-three perfect ones. Drop near-duplicates of the same event, keeping the
-clearest one.
+industry stop and read, keep it. Drop near-duplicates of the same event,
+keeping the clearest one.
 
-Every kept item must sit in exactly one of these categories:
+Every kept item sits in exactly one of these categories:
 ${CATEGORIES.join(", ")}.
-If a headline fits none of them even loosely, drop it.
+If a headline fits none of them even loosely, drop the item.
+
+For each one you keep, give:
+- "n": the number printed in front of the headline.
+- "category": one of the list above.
+- "headline": the same fact, tidied into one plain sentence of at most 20
+  words. Strip the outlet's branding, the clickbait and the trailing dash.
+  Never add a fact that is not already in the headline you were given.
 
 Return JSON only, nothing else, at most ${KEEP} items, strongest first:
-{"keep":[{"n":12,"category":"Autonomous and EV"}]}
-"n" is the number printed in front of the headline. If nothing qualifies,
-return {"keep":[]}.`;
-
-const WRITE = `You write up news events for an investor who wants to know what
-is moving in technology industries. Every item you are given has already been
-judged worth keeping, so write up all of them. Keep the category it arrives
-with.
-
-For each one, give:
-
-1. "headline" - the fact, in one sentence of at most 24 words. What happened
-   and who did it. No forecasting, no adjectives of significance.
-2. "summary" - two or three sentences, at most 55 words, of what the item
-   actually says: who, what, where, the numbers and dates it gives, and what
-   happens next if it says so. Only what is in the item; never invent detail.
-3. "effects" - one to three industries it lands on. For each:
-   - "industry": ordinary vocabulary, as specific as the item allows -
-     "robotaxi operators" beats "technology", "chip equipment makers" beats
-     "semiconductors".
-   - "direction": "tailwind", "headwind" or "mixed", for companies in it.
-   - "consequence": one sentence, at most 22 words, on what actually changes -
-     a cost, a volume, a licence, a market opened or closed - and for whom.
-   - "investing": one sentence, at most 26 words, on what it means for money
-     in that industry: who gains, who loses, how big, how long. Never
-     recommend buying or selling, never give a price target, and never write
-     something that would be true of any news item.
-
-Return JSON only, in this exact shape and nothing else:
-{"events":[{"n":12,"headline":"...","summary":"...","category":"Autonomous and EV","effects":[{"industry":"robotaxi operators","direction":"tailwind","consequence":"...","investing":"..."}]}]}
-
-"n" is the number printed in front of the item, so each write-up can be matched
-back. Order them by category so related ones sit together.`;
+{"keep":[{"n":12,"category":"Autonomous and EV","headline":"..."}]}
+If nothing qualifies, return {"keep":[]}.`;
 
 function readJSON(text) {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start < 0 || end < start) throw new Error("no JSON in the answer");
   return JSON.parse(text.slice(start, end + 1));
-}
-
-function textOf(message) {
-  return message.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("")
-    .trim();
 }
 
 export default async function handler(request, response) {
@@ -230,100 +189,58 @@ export default async function handler(request, response) {
       return;
     }
 
-    const client = new Anthropic({ apiKey });
-    let cost = 0;
-
-    // Stage one: headlines only. This is what makes the whole thing cheap -
-    // no descriptions, no links, and the small model.
     const titles = items.map((item, i) => `${i + 1}. [${item.source}] ${item.title}`).join("\n");
 
+    const client = new Anthropic({ apiKey });
     const sifted = await client.messages.create({
       model: SIFT_MODEL,
-      max_tokens: 2000,
+      max_tokens: 8000,
       output_config: { effort: "low" },
       system: SIFT,
       messages: [
         { role: "user", content: `Today is ${new Date().toISOString().slice(0, 10)}.\n\n${titles}` },
       ],
     });
-    cost += spend(SIFT_MODEL, sifted.usage);
+
+    const cost = spend(SIFT_MODEL, sifted.usage);
+    const text = sifted.content
+      .filter((block) => block.type === "text")
+      .map((block) => block.text)
+      .join("")
+      .trim();
 
     let keep = [];
     try {
-      keep = readJSON(textOf(sifted)).keep || [];
+      keep = readJSON(text).keep || [];
     } catch {
-      response.status(502).json({ error: "Could not read the first pass", raw: textOf(sifted).slice(0, 400) });
+      response.status(502).json({ error: "Could not read the sift", raw: text.slice(0, 400) });
       return;
     }
 
-    const chosen = keep
-      .map((pick) => ({ ...pick, item: items[Number(pick.n) - 1] }))
-      .filter((pick) => pick.item && CATEGORIES.includes(pick.category))
-      .slice(0, KEEP);
+    // Nothing is written up here. Each story carries only what the list needs;
+    // summary and effects arrive from api/story.js when it is opened.
+    const events = keep
+      .map((pick) => ({ pick, item: items[Number(pick.n) - 1] }))
+      .filter(({ pick, item }) => item && CATEGORIES.includes(pick.category))
+      .slice(0, KEEP)
+      .map(({ pick, item }, i) => ({
+        id: `ev-${Date.now()}-${i}`,
+        date: new Date().toISOString().slice(0, 10),
+        text: pick.headline || item.title,
+        summary: "",
+        publishedAt: new Date(item.at || Date.now()).toISOString(),
+        category: pick.category,
+        effects: [],
+        source: item.source || "",
+        url: item.link || "",
+      }));
 
-    if (!chosen.length) {
-      response.status(200).json({ events: [], read: items.length, topUp, cost });
-      return;
-    }
-
-    // Stage two: only the chosen few, in full, on the good model.
-    const full = chosen
-      .map(
-        (pick, i) =>
-          `${i + 1}. (${pick.category}) [${pick.item.source}] ${pick.item.title}${
-            pick.item.summary ? ` - ${pick.item.summary}` : ""
-          }`
-      )
-      .join("\n");
-
-    const written = await client.messages.create({
-      model: WRITE_MODEL,
-      max_tokens: 12000,
-      output_config: { effort: "medium" },
-      system: WRITE,
-      messages: [
-        { role: "user", content: `Today is ${new Date().toISOString().slice(0, 10)}.\n\n${full}` },
-      ],
-    });
-    cost += spend(WRITE_MODEL, written.usage);
-
-    let events = [];
-    try {
-      events = readJSON(textOf(written)).events || [];
-    } catch {
-      response.status(502).json({ error: "Could not read the model's answer", raw: textOf(written).slice(0, 400) });
-      return;
-    }
-
-    const out = events
-      .filter((event) => Array.isArray(event.effects) && event.effects.length)
-      .map((event, i) => {
-        const pick = chosen[Number(event.n) - 1] || chosen[i] || chosen[0];
-        return {
-          id: `ev-${Date.now()}-${i}`,
-          date: new Date().toISOString().slice(0, 10),
-          text: event.headline || event.text || "",
-          summary: event.summary || "",
-          publishedAt: new Date(pick.item.at || Date.now()).toISOString(),
-          category: event.category || pick.category || "",
-          effects: event.effects.slice(0, 3).map((effect) => ({
-            industry: effect.industry || "",
-            direction: effect.direction || "",
-            consequence: effect.consequence || "",
-            investing: effect.investing || "",
-          })),
-          source: pick.item.source || "",
-          url: pick.item.link || "",
-        };
-      });
-
-    // Shows up in the Vercel log for the call, so a surprise is traceable.
     console.log(
-      `events: read ${items.length}, sifted to ${chosen.length}, wrote ${out.length}, cost $${cost.toFixed(4)}${topUp ? " (top-up)" : ""}`
+      `events: read ${items.length}, listed ${events.length}, cost $${cost.toFixed(4)}${topUp ? " (top-up)" : ""}`
     );
 
     response.status(200).json({
-      events: out,
+      events,
       read: items.length,
       topUp,
       cost: Number(cost.toFixed(4)),
