@@ -194,17 +194,14 @@ export default function Screen() {
                   key={p.id}
                   onClick={() => setSlot(Math.min(i, maxSlot))}
                   title={p.title || `Block ${i + 1}`}
-                  className="flex items-center justify-center rounded-sm text-[9px] font-bold tabular-nums transition-colors"
+                  className="rounded-sm transition-colors"
                   style={{
                     width: 16,
                     height: 16,
-                    color: here ? "#FFFFFF" : INK,
                     backgroundColor: here ? ORANGE : "transparent",
                     border: `1px solid ${here ? ORANGE : FRAME}`,
                   }}
-                >
-                  {i + 1}
-                </button>
+                />
               );
             })}
           </span>
