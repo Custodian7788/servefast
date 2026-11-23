@@ -11,7 +11,7 @@ import { FEEDS } from "./feeds.js";
 
 const MAX_PER_FEED = 20;
 const MAX_ITEMS = 600;
-const WINDOW_HOURS = 24;
+const WINDOW_HOURS = 12; // older than this and a story drops off the list
 const KEEP = 100; // headlines a sweep lists at most
 
 const SIFT_MODEL = "claude-haiku-5-5";

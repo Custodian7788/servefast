@@ -7,6 +7,9 @@ import Sources from "./Sources.jsx";
 // shape. The first one is the one wired to the feeds.
 export const TABS = ["t1", "t2", "t3", "t4"];
 
+// How far back the list reaches, and how often it refreshes itself.
+export const HOURS = 12;
+
 // The carve-up people actually track, each one an ETF sector.
 export const CATEGORIES = [
   "AI",
@@ -52,14 +55,16 @@ export default function BlockTabs({
   const items = category ? all.filter((i) => i.category === category) : all;
   const feedTab = TABS[0];
 
-  async function pull(topUp = false) {
-    if (!topUp) setPulling(true);
+  // A sweep costs under a cent, so there is nothing clever to do: read the
+  // feeds, keep the last twelve hours, replace the list.
+  async function pull() {
+    setPulling(true);
     setError(null);
     try {
       const response = await fetch("/api/events", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ extra: feeds, since: topUp ? lastPull : 0 }),
+        body: JSON.stringify({ extra: feeds }),
       });
       const body = await response.text();
       let data;
@@ -70,18 +75,8 @@ export default function BlockTabs({
       }
       if (!response.ok) throw new Error(data.error || "That did not work");
       const pulled = data.events || [];
-      if (topUp) {
-        // Newest on top, nothing lost, no duplicates.
-        const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
-        const kept = all.filter((i) => !i.publishedAt || Date.parse(i.publishedAt) >= dayAgo);
-        const seen = new Set(kept.map((i) => i.text));
-        const fresh = pulled.filter((e) => !seen.has(e.text));
-        if (fresh.length || kept.length !== all.length) {
-          onReplace(feedTab, [...fresh, ...kept].slice(0, 200));
-        }
-        onPulled?.(Date.now(), (data.read || 0) + (read || 0));
-      } else if (!pulled.length) {
-        setError("Nothing qualified from today's feeds");
+      if (!pulled.length) {
+        setError("Nothing qualified from the last twelve hours");
       } else {
         onReplace(feedTab, pulled);
         onPulled?.(Date.now(), data.read || 0);
@@ -89,13 +84,11 @@ export default function BlockTabs({
     } catch (err) {
       setError(err.message);
     } finally {
-      if (!topUp) setPulling(false);
+      setPulling(false);
     }
   }
 
-  // A full sweep is the one call that costs anything, so an open does not set
-  // one off unless the block is genuinely out of date.
-  const stale = !lastPull || Date.now() - lastPull > 12 * 60 * 60 * 1000;
+  const stale = !lastPull || Date.now() - lastPull > HOURS * 60 * 60 * 1000;
 
   useEffect(() => {
     if (!autoPull) return;
@@ -103,23 +96,19 @@ export default function BlockTabs({
       askedOnce.current = true;
       if (stale) pull();
     }
+    // Checks often, pulls twice a day. A tab left open overnight wakes up
+    // with the morning's list rather than yesterday's.
     const timer = setInterval(() => {
       if (pulling) return;
-      // Nobody is looking, so nothing is spent.
       if (typeof document !== "undefined" && document.hidden) return;
-      if (!lastPull || Date.now() - lastPull > 24 * 60 * 60 * 1000) pull();
-      else pull(true);
+      if (!lastPull || Date.now() - lastPull > HOURS * 60 * 60 * 1000) pull();
     }, 15 * 60 * 1000);
     return () => clearInterval(timer);
   }, [autoPull, lastPull, pulling]);
 
   // The title row shows the state of play and holds the refresh.
   useEffect(() => {
-    const refresh = () => {
-      const fresh = lastPull && Date.now() - lastPull < 24 * 60 * 60 * 1000;
-      pull(Boolean(fresh && all.length));
-    };
-    onStatus?.({ pulling, lastPull, refresh, openSources: () => setShowSources(true) });
+    onStatus?.({ pulling, lastPull, refresh: pull, openSources: () => setShowSources(true) });
   }, [pulling, lastPull, feeds.length, all.length]);
 
   return (
