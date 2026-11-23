@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import openStory from "./openStory.js";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
@@ -80,7 +80,7 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
         </button>
       </div>
 
-      <div ref={top} className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
+      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 py-3">
         <h2 className="text-[15px] font-bold leading-[1.3]" style={{ color: INK }}>
           {state.title && state.title.length > item.text.length ? state.title : item.text}
         </h2>
@@ -137,6 +137,61 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
             </button>
           </div>
         )}
+      </div>
+
+      <Strip item={item} />
+    </div>
+  );
+}
+
+// The bottom half of the block. One card at a time, toggled left and right:
+// where the company sits against its peers, quick stock, whatever else earns
+// a place. Each card is filled in turn; the frame comes first.
+const CARDS = ["Position", "Quick stock", "Money"];
+
+function Strip({ item }) {
+  const [at, setAt] = useState(0);
+  const card = CARDS[at];
+
+  return (
+    <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `1px solid ${LINE}` }}>
+      <div className="shrink-0 flex items-center justify-center gap-3 h-7">
+        <button
+          onClick={() => setAt((i) => Math.max(i - 1, 0))}
+          disabled={at === 0}
+          className="disabled:opacity-20 hover:opacity-70"
+          style={{ color: ORANGE }}
+          aria-label="Back"
+        >
+          <ChevronLeft size={13} />
+        </button>
+        <span
+          className="text-center font-bold uppercase tracking-[0.09em] text-[10.5px]"
+          style={{ color: ORANGE, minWidth: "9rem" }}
+        >
+          {card}
+          <span className="ml-1.5 opacity-50 tabular-nums">
+            {at + 1}/{CARDS.length}
+          </span>
+        </span>
+        <button
+          onClick={() => setAt((i) => Math.min(i + 1, CARDS.length - 1))}
+          disabled={at >= CARDS.length - 1}
+          className="disabled:opacity-20 hover:opacity-70"
+          style={{ color: ORANGE }}
+          aria-label="Forward"
+        >
+          <ChevronRight size={13} />
+        </button>
+      </div>
+
+      <div
+        className="flex-1 min-h-0 flex items-center justify-center px-4 text-center"
+        style={{ borderTop: `1px solid ${LINE}` }}
+      >
+        <p className="text-[12px] leading-[1.6] opacity-35" style={{ color: INK }}>
+          {item ? `${card} goes here` : "Pick a headline on the left"}
+        </p>
       </div>
     </div>
   );
