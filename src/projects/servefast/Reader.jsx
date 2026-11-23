@@ -144,8 +144,39 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
   );
 }
 
-// The bottom half of the block, fixed at the halfway line.
+// The bottom half of the block, fixed at the halfway line. Step one of
+// Perspective fills itself: how this story relates to business, industry and
+// companies. It is written once per story and kept, so reopening is free.
 function Strip({ item }) {
+  const [state, setState] = useState({ loading: false });
+
+  useEffect(() => {
+    if (!item?.url && !item?.text) {
+      setState({ loading: false });
+      return undefined;
+    }
+    let alive = true;
+    setState({ loading: true });
+
+    fetch("/api/story", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        url: item.url,
+        title: item.text,
+        source: item.source,
+        category: item.category,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => alive && setState({ loading: false, ...data }))
+      .catch(() => alive && setState({ loading: false, error: true }));
+
+    return () => {
+      alive = false;
+    };
+  }, [item?.id]);
+
   return (
     <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `1px solid ${LINE}` }}>
       <div
@@ -159,7 +190,22 @@ function Strip({ item }) {
           Perspective
         </span>
       </div>
-      <div className="flex-1 min-h-0" />
+
+      <div className="no-bar flex-1 min-h-0 overflow-y-auto px-4 py-3">
+        {!item ? null : state.loading ? (
+          <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
+            Working out what this means
+          </p>
+        ) : state.error || (!state.relates && !state.effects?.length) ? (
+          <p className="text-[12px] opacity-35" style={{ color: INK }}>
+            Nothing useful to say about this one
+          </p>
+        ) : (
+          <p className="text-[14px] leading-[1.55]" style={{ color: INK }}>
+            {state.relates}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

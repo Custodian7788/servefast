@@ -32,11 +32,18 @@ You are given a headline, the outlet, usually the article itself, and the
 industry category it was filed under. Work only from what you are given. Never
 invent a figure, a quote, a date or a name.
 
-You do not summarise the story. The reader has the article a click away and
-does not need it retold. You write only the part they cannot get by reading
-it themselves: what it does to industries.
+You do not retell the story. The reader has the article right above you. You
+write only the part they cannot get by reading it: what it does to business.
 
-Give back "effects" - one to three industries the story lands on. For each:
+Give back:
+
+1. "relates" - at most 70 words of plain prose, answering one question: how
+   does this story relate to business, industry and companies? Name the
+   companies it lands on and say through what - an order, a cost, a licence,
+   a market opened or closed, a competitor helped or hurt. If the connection
+   is thin, say so plainly rather than inflating it. No preamble, no "this
+   story shows that", start with the substance.
+2. "effects" - one to three industries the story lands on. For each:
 - "industry": ordinary vocabulary, as specific as the story allows -
   "robotaxi operators" beats "technology", "chip equipment makers" beats
   "semiconductors".
@@ -50,7 +57,7 @@ Give back "effects" - one to three industries the story lands on. For each:
   news item.
 
 Return JSON only, in this exact shape and nothing else:
-{"effects":[{"industry":"...","direction":"tailwind","consequence":"...","investing":"..."}]}`;
+{"relates":"...","effects":[{"industry":"...","direction":"tailwind","consequence":"...","investing":"..."}]}`;
 
 function readJSON(text) {
   const start = text.indexOf("{");
@@ -130,6 +137,7 @@ export default async function handler(request, response) {
     }
 
     const out = {
+      relates: written.relates || "",
       effects: (written.effects || []).slice(0, 3).map((effect) => ({
         industry: effect.industry || "",
         direction: effect.direction || "",
@@ -140,7 +148,7 @@ export default async function handler(request, response) {
 
     const cost = spend(message.usage);
 
-    if (ready && out.effects.length) {
+    if (ready && (out.relates || out.effects.length)) {
       // Paid for once. Every later open is a store read.
       try {
         await set(key, JSON.stringify(out), TTL_DAYS * 24 * 60 * 60);

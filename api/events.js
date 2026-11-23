@@ -114,42 +114,67 @@ export const CATEGORIES = [
   "Internet and platforms",
 ];
 
-const SIFT = `You sort a day of raw headlines for an investor who follows
-technology industries. You decide what is worth listing and you tidy the
-wording. You never summarise the story and you never explain it.
+const SIFT = `You sort a day of raw headlines for an investor who follows technology
+industries. You decide what is worth listing and you tidy the wording. You
+never summarise the story and you never explain it.
 
-KEEP a headline when you can name an industry and say what changes for it:
-- rules: law, sanction, export control, licence, ruling, treaty, approval
-- money: tariff, subsidy, tax, rate, price move, funding round, contract award
-- supply: conflict, route, resource access, plant, capacity, nationalisation
-- technology and companies: a product or service reaching a new stage
-  (robotaxi approvals and city launches, a model or chip shipping, a drug
-  approved, a reactor connected), a big investment, a partnership, a
-  management decision that changes what a company sells or where
-- demand: a customer, state or sector buying or stopping buying at scale
+THE TEST, and it is the only one that matters: can you name a company whose
+revenue, costs, licences or market this story actually changes? Name it and
+keep the item. Cannot name one, drop the item. No exceptions, however
+important the news is in itself.
 
-DROP only what truly has no industry edge: opinion and commentary, polls,
-sport, crime, celebrity, weather, personnel gossip, routine index moves,
-analyst forecasts, and anything where the only thing you could write is that
-it "adds uncertainty" or "may affect sentiment".
+A company counts when the story reaches its accounts: it is in the story, or
+it plainly sells into, buys from, competes with or is regulated by what the
+story describes. "Chipmakers" is not a company. "Nvidia" is.
 
-Be generous rather than strict: if a headline would make a reader of that
-industry stop and read, keep it. Drop near-duplicates of the same event,
-keeping the clearest one.
+KEEP, where the test is passed:
+- rules: an export control, sanction, licence, ruling, approval or standard
+  that lands on named firms
+- money: a tariff, subsidy, rate, contract award, funding round, order or
+  price move with a figure attached
+- supply: a plant, a capacity decision, a shortage, a nationalisation, a
+  route closed, where you can say whose supply it is
+- technology: a product or service reaching a real stage - shipping,
+  approved, launched in a city, connected to the grid - by a named firm
+- demand: a named customer, state or sector buying or stopping buying at
+  scale
+
+DROP, and these are the ones that keep getting through:
+- summits, conferences, climate talks, declarations, communiques, COP and
+  the rest, however they end. A summit that collapses changes no company's
+  accounts this week.
+- diplomacy, elections, polls, cabinet appointments, party politics, protest
+- aid, relief and recovery packages, disaster response, humanitarian funding
+- troop movements, fleets, exercises, border incidents, unless a named
+  contract or a named supplier is in the story
+- consumer product marketing, a firm "targeting younger buyers", design
+  refreshes, sponsorships, rebrands
+- opinion, commentary, analyst forecasts, price targets, "stock to watch"
+- crime, sport, celebrity, weather, personnel gossip, routine index moves
+- anything where the only thing you could write is that it "adds
+  uncertainty", "raises questions" or "may affect sentiment"
+
+Be strict. Thirty items that each name a company beat a hundred that read
+like a newspaper front page. Drop near-duplicates of the same event, keeping
+the clearest one.
 
 Every kept item sits in exactly one of these categories:
 ${CATEGORIES.join(", ")}.
-If a headline fits none of them even loosely, drop the item.
+If a headline fits none of them even loosely, drop the item. Do not stretch a
+category to fit: a flood relief package is not Clean energy and grid, and a
+camera marketed at young people is not Robotics and automation.
 
 For each one you keep, give:
 - "n": the number printed in front of the headline.
 - "category": one of the list above.
+- "company": the one company the story lands on hardest, by name. If you
+  cannot fill this in, you should have dropped the item.
 - "headline": the same fact, tidied into one plain sentence of at most 20
   words. Strip the outlet's branding, the clickbait and the trailing dash.
   Never add a fact that is not already in the headline you were given.
 
 Return JSON only, nothing else, at most ${KEEP} items, strongest first:
-{"keep":[{"n":12,"category":"Autonomous and EV","headline":"..."}]}
+{"keep":[{"n":12,"category":"Autonomous and EV","company":"Waymo","headline":"..."}]}
 If nothing qualifies, return {"keep":[]}.`;
 
 function readJSON(text) {
@@ -239,7 +264,8 @@ export default async function handler(request, response) {
     // summary and effects arrive from api/story.js when it is opened.
     const events = keep
       .map((pick) => ({ pick, item: items[Number(pick.n) - 1] }))
-      .filter(({ pick, item }) => item && CATEGORIES.includes(pick.category))
+      // No company named means the sift should have dropped it.
+      .filter(({ pick, item }) => item && CATEGORIES.includes(pick.category) && pick.company)
       .slice(0, KEEP)
       .map(({ pick, item }, i) => ({
         id: `ev-${Date.now()}-${i}`,
@@ -248,6 +274,7 @@ export default async function handler(request, response) {
         summary: "",
         publishedAt: new Date(item.at || Date.now()).toISOString(),
         category: pick.category,
+        company: pick.company || "",
         effects: [],
         source: item.source || "",
         url: item.link || "",
