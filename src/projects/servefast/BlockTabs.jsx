@@ -52,6 +52,9 @@ export default function BlockTabs({
   const go = (patch) => onView?.(patch);
 
   const askedOnce = useRef(false);
+  const feedTab = TABS[0];
+  const all = tabs?.[feedTab] || [];
+  const items = category ? all.filter((i) => i.category === category) : all;
 
   // A sweep costs under a cent, so there is nothing clever to do: read the
   // feeds, keep the last twelve hours, replace the list.
