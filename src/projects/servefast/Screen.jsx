@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { RotateCw, Rss, X } from "lucide-react";
+import { RotateCw, Rss } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
@@ -116,14 +116,6 @@ export default function Screen() {
     updateModule((m) => ({ ...m, panels: [...m.panels, makePanel()] }));
   }
 
-  function closeModule(id, e) {
-    e.stopPropagation();
-    setSpace((s) => {
-      const left = s.modules.filter((m) => m.id !== id);
-      return { modules: left, currentId: s.currentId === id ? left[0]?.id ?? null : s.currentId };
-    });
-  }
-
   return (
     <div className="h-screen w-full flex flex-col" style={{ backgroundColor: MAIN_BG, color: INK }}>
       {/* Modules */}
@@ -160,13 +152,6 @@ export default function Screen() {
                 }`}
                 style={{ color: active ? "#FFFFFF" : INK, caretColor: active ? "#FFFFFF" : INK }}
               />
-              <span
-                onClick={(e) => closeModule(m.id, e)}
-                className="shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100"
-                style={{ color: active ? "#FFFFFF" : INK }}
-              >
-                <X size={10} />
-              </span>
             </div>
           );
         })}
