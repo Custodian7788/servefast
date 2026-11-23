@@ -167,17 +167,11 @@ export default function BlockTabs({
                 costs nothing at all. */}
             <div className="flex-1 min-h-0 overflow-y-auto">
               {items.map((item, i) => (
-                <a
+                <button
                   key={item.id}
-                  href={item.url || undefined}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  onClick={(e) => {
-                    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-                    e.preventDefault();
-                    go({ readingId: item.id });
-                  }}
-                  className="block px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
+                  type="button"
+                  onClick={() => go({ readingId: item.id })}
+                  className="block w-full text-left px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
                   style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
                 >
                   <span className="block text-[13px] leading-[1.35]" style={{ color: INK }}>
@@ -200,7 +194,7 @@ export default function BlockTabs({
                       </>
                     )}
                   </span>
-                </a>
+                </button>
               ))}
               {!items.length && (
                 <div className="p-3 text-[12px] opacity-40" style={{ color: INK }}>
