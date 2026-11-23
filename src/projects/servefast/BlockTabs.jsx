@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
 import Sources from "./Sources.jsx";
+import Reader from "./Reader.jsx";
 
 // Four tabs per block. They start unnamed - you name them as the block takes
 // shape. The first one is the one wired to the feeds.
@@ -48,6 +49,7 @@ export default function BlockTabs({
   // on the same filter.
   const where = view || {};
   const category = where.category || "";
+  const readingId = where.readingId || null;
   const go = (patch) => onView?.(patch);
 
   const askedOnce = useRef(false);
@@ -87,6 +89,7 @@ export default function BlockTabs({
   }
   const all = tabs?.[TABS[0]] || [];
   const items = category ? all.filter((i) => i.category === category) : all;
+  const open = readingId ? all.find((i) => i.id === readingId) : null;
   const feedTab = TABS[0];
 
   // A sweep costs under a cent, so there is nothing clever to do: read the
@@ -171,6 +174,8 @@ export default function BlockTabs({
           >
             {error}
           </div>
+        ) : open ? (
+          <Reader item={open} onBack={() => go({ readingId: null })} onOpenOut={openStory} />
         ) : !all.length ? (
           <div className="h-full flex items-center justify-center text-[12px] opacity-35" style={{ color: INK }}>
             Nothing here yet
@@ -205,7 +210,11 @@ export default function BlockTabs({
                   href={item.url || undefined}
                   target="_blank"
                   rel="noreferrer noopener"
-                  onClick={(e) => openStory(e, item.url)}
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                    e.preventDefault();
+                    go({ readingId: item.id });
+                  }}
                   className="block px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
                   style={{ borderTop: i ? `1px solid ${LINE}` : "none" }}
                 >
