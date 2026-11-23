@@ -156,7 +156,23 @@ function readJSON(text) {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start < 0 || end < start) throw new Error("no JSON in the answer");
-  return JSON.parse(text.slice(start, end + 1));
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch {
+    // A list cut off mid-item is still a list. Keep the entries that closed.
+    const keep = [];
+    const each = /{[^{}]*"n"s*:s*d+[^{}]*}/g;
+    let found;
+    while ((found = each.exec(text))) {
+      try {
+        keep.push(JSON.parse(found[0]));
+      } catch {
+        // Skip the one that is broken, keep going.
+      }
+    }
+    if (!keep.length) throw new Error("nothing usable in the answer");
+    return { keep };
+  }
 }
 
 export default async function handler(request, response) {
@@ -194,7 +210,9 @@ export default async function handler(request, response) {
     const client = new Anthropic({ apiKey });
     const sifted = await client.messages.create({
       model: SIFT_MODEL,
-      max_tokens: 8000,
+      max_tokens: 16000,
+      // The whole budget goes to the list. There is nothing here to think about.
+      thinking: { type: "disabled" },
       output_config: { effort: "low" },
       system: SIFT,
       messages: [
