@@ -297,7 +297,9 @@ export default function Screen() {
                 <span className="flex-1" />
               </div>
               {i === 1 ? (
-                <Reader key={openStoryItem?.id || "none"} item={openStoryItem} />
+                /* Empty for now. The reading pane lives in Reader.jsx and
+                   comes back the moment we decide what belongs here. */
+                <div className="flex-1 min-h-0" />
               ) : (
               <BlockTabs
                 tabs={p.tabs}
