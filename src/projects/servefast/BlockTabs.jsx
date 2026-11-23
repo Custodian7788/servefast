@@ -55,7 +55,7 @@ export default function BlockTabs({
   // The list has no scrollbar. It moves one headline at a time on the two
   // buttons, and says where in the chain you are.
   const listRef = useRef(null);
-  const [at, setAt] = useState({ first: 0, end: false, cut: Infinity });
+  const [at, setAt] = useState({ first: 0, end: false, cut: Infinity, part: 0 });
 
   // A headline half off the bottom edge is worse than a gap, so the first row
   // that does not fit whole is hidden along with everything under it.
@@ -74,7 +74,13 @@ export default function BlockTabs({
     // Never hide everything: a row taller than the block still shows.
     if (cut <= first) cut = first + 1;
 
-    setAt({ first, cut, end: bottom >= box.scrollHeight - 2 });
+    const room = box.scrollHeight - box.clientHeight;
+    setAt({
+      first,
+      cut,
+      end: bottom >= box.scrollHeight - 2,
+      part: room > 0 ? Math.min(Math.max(top / room, 0), 1) : 0,
+    });
   }
 
   function step(direction) {
@@ -92,7 +98,7 @@ export default function BlockTabs({
   // A new list, or a new filter, starts at the top.
   useEffect(() => {
     listRef.current?.scrollTo({ top: 0 });
-    setAt({ first: 0, end: false });
+    setAt({ first: 0, end: false, cut: Infinity, part: 0 });
     const id = requestAnimationFrame(measure);
     return () => cancelAnimationFrame(id);
   }, [category, tabs?.[TABS[0]]?.length]);
@@ -266,17 +272,17 @@ export default function BlockTabs({
                   const part = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
                   box.scrollTo({ top: part * (box.scrollHeight - box.clientHeight), behavior: "smooth" });
                 }}
-                className="flex-1 h-4 flex items-center"
+                className="group flex-1 h-5 flex items-center"
               >
-              <span className="block w-full h-px" style={{ backgroundColor: LINE }}>
                 <span
-                  className="block h-px transition-[width] duration-200"
-                  style={{
-                    backgroundColor: ORANGE,
-                    width: `${items.length ? ((at.first + 1) / items.length) * 100 : 0}%`,
-                  }}
-                />
-              </span>
+                  className="block w-full rounded-full overflow-hidden"
+                  style={{ height: 3, backgroundColor: LINE }}
+                >
+                  <span
+                    className="block h-full rounded-full transition-[width] duration-200"
+                    style={{ backgroundColor: ORANGE, width: `${Math.round(at.part * 100)}%` }}
+                  />
+                </span>
               </button>
 
               <span
