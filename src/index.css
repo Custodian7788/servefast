@@ -19,3 +19,12 @@ input:focus::placeholder,
 textarea:focus::placeholder {
   color: transparent !important;
 }
+
+/* A list that scrolls by button rather than by bar. */
+.no-bar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-bar::-webkit-scrollbar {
+  display: none;
+}

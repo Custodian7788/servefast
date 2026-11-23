@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
 import Sources from "./Sources.jsx";
@@ -50,6 +51,41 @@ export default function BlockTabs({
   const category = where.category || "";
   const readingId = where.readingId || null;
   const go = (patch) => onView?.(patch);
+
+  // The list has no scrollbar. It moves one headline at a time on the two
+  // buttons, and says where in the chain you are.
+  const listRef = useRef(null);
+  const [at, setAt] = useState({ first: 0, end: false });
+
+  function measure() {
+    const box = listRef.current;
+    if (!box) return;
+    const rows = Array.from(box.children);
+    const top = box.scrollTop;
+    let first = rows.findIndex((row) => row.offsetTop >= top - 2);
+    if (first < 0) first = Math.max(rows.length - 1, 0);
+    setAt({ first, end: top + box.clientHeight >= box.scrollHeight - 2 });
+  }
+
+  function step(direction) {
+    const box = listRef.current;
+    if (!box) return;
+    const rows = Array.from(box.children);
+    const top = box.scrollTop;
+    const next =
+      direction > 0
+        ? rows.find((row) => row.offsetTop > top + 2)
+        : [...rows].reverse().find((row) => row.offsetTop < top - 2);
+    box.scrollTo({ top: next ? next.offsetTop : 0, behavior: "smooth" });
+  }
+
+  // A new list, or a new filter, starts at the top.
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 });
+    setAt({ first: 0, end: false });
+    const id = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(id);
+  }, [category, tabs?.[TABS[0]]?.length]);
 
   const askedOnce = useRef(false);
   const feedTab = TABS[0];
@@ -163,9 +199,56 @@ export default function BlockTabs({
               </select>
             </div>
 
-            {/* The headline is the link. Nothing is written by us, so reading
-                costs nothing at all. */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            {/* Where you are in the chain, and the two steps. */}
+            <div
+              className="shrink-0 flex items-center gap-2 px-2 h-7"
+              style={{ borderBottom: `1px solid ${LINE}` }}
+            >
+              <button
+                type="button"
+                onClick={() => step(-1)}
+                disabled={at.first === 0}
+                className="disabled:opacity-20 hover:opacity-70"
+                style={{ color: ORANGE }}
+                aria-label="Up one"
+              >
+                <ChevronUp size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => step(1)}
+                disabled={at.end}
+                className="disabled:opacity-20 hover:opacity-70"
+                style={{ color: ORANGE }}
+                aria-label="Down one"
+              >
+                <ChevronDown size={14} />
+              </button>
+
+              <span className="flex-1 h-px" style={{ backgroundColor: LINE }}>
+                <span
+                  className="block h-px transition-[width] duration-200"
+                  style={{
+                    backgroundColor: ORANGE,
+                    width: `${items.length ? ((at.first + 1) / items.length) * 100 : 0}%`,
+                  }}
+                />
+              </span>
+
+              <span
+                className="shrink-0 text-[10px] font-bold uppercase tracking-[0.06em] tabular-nums opacity-45"
+                style={{ color: INK }}
+              >
+                {Math.min(at.first + 1, items.length)} of {items.length}
+              </span>
+            </div>
+
+            {/* Nothing is written by us, so reading costs nothing at all. */}
+            <div
+              ref={listRef}
+              onScroll={measure}
+              className="no-bar relative flex-1 min-h-0 overflow-y-auto"
+            >
               {items.map((item, i) => (
                 <button
                   key={item.id}
