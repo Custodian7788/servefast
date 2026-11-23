@@ -1,5 +1,5 @@
-// Opens an article in its own browser window rather than a tab, parked over
-// the right third of this one at the same height.
+// Opens an article in its own browser window rather than a tab: a quarter of
+// this window, bottom right, so it covers exactly one corner of it.
 //
 // A named window only takes its size and position from the features string
 // the first time it is created, so later clicks would land in whatever size
@@ -15,10 +15,11 @@ function placement() {
   const ownLeft = window.screenX ?? window.screenLeft ?? 0;
   const ownTop = window.screenY ?? window.screenTop ?? 0;
 
-  const width = Math.min(Math.max(Math.round(ownWidth / 3), 520), screenWidth);
-  const height = Math.min(ownHeight, screenHeight);
+  // Half the width and half the height is a quarter of the area.
+  const width = Math.min(Math.round(ownWidth / 2), screenWidth);
+  const height = Math.min(Math.round(ownHeight / 2), screenHeight);
   const left = Math.max(Math.min(ownLeft + ownWidth - width, screenWidth - width), 0);
-  const top = Math.max(Math.min(ownTop, screenHeight - height), 0);
+  const top = Math.max(Math.min(ownTop + ownHeight - height, screenHeight - height), 0);
 
   return { width, height, left, top };
 }
