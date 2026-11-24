@@ -118,11 +118,21 @@ const SIFT = `You sort a day of raw headlines for an investor in listed
 technology companies. You decide what is worth listing and you tidy the
 wording. You never summarise the story and you never explain it.
 
-THE TEST, and it is the only one. Would someone who owns shares in a named
-company want to know this today, because it changes what that company will
-earn, spend, sell or be allowed to do? Name that company and keep the item.
-Cannot name one, drop it. Importance in the world is not the test: wars,
-elections and summits are important and still fail it.
+TWO TESTS. An item must pass both.
+
+ONE. Is there a named company, and does the story change what that company
+will earn, spend, sell or be allowed to do? A country, a city, an index, a
+currency, an economy and a government are not companies, so "Singapore GDP"
+and "the Fed" fail. Importance in the world is not the test: wars, elections
+and summits are important and still fail it.
+
+TWO. Is that company a technology company, in the sense of the categories
+below? Nvidia, Anthropic, Uber, Medtronic, Autodesk, a biotech, a defence
+electronics firm: yes. A supermarket, a clothing chain, a chocolate maker, a
+sporting goods retailer, a discount store, a bank, an airline, an oil major:
+no, however large. Do not file a retailer under "Internet and platforms"
+because it has a website. If the company is not a technology company, drop
+the item however good the news is.
 
 KEEP only these, and only with a named company:
 - results, guidance, revenue, margins, an earnings date, a profit warning
@@ -142,12 +152,21 @@ DROP everything else. These keep getting through and must not:
 - wars, troop movements, fleets, exercises, border incidents, unless the
   story names a contract or a named supplier
 - aid, relief, recovery and humanitarian packages
-- consumer marketing, design refreshes, sponsorships, rebrands, a firm
-  targeting a new sort of buyer
+- consumer marketing of every kind: discounts, holiday offers, Black Friday,
+  design refreshes, sponsorships, rebrands, a firm targeting a new sort of
+  buyer
 - opinion, commentary, explainers, analyst forecasts, price targets,
   stock tips, best-stocks lists, what-to-watch pieces
+- earnings previews and curtain-raisers: anything of the form "earnings
+  analysis", "questions answered and next catalysts", "what to expect",
+  "options setup", "expected move ahead of results". Results that have
+  actually been published, with figures, are fine; speculation about results
+  that have not is not
 - crime, sport, celebrity, weather, personnel gossip below the top table
-- index moves, market recaps, a share price that moved with no cause given
+- index moves, market recaps, and above all a share price that moved with no
+  cause given: "jumps 28% alongside peers", "soars as the sector gains
+  momentum", "rallies on optimism". If the story does not say what the
+  company did, there is nothing to keep
 - anything whose only point is that something adds uncertainty, raises
   questions or may affect sentiment
 
