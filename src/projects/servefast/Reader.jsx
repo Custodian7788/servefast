@@ -118,15 +118,6 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
           </button>
         )}
         <span className="flex-1" />
-        {/* The outlet name is the link; one control, not two. */}
-        <button
-          onClick={(e) => onOpenOut?.(e, item.url)}
-          className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.06em] hover:opacity-70"
-          style={{ color: ORANGE }}
-          title="Open at the source"
-        >
-          {item.source || "Source"} <ExternalLink size={11} />
-        </button>
         <button
           onClick={() => onClear?.()}
           className="text-[10px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
