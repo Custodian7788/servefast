@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { get, set, ready } from "./_kv.js";
+import { decode } from "./_text.js";
 
 // Fetches an article and hands back its paragraphs, so it can be read inside
 // a block rather than in another window. No model is involved, so this is
@@ -9,23 +10,6 @@ import { get, set, ready } from "./_kv.js";
 const TTL_DAYS = 7;
 const MAX_PARAGRAPHS = 120;
 const MAX_CHARS = 40000;
-
-function entities(value = "") {
-  return value
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#0?39;|&apos;|&rsquo;/gi, "'")
-    .replace(/&lsquo;/gi, "'")
-    .replace(/&ldquo;|&rdquo;/gi, '"')
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&mdash;/gi, " - ")
-    .replace(/&ndash;/gi, "-")
-    .replace(/&hellip;/gi, "...")
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
-}
 
 function clean(html) {
   return html
@@ -43,7 +27,7 @@ function clean(html) {
 }
 
 function textOf(fragment) {
-  return entities(fragment.replace(/<[^>]+>/g, " "))
+  return decode(fragment.replace(/<[^>]+>/g, " "))
     .replace(/\s+/g, " ")
     .trim();
 }

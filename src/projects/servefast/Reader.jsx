@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import openStory from "./openStory.js";
-import { INK, LINE, ORANGE } from "../../theme.js";
+import { FRAME, INK, LINE, NAV_BG, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
 
 // An article, read inside the block. The site's own page cannot be framed -
@@ -232,10 +232,10 @@ function Strip({ item }) {
   const frame = frames[at];
 
   return (
-    <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `1px solid ${LINE}` }}>
+    <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `2px solid ${FRAME}` }}>
       <div
-        className="shrink-0 flex items-center gap-2 px-2.5 h-7"
-        style={{ borderBottom: `1px solid ${LINE}` }}
+        className="shrink-0 flex items-center gap-2 px-2.5 h-8"
+        style={{ borderBottom: `2px solid ${FRAME}`, backgroundColor: NAV_BG }}
       >
         <button
           type="button"
@@ -302,7 +302,7 @@ function Strip({ item }) {
           )}
         </div>
 
-        <div className="w-1/2 min-w-0 flex flex-col gap-2 p-3" style={{ borderLeft: `1px solid ${LINE}` }}>
+        <div className="w-1/2 min-w-0 flex flex-col gap-2 p-3" style={{ borderLeft: `2px solid ${FRAME}` }}>
           <textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}

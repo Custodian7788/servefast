@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { FEEDS } from "./feeds.js";
+import { decode } from "./_text.js";
 
 // Builds the day's list and nothing more.
 //
@@ -26,15 +27,11 @@ function spend(model, usage) {
 }
 
 function stripTags(value = "") {
-  return value
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/<[^>]*>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
+  return decode(
+    String(value)
+      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+      .replace(/<[^>]*>/g, "")
+  )
     .replace(/\s+/g, " ")
     .trim();
 }
