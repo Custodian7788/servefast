@@ -20,8 +20,8 @@ function spend(usage) {
   );
 }
 
-function keyFor(url, title) {
-  const seed = (url || title || "").trim().toLowerCase();
+function keyFor(url, title, question = "") {
+  const seed = `${url || title || ""}::${question}`.trim().toLowerCase();
   // Bump the version when the shape of what we store changes, so entries
   // written by an older build are simply ignored rather than half-read.
   return `sf:story:v2:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
@@ -72,6 +72,34 @@ Never recommend buying or selling and never give a price target.
 Return JSON only, in this exact shape and nothing else:
 {"industry":"...","companies":"...","changes":"...","winners":"...","timeframe":"...","watch":"..."}`;
 
+const FOLLOW_UP = `You answer one follow-up question about a news story, for
+an investor in technology companies.
+
+You are given the story, what has already been established, and the
+reader's question. Answer the question they asked, not the one you would
+rather answer. Never retell the article, and never repeat a line that is
+already in what has been established: they are asking because they want to
+go deeper than that.
+
+Use what you know about how these industries are structured, who supplies
+whom and what has happened before. Name companies. Give figures you are
+sure of. Where the answer turns on the last few months and your knowledge
+stops before then, say so in a few words rather than guessing.
+
+Answer in up to six short fields, each a label and one line of at most 28
+words. Choose labels that suit the question: any short noun phrase, in
+sentence case. Use fewer fields if fewer will do. One good field beats six
+padded ones.
+
+Banned, because they say nothing: adds uncertainty, raises questions, may
+affect sentiment, remains to be seen, could prove significant, investors
+will be watching, time will tell. If you do not know, say what would settle
+it instead.
+
+Never recommend buying or selling and never give a price target.
+
+Return JSON only, in this exact shape and nothing else:
+{"fields":[{"label":"Short label","text":"..."}]}`;
 function readJSON(text) {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -91,13 +119,23 @@ export default async function handler(request, response) {
     return;
   }
 
-  const { url = "", title = "", source = "", category = "" } = request.body || {};
+  const { url = "", title = "", source = "", category = "", question = "" } = request.body || {};
+  const asked = String(question).trim().slice(0, 300);
+  // Every answer so far in this chain, so each question can build on the last
+  // and "tell me more about the winners" knows which winners.
+  const prior = []
+    .concat(request.body?.prior || [])
+    .filter((line) => typeof line === "string")
+    .join("\n")
+    .slice(0, 4000);
   if (!title) {
     response.status(400).json({ error: "Send at least a title" });
     return;
   }
 
-  const key = keyFor(url, title);
+  // A question only means the same thing after the same chain, so the chain
+  // is part of what identifies the answer.
+  const key = keyFor(url, title, asked ? `${prior}||${asked}` : "");
 
   try {
     if (ready) {
@@ -132,9 +170,9 @@ export default async function handler(request, response) {
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: MODEL,
-      max_tokens: 1500,
+      max_tokens: 2000,
       output_config: { effort: "low" },
-      system: SYSTEM,
+      system: asked ? FOLLOW_UP : SYSTEM,
       messages: [
         {
           role: "user",
@@ -144,6 +182,10 @@ export default async function handler(request, response) {
             `Outlet: ${source || "unknown"}`,
             `Headline: ${title}`,
             body ? `\nArticle:\n${body}` : "\nNo article body could be fetched.",
+            // What has already been said, so "tell me more about the winners"
+            // knows which winners, however deep the chain goes.
+            prior ? `\nAlready established:\n${prior}` : "",
+            asked ? `\nThe reader asks: ${asked}` : "",
           ].join("\n"),
         },
       ],
@@ -163,8 +205,30 @@ export default async function handler(request, response) {
       return;
     }
 
+    // The opening table has fixed fields; an answer to a question labels its
+    // own, because the question decides what is worth a row.
     const FIELDS = ["industry", "companies", "changes", "winners", "timeframe", "watch"];
-    const out = { fields: FIELDS.map((key) => ({ key, text: String(written[key] || "").trim() })).filter((f) => f.text) };
+    const LABELS = {
+      industry: "Industry",
+      companies: "Companies",
+      changes: "What changes",
+      winners: "Winners",
+      timeframe: "Timeframe",
+      watch: "Watch for",
+    };
+    const out = asked
+      ? {
+          question: asked,
+          fields: (written.fields || [])
+            .slice(0, 6)
+            .map((f) => ({ label: String(f.label || "").trim(), text: String(f.text || "").trim() }))
+            .filter((f) => f.text),
+        }
+      : {
+          fields: FIELDS.map((key) => ({ label: LABELS[key], text: String(written[key] || "").trim() })).filter(
+            (f) => f.text
+          ),
+        };
 
     const cost = spend(message.usage);
 

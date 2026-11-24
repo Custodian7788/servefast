@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import openStory from "./openStory.js";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
@@ -175,28 +175,34 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
   );
 }
 
-const LABELS = {
-  industry: "Industry",
-  companies: "Companies",
-  changes: "What changes",
-  winners: "Winners",
-  timeframe: "Timeframe",
-  watch: "Watch for",
-};
-
-// The bottom half of the block, fixed at the halfway line. Nothing here
-// runs on its own: it is written only when asked for, and kept once written.
+// The bottom half of the block. Each answer is a table of its own; asking a
+// question pushes a new one on and slides the last one left, so the whole
+// chain stays there to step back through.
 function Strip({ item }) {
-  const [state, setState] = useState({ idle: true });
+  const [frames, setFrames] = useState([]);
+  const [at, setAt] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [question, setQuestion] = useState("");
 
-  // A new story clears whatever was showing for the last one.
   useEffect(() => {
-    setState({ idle: true });
+    setFrames([]);
+    setAt(0);
+    setQuestion("");
+    setBusy(false);
   }, [item?.id]);
 
-  function ask() {
-    if (!item) return;
-    setState({ loading: true });
+  // What has been said so far, so a question can build on it.
+  function sofar() {
+    return frames.flatMap((f) => [
+      f.question ? `Q: ${f.question}` : "Opening read:",
+      ...(f.fields || []).map((x) => `${x.label}: ${x.text}`),
+    ]);
+  }
+
+  function ask(asked) {
+    if (busy || !item) return;
+    setBusy(true);
+    const prior = sofar();
     fetch("/api/story", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -205,59 +211,122 @@ function Strip({ item }) {
         title: item.text,
         source: item.source,
         category: item.category,
+        question: asked || "",
+        prior,
       }),
     })
       .then((r) => r.json())
-      .then((data) => setState({ ...data }))
-      .catch(() => setState({ error: true }));
+      .then((data) => {
+        setBusy(false);
+        if (!data.fields?.length) return;
+        setFrames((list) => {
+          const next = [...list, { question: asked || "", fields: data.fields }];
+          setAt(next.length - 1);
+          return next;
+        });
+        setQuestion("");
+      })
+      .catch(() => setBusy(false));
   }
+
+  const frame = frames[at];
 
   return (
     <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `1px solid ${LINE}` }}>
-      {/* The header is the button. Nothing is written until it is pressed. */}
-      <button
-        type="button"
-        onClick={ask}
-        disabled={!item || !state.idle}
-        className="shrink-0 flex items-center justify-center h-7 transition-colors enabled:hover:bg-[#FFF3E8] disabled:cursor-default"
+      <div
+        className="shrink-0 flex items-center gap-2 px-2.5 h-7"
         style={{ borderBottom: `1px solid ${LINE}` }}
       >
-        <span
-          className="font-bold uppercase tracking-[0.12em] text-[10.5px]"
+        <button
+          type="button"
+          onClick={() => setAt((i) => Math.max(i - 1, 0))}
+          disabled={at === 0}
+          className="disabled:opacity-20 hover:opacity-70"
           style={{ color: ORANGE }}
+          aria-label="Back"
         >
-          Perspective
+          <ChevronLeft size={13} />
+        </button>
+        <span className="flex-1 text-center">
+          <button
+            type="button"
+            onClick={() => ask("")}
+            disabled={!item || busy || frames.length > 0}
+            className="font-bold uppercase tracking-[0.12em] text-[10.5px] enabled:hover:opacity-70 disabled:cursor-default"
+            style={{ color: ORANGE }}
+          >
+            {frame?.question ? frame.question : "Perspective"}
+            {frames.length > 1 && (
+              <span className="ml-1.5 opacity-50 tabular-nums">
+                {at + 1}/{frames.length}
+              </span>
+            )}
+          </button>
         </span>
-      </button>
+        <button
+          type="button"
+          onClick={() => setAt((i) => Math.min(i + 1, frames.length - 1))}
+          disabled={at >= frames.length - 1}
+          className="disabled:opacity-20 hover:opacity-70"
+          style={{ color: ORANGE }}
+          aria-label="Forward"
+        >
+          <ChevronRight size={13} />
+        </button>
+      </div>
 
-      <div className="no-bar flex-1 min-h-0 overflow-y-auto px-3 py-1">
-        {!item ? null : state.loading ? (
-          <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
-            Working it out
-          </p>
-        ) : state.idle ? null : state.error || !state.fields?.length ? (
-          <p className="text-[12px] opacity-35" style={{ color: INK }}>
-            Nothing useful to say about this one
-          </p>
-        ) : (
-          <table className="w-full border-collapse">
-            <tbody>
-              {state.fields.map((f) => (
-                <tr key={f.key} style={{ borderTop: `1px solid ${LINE}` }}>
-                  <td
-                    className="align-top py-1.5 pr-3 text-[10px] font-bold uppercase tracking-[0.07em] whitespace-nowrap"
-                    style={{ color: ORANGE, width: "1%" }}
-                  >
-                    {LABELS[f.key] || f.key}
-                  </td>
-                  <td className="align-top py-1.5 text-[13px] leading-[1.5]" style={{ color: INK }}>
-                    {f.text}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      <div className="flex-1 min-h-0 flex">
+        <div className="no-bar w-1/2 min-w-0 overflow-y-auto px-3 py-1">
+          {!item ? null : busy && !frames.length ? (
+            <p className="mt-2 text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
+              Working it out
+            </p>
+          ) : !frame ? null : (
+            <table className="w-full border-collapse">
+              <tbody>
+                {frame.fields.map((f, i) => (
+                  <tr key={i} style={{ borderTop: `1px solid ${LINE}` }}>
+                    <td
+                      className="align-top py-1.5 pr-2 text-[10px] font-bold uppercase tracking-[0.07em]"
+                      style={{ color: ORANGE, width: "30%" }}
+                    >
+                      {f.label}
+                    </td>
+                    <td className="align-top py-1.5 text-[12.5px] leading-[1.45]" style={{ color: INK }}>
+                      {f.text}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="w-1/2 min-w-0 flex flex-col gap-2 p-3" style={{ borderLeft: `1px solid ${LINE}` }}>
+          <textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (question.trim()) ask(question.trim());
+              }
+            }}
+            placeholder={frames.length ? "Ask about this" : ""}
+            disabled={!frames.length || busy}
+            className="no-bar flex-1 min-h-0 w-full p-2 text-[12.5px] leading-[1.45] outline-none resize-none disabled:opacity-40"
+            style={{ border: `1px solid ${LINE}`, color: INK }}
+          />
+          <button
+            type="button"
+            onClick={() => question.trim() && ask(question.trim())}
+            disabled={!question.trim() || busy}
+            className="self-start px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors enabled:hover:bg-[#FFF3E8] disabled:opacity-25"
+            style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
+          >
+            {busy ? "Working" : "Submit"}
+          </button>
+        </div>
       </div>
     </div>
   );
