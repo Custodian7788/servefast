@@ -216,7 +216,17 @@ export default function Screen() {
                 </div>
               )}
               {i === 1 ? (
-                <Reader key={openStoryItem?.id || "none"} item={openStoryItem} />
+                <Reader
+                  key={openStoryItem?.id || "none"}
+                  item={openStoryItem}
+                  onClear={() =>
+                    listPanel &&
+                    updatePanel(listPanel.id, (panel) => ({
+                      ...panel,
+                      view: { ...(panel.view || {}), readingId: null },
+                    }))
+                  }
+                />
               ) : (
               <BlockTabs
                 tabs={p.tabs}

@@ -64,7 +64,7 @@ function Paste({ item, reason, onSaved }) {
   );
 }
 
-export default function Reader({ item, onBack, onOpenOut = openStory }) {
+export default function Reader({ item, onBack, onClear, onOpenOut = openStory }) {
   const [state, setState] = useState({ loading: true });
   const top = useRef(null);
 
@@ -134,6 +134,14 @@ export default function Reader({ item, onBack, onOpenOut = openStory }) {
           title="Open at the source"
         >
           <ExternalLink size={12} />
+        </button>
+        <button
+          onClick={() => onClear?.()}
+          className="text-[10px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
+          style={{ color: ORANGE }}
+          title="Clear this article"
+        >
+          Clear
         </button>
       </div>
 
