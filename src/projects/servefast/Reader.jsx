@@ -122,7 +122,7 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
         </button>
       </div>
 
-      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 py-3">
+      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-5">
         <h2 className="text-[15px] font-bold leading-[1.3]" style={{ color: INK }}>
           {state.title && state.title.length > item.text.length ? state.title : item.text}
         </h2>
@@ -234,7 +234,7 @@ function Strip({ item }) {
   return (
     <div className="shrink-0 h-[62%] flex flex-col" style={{ borderTop: `2px solid ${FRAME}` }}>
       <div
-        className="shrink-0 flex items-center gap-2 px-2.5 h-8"
+        className="shrink-0 flex items-center gap-2 px-2.5 h-7"
         style={{ borderBottom: `2px solid ${FRAME}`, backgroundColor: NAV_BG }}
       >
         <button
@@ -247,12 +247,12 @@ function Strip({ item }) {
         >
           <ChevronLeft size={13} />
         </button>
-        <span className="flex-1 text-center">
+        <span className="flex-1 flex items-center justify-center">
           <button
             type="button"
             onClick={() => ask("")}
             disabled={!item || busy || frames.length > 0}
-            className="font-bold uppercase tracking-[0.12em] text-[10.5px] enabled:hover:opacity-70 disabled:cursor-default"
+            className="flex items-center leading-none font-bold uppercase tracking-[0.12em] text-[10.5px] enabled:hover:opacity-70 disabled:cursor-default"
             style={{ color: ORANGE }}
           >
             {frame?.question ? frame.question : "Perspective"}
