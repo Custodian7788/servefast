@@ -134,6 +134,12 @@ export default function BlockTabs({
       try {
         data = JSON.parse(body);
       } catch {
+        // The password gate answers with its own page, so a session that has
+        // run out looks like a broken feed. Send them back to the gate.
+        if (/<!doctype html/i.test(body)) {
+          window.location.reload();
+          return;
+        }
         throw new Error("The feed service is not reachable from here");
       }
       if (!response.ok) throw new Error(data.error || "That did not work");

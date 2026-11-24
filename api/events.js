@@ -161,7 +161,10 @@ DROP everything else. These keep getting through and must not:
   analysis", "questions answered and next catalysts", "what to expect",
   "options setup", "expected move ahead of results". Results that have
   actually been published, with figures, are fine; speculation about results
-  that have not is not
+  that have not is not. The giveaway is a headline that promises what an
+  article will discuss rather than stating a fact: "questions answered",
+  "next catalysts", "what to expect", "all you need to know". Do not rewrite
+  one of these into something that sounds like news. Drop it.
 - crime, sport, celebrity, weather, personnel gossip below the top table
 - index moves, market recaps, and above all a share price that moved with no
   cause given: "jumps 28% alongside peers", "soars as the sector gains
