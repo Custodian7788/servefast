@@ -30,7 +30,18 @@ function Paste({ item, reason, onSaved }) {
   return (
     <div className="mt-4 pt-3 flex flex-col gap-2" style={{ borderTop: `1px solid ${LINE}` }}>
       <p className="text-[11px] leading-[1.5] opacity-50" style={{ color: INK }}>
-        {reason}. It is open in the other window: copy the article and paste it here.
+        {reason}.
+      </p>
+      <button
+        type="button"
+        onClick={(e) => openStory(e, item.url)}
+        className="self-start flex items-center gap-1.5 px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#FFF3E8]"
+        style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
+      >
+        Open the original <ExternalLink size={12} />
+      </button>
+      <p className="text-[11px] leading-[1.5] opacity-50" style={{ color: INK }}>
+        Copy the article and paste it below.
       </p>
       <textarea
         value={text}
