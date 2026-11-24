@@ -118,9 +118,19 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
           </button>
         )}
         <span className="flex-1" />
+        {/* The original, then Clear. Same colour, same gap, same height. */}
+        <button
+          onClick={(e) => onOpenOut?.(e, item.url)}
+          className="flex items-center h-5 hover:opacity-70"
+          style={{ color: ORANGE }}
+          aria-label="Open the original"
+          title="Open the original"
+        >
+          <ExternalLink size={12} />
+        </button>
         <button
           onClick={() => onClear?.()}
-          className="text-[10px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
+          className="flex items-center h-5 text-[10px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
           style={{ color: ORANGE }}
           title="Clear this article"
         >
