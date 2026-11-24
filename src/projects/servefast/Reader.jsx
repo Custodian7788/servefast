@@ -209,8 +209,12 @@ function Strip({ item }) {
 
   return (
     <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `1px solid ${LINE}` }}>
-      <div
-        className="shrink-0 flex items-center justify-center h-7"
+      {/* The header is the button. Nothing is written until it is pressed. */}
+      <button
+        type="button"
+        onClick={ask}
+        disabled={!item || !state.idle}
+        className="shrink-0 flex items-center justify-center h-7 transition-colors enabled:hover:bg-[#FFF3E8] disabled:cursor-default"
         style={{ borderBottom: `1px solid ${LINE}` }}
       >
         <span
@@ -219,25 +223,14 @@ function Strip({ item }) {
         >
           Perspective
         </span>
-      </div>
+      </button>
 
       <div className="no-bar flex-1 min-h-0 overflow-y-auto px-4 py-3">
         {!item ? null : state.loading ? (
           <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
             Working it out
           </p>
-        ) : state.idle ? (
-          <div className="h-full flex items-center justify-center">
-            <button
-              type="button"
-              onClick={ask}
-              className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#FFF3E8]"
-              style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
-            >
-              Ask
-            </button>
-          </div>
-        ) : state.error || !state.relates ? (
+        ) : state.idle ? null : state.error || !state.relates ? (
           <p className="text-[12px] opacity-35" style={{ color: INK }}>
             Nothing useful to say about this one
           </p>
