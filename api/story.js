@@ -22,7 +22,9 @@ function spend(usage) {
 
 function keyFor(url, title) {
   const seed = (url || title || "").trim().toLowerCase();
-  return `sf:story:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
+  // Bump the version when the shape of what we store changes, so entries
+  // written by an older build are simply ignored rather than half-read.
+  return `sf:story:v2:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
 const SYSTEM = `You write the Perspective on one news story, for an investor
