@@ -232,7 +232,7 @@ function Strip({ item }) {
   const frame = frames[at];
 
   return (
-    <div className="shrink-0 h-1/2 flex flex-col" style={{ borderTop: `2px solid ${FRAME}` }}>
+    <div className="shrink-0 h-[62%] flex flex-col" style={{ borderTop: `2px solid ${FRAME}` }}>
       <div
         className="shrink-0 flex items-center gap-2 px-2.5 h-8"
         style={{ borderBottom: `2px solid ${FRAME}`, backgroundColor: NAV_BG }}
@@ -276,7 +276,7 @@ function Strip({ item }) {
       </div>
 
       <div className="flex-1 min-h-0 flex">
-        <div className="no-bar w-1/2 min-w-0 overflow-y-auto px-3 py-1">
+        <div className="no-bar w-[68%] min-w-0 overflow-y-auto px-3 py-1">
           {!item ? null : busy && !frames.length ? (
             <p className="mt-2 text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
               Working it out
@@ -302,7 +302,7 @@ function Strip({ item }) {
           )}
         </div>
 
-        <div className="w-1/2 min-w-0 flex flex-col gap-2 p-3" style={{ borderLeft: `2px solid ${FRAME}` }}>
+        <div className="w-[32%] min-w-0 flex flex-col gap-2 p-2.5" style={{ borderLeft: `2px solid ${FRAME}` }}>
           <textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
@@ -321,7 +321,7 @@ function Strip({ item }) {
             type="button"
             onClick={() => question.trim() && ask(question.trim())}
             disabled={!question.trim() || busy}
-            className="self-start px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors enabled:hover:bg-[#FFF3E8] disabled:opacity-25"
+            className="self-stretch px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors enabled:hover:bg-[#FFF3E8] disabled:opacity-25"
             style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
           >
             {busy ? "Working" : "Submit"}
