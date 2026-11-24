@@ -122,7 +122,7 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
         <button
           onClick={(e) => onOpenOut?.(e, item.url)}
           className="flex items-center h-5 hover:opacity-70"
-          style={{ color: ORANGE }}
+          style={{ color: ORANGE, transform: "translateY(-1px)" }}
           aria-label="Open the original"
           title="Open the original"
         >
