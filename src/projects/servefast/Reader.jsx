@@ -10,28 +10,23 @@ import { sinceLabel } from "./Story.jsx";
 // Half the sites refuse to be read, so when one does you paste the article
 // in yourself. It is kept against that story, so it is there next time and
 // Perspective works from it.
-function Paste({ item, reason, onSaved }) {
+function Paste({ item, onSaved }) {
   const [text, setText] = useState("");
-  const [saving, setSaving] = useState(false);
 
-  function save() {
-    if (text.trim().length < 80) return;
-    setSaving(true);
+  function save(value) {
+    if (value.trim().length < 80) return;
     fetch("/api/read", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ url: item.url, text }),
+      body: JSON.stringify({ url: item.url, text: value }),
     })
       .then((r) => r.json())
       .then((data) => onSaved(data))
-      .catch(() => setSaving(false));
+      .catch(() => {});
   }
 
   return (
     <div className="mt-4 pt-3 flex flex-col gap-2" style={{ borderTop: `1px solid ${LINE}` }}>
-      <p className="text-[11px] leading-[1.5] opacity-50" style={{ color: INK }}>
-        {reason}.
-      </p>
       <button
         type="button"
         onClick={(e) => openStory(e, item.url)}
@@ -40,26 +35,15 @@ function Paste({ item, reason, onSaved }) {
       >
         Open the original <ExternalLink size={12} />
       </button>
-      <p className="text-[11px] leading-[1.5] opacity-50" style={{ color: INK }}>
-        Copy the article and paste it below.
-      </p>
       <textarea
         value={text}
-        onChange={(e) => setText(e.target.value)}
-        onPaste={() => setTimeout(save, 0)}
-        placeholder="Paste the article"
-        className="no-bar w-full h-40 p-2 text-[13px] leading-[1.5] outline-none resize-none"
+        onChange={(e) => {
+          setText(e.target.value);
+          save(e.target.value);
+        }}
+        className="no-bar w-full h-48 p-2 text-[13px] leading-[1.5] outline-none resize-none"
         style={{ border: `1px solid ${LINE}`, color: INK }}
       />
-      <button
-        type="button"
-        onClick={save}
-        disabled={saving || text.trim().length < 80}
-        className="self-start px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#FFF3E8] disabled:opacity-30"
-        style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
-      >
-        {saving ? "Keeping it" : "Keep it"}
-      </button>
     </div>
   );
 }
@@ -157,7 +141,7 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
             Fetching the article
           </p>
         ) : state.blocked ? (
-          <Paste item={item} reason={state.reason} onSaved={(data) => setState({ loading: false, ...data })} />
+          <Paste item={item} onSaved={(data) => setState({ loading: false, ...data })} />
         ) : (
           <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${LINE}` }}>
             {(state.paragraphs || []).map((p, i) =>
