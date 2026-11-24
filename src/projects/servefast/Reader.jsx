@@ -175,6 +175,15 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
   );
 }
 
+const LABELS = {
+  industry: "Industry",
+  companies: "Companies",
+  changes: "What changes",
+  winners: "Winners",
+  timeframe: "Timeframe",
+  watch: "Watch for",
+};
+
 // The bottom half of the block, fixed at the halfway line. Nothing here
 // runs on its own: it is written only when asked for, and kept once written.
 function Strip({ item }) {
@@ -221,19 +230,33 @@ function Strip({ item }) {
         </span>
       </button>
 
-      <div className="no-bar flex-1 min-h-0 overflow-y-auto px-4 py-3">
+      <div className="no-bar flex-1 min-h-0 overflow-y-auto px-3 py-1">
         {!item ? null : state.loading ? (
           <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
             Working it out
           </p>
-        ) : state.idle ? null : state.error || !state.relates ? (
+        ) : state.idle ? null : state.error || !state.fields?.length ? (
           <p className="text-[12px] opacity-35" style={{ color: INK }}>
             Nothing useful to say about this one
           </p>
         ) : (
-          <p className="text-[14px] leading-[1.55]" style={{ color: INK }}>
-            {state.relates}
-          </p>
+          <table className="w-full border-collapse">
+            <tbody>
+              {state.fields.map((f) => (
+                <tr key={f.key} style={{ borderTop: `1px solid ${LINE}` }}>
+                  <td
+                    className="align-top py-1.5 pr-3 text-[10px] font-bold uppercase tracking-[0.07em] whitespace-nowrap"
+                    style={{ color: ORANGE, width: "1%" }}
+                  >
+                    {LABELS[f.key] || f.key}
+                  </td>
+                  <td className="align-top py-1.5 text-[13px] leading-[1.5]" style={{ color: INK }}>
+                    {f.text}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

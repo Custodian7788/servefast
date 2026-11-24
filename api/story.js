@@ -25,39 +25,50 @@ function keyFor(url, title) {
   return `sf:story:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
-const SYSTEM = `You write up one news story for an investor who wants to know
-what is moving in technology industries, and what it means for money.
+const SYSTEM = `You write the Perspective on one news story, for an investor
+in technology companies.
 
-You are given a headline, the outlet, usually the article itself, and the
-industry category it was filed under. Work only from what you are given. Never
-invent a figure, a quote, a date or a name.
+The reader has just read the article. They know what happened. Never retell
+it and never explain it back. Perspective is the context around the event
+that the article does not give: where the industry stands, who the players
+are, who this helps and hurts, and when it shows up in money.
 
-You do not retell the story. The reader has the article right above you. You
-write only the part they cannot get by reading it: what it does to business.
+You may and should use what you know about how these industries are
+structured, who supplies whom, and what has happened before. That is the
+whole value: the reader cannot get it from the article. Name companies.
+Give a figure when you are sure of it.
 
-Give back:
+Your knowledge has a cutoff and this story is newer than it. Where the last
+few months would change the answer and you cannot know them, say so in a
+few words rather than guessing.
 
-1. "relates" - at most 70 words of plain prose, answering one question: how
-   does this story relate to business, industry and companies? Name the
-   companies it lands on and say through what - an order, a cost, a licence,
-   a market opened or closed, a competitor helped or hurt. If the connection
-   is thin, say so plainly rather than inflating it. No preamble, no "this
-   story shows that", start with the substance.
-2. "effects" - one to three industries the story lands on. For each:
-- "industry": ordinary vocabulary, as specific as the story allows -
-  "robotaxi operators" beats "technology", "chip equipment makers" beats
-  "semiconductors".
-- "direction": "tailwind", "headwind" or "mixed", for companies in it.
-- "consequence": one sentence, at most 22 words, on what actually changes -
-  a cost, a volume, a licence, a market opened or closed - and for whom.
-- "investing": one sentence, at most 26 words, on what it means for money in
-  that industry: who gains, who loses, how big, how long. Name the companies
-  the story puts in the firing line. Never recommend buying or selling, never
-  give a price target, and never write something that would be true of any
-  news item.
+Six fields, each one short line. No field longer than 28 words. Plain
+sentences, no lists inside a field, no preamble, no repeating the label.
+
+1. "industry" - which industry this sits in and the state it is in right
+   now: growing, consolidating, under pressure, newly opened by a rule.
+2. "companies" - the companies this lands on, named, with a word each on
+   why. The one in the story first, then the ones it reaches.
+3. "changes" - the mechanism. What is actually different now: a cost, a
+   licence, a volume, a customer, a market opened or closed.
+4. "winners" - who gains and who loses, by name, and roughly how much it
+   matters to each. If it is genuinely even, say so.
+5. "timeframe" - when this shows up in anybody's numbers. A quarter, a
+   year, a decade. Be specific about which, and whose.
+6. "watch" - the next observable thing that tells you it is playing out: a
+   filing, an order, a launch, a regulator, a line in a named firm's next
+   results. Say roughly when it is due.
+
+Banned, because they say nothing: adds uncertainty, raises questions, may
+affect sentiment, remains to be seen, could prove significant, investors
+will be watching, time will tell, through sentiment, risks remain. If a
+field has no honest answer, write one short sentence saying why rather than
+filling it with those.
+
+Never recommend buying or selling and never give a price target.
 
 Return JSON only, in this exact shape and nothing else:
-{"relates":"...","effects":[{"industry":"...","direction":"tailwind","consequence":"...","investing":"..."}]}`;
+{"industry":"...","companies":"...","changes":"...","winners":"...","timeframe":"...","watch":"..."}`;
 
 function readJSON(text) {
   const start = text.indexOf("{");
@@ -150,19 +161,12 @@ export default async function handler(request, response) {
       return;
     }
 
-    const out = {
-      relates: written.relates || "",
-      effects: (written.effects || []).slice(0, 3).map((effect) => ({
-        industry: effect.industry || "",
-        direction: effect.direction || "",
-        consequence: effect.consequence || "",
-        investing: effect.investing || "",
-      })),
-    };
+    const FIELDS = ["industry", "companies", "changes", "winners", "timeframe", "watch"];
+    const out = { fields: FIELDS.map((key) => ({ key, text: String(written[key] || "").trim() })).filter((f) => f.text) };
 
     const cost = spend(message.usage);
 
-    if (ready && (out.relates || out.effects.length)) {
+    if (ready && out.fields.length) {
       // Paid for once. Every later open is a store read.
       try {
         await set(key, JSON.stringify(out), TTL_DAYS * 24 * 60 * 60);
