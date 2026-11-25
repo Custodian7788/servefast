@@ -99,7 +99,7 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
 
   if (!item) {
     return (
-      <div className="h-full min-h-[70px] flex items-center justify-center px-6 text-center">
+      <div className="h-full flex items-center justify-center px-6 text-center">
         <p className="text-[12px] leading-[1.6] opacity-35" style={{ color: INK }}>
           Pick a headline on the left and it opens here
         </p>
@@ -108,7 +108,7 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
   }
 
   return (
-    <div className="min-h-0 flex flex-col">
+    <div className="h-full flex flex-col">
       <div
         className="shrink-0 flex items-center gap-2 px-2.5 h-7"
         style={{ borderBottom: `1px solid ${LINE}` }}
@@ -133,7 +133,7 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
         </button>
       </div>
 
-      <div ref={top} className="no-bar min-h-0 overflow-y-auto px-4 pt-3 pb-4">
+      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-4">
         <h2 className="text-[15px] font-bold leading-[1.3]" style={{ color: INK }}>
           {state.title && state.title.length > item.text.length ? state.title : item.text}
         </h2>
