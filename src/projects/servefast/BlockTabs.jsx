@@ -331,7 +331,12 @@ export default function BlockTabs({
                 >
                   <span
                     className="block text-[12px] leading-[1.2]"
-                    style={{ color: INK, opacity: seen.has(item.url || item.id) ? 0.4 : 1 }}
+                    style={{
+                      color: INK,
+                      // Links going forward; ids are what earlier marks were
+                      // saved as, so both count.
+                      opacity: seen.has(item.url) || seen.has(item.id) ? 0.4 : 1,
+                    }}
                   >
                     {item.text}
                   </span>
