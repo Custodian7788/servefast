@@ -211,7 +211,7 @@ export default function BlockTabs({
           </div>
         ) : (
           <div className="h-full flex flex-col">
-            <div className="shrink-0 px-2 py-1" style={{ borderBottom: `1px solid ${LINE}` }}>
+            <div className="shrink-0 px-1.5 py-0.5" style={{ borderBottom: `1px solid ${LINE}` }}>
               <select
                 value={category}
                 onChange={(e) => go({ category: e.target.value })}
@@ -232,7 +232,7 @@ export default function BlockTabs({
 
             {/* Where you are in the chain, and the two steps. */}
             <div
-              className="shrink-0 flex items-center gap-2 px-2 h-6"
+              className="shrink-0 flex items-center gap-1.5 px-1.5 h-5"
               style={{ borderBottom: `1px solid ${LINE}` }}
             >
               <button
@@ -311,16 +311,16 @@ export default function BlockTabs({
                   type="button"
                   // A new story starts its perspective fresh.
                   onClick={() => go({ readingId: item.id, frames: [] })}
-                  className="block w-full text-left px-2.5 py-1.5 hover:bg-[#FFF8F2] transition-colors"
+                  className="block w-full text-left px-2 py-1 hover:bg-[#FFF8F2] transition-colors"
                   style={{
                     borderTop: i ? `1px solid ${LINE}` : "none",
                     visibility: i >= at.cut ? "hidden" : "visible",
                   }}
                 >
-                  <span className="block text-[12.5px] leading-[1.25]" style={{ color: INK }}>
+                  <span className="block text-[12px] leading-[1.2]" style={{ color: INK }}>
                     {item.text}
                   </span>
-                  <span className="flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-[0.05em] leading-[1.6]">
+                  <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.04em] leading-[1.45]">
                     {item.publishedAt && (
                       <span className="opacity-60" style={{ color: ORANGE }}>
                         {sinceLabel(item.publishedAt)}
