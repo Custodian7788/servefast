@@ -66,7 +66,7 @@ export default async function handler(request, response) {
   }
 
   const hash = crypto.createHash("sha256").update(url).digest("hex").slice(0, 24);
-  const key = `sf:sum:v2:${hash}`;
+  const key = `sf:sum:v3:${hash}`;
 
   try {
     if (ready) {
