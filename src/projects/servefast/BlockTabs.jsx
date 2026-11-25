@@ -50,8 +50,9 @@ export default function BlockTabs({
   const where = view || {};
   const category = where.category || "";
   const readingId = where.readingId || null;
-  // Which ones you have opened. Kept in the workspace, so it survives a
-  // refresh and a new machine, and only a fresh sweep clears it.
+  // Which ones you have opened, by link rather than by id: a story gets a
+  // new id on every sweep, so an id would forget it twice a day. Kept in the
+  // workspace, so it survives a refresh, a new list and another machine.
   const seen = new Set(where.read || []);
   const go = (patch) => onView?.(patch);
 
@@ -318,7 +319,7 @@ export default function BlockTabs({
                     go({
                       readingId: item.id,
                       frames: [],
-                      read: [...new Set([...(where.read || []), item.id])].slice(-400),
+                      read: [...new Set([...(where.read || []), item.url || item.id])].slice(-2000),
                     })
                   }
                   className="block w-full text-left px-2 py-1 transition-colors hover:bg-[#FFF8F2]"
@@ -330,7 +331,7 @@ export default function BlockTabs({
                 >
                   <span
                     className="block text-[12px] leading-[1.2]"
-                    style={{ color: INK, opacity: seen.has(item.id) ? 0.4 : 1 }}
+                    style={{ color: INK, opacity: seen.has(item.url || item.id) ? 0.4 : 1 }}
                   >
                     {item.text}
                   </span>
