@@ -24,40 +24,51 @@ function keyFor(url, title, question = "") {
   const seed = `${url || title || ""}::${question}`.trim().toLowerCase();
   // Bump the version when the shape of what we store changes, so entries
   // written by an older build are simply ignored rather than half-read.
-  return `sf:story:v3:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
+  return `sf:story:v4:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
-const SYSTEM = `You write the opening read on one news story, for an
+const SYSTEM = `You write the industry read behind one news story, for an
 investor in technology companies.
 
-The reader has just read the article. They know what happened. Never retell
-it and never explain it back. You give the context around the event that the
-article does not: where the industry stands, and where each company stands.
+The reader has just read the article. They know what happened. You never
+retell it and never explain it back. You tell them about the industry the
+story sits in, which is what the article assumes they already know and does
+not supply.
 
-Two things only.
+Name the industry as a market, not as a category: "HBM memory", "robotaxi
+operations", "EDA software", "advanced chip packaging", "defence
+electronics". If the obvious name is broad, narrow it until it is a market
+someone could put a number on.
 
-ONE, the industry. Name it as a market, not as a category: "HBM memory",
-"robotaxi operations", "EDA software", "defence electronics". Then up to 45
-words on where that market is right now: who leads it, how concentrated it
-is, what is growing or shrinking, what the constraint is.
+Then two readings of it.
 
-TWO, the companies. Between one and four, the ones this story genuinely
-reaches, most affected first. For each, up to 35 words on where that company
-stands in that market: its position, what it depends on, what this event
-does to it. Not what the article said about it.
+GLOBALLY, 70 to 90 words: how big it is and how fast it is moving, who
+leads it and by how much, how concentrated it is, what the binding
+constraint is - capacity, a material, a licence, talent - and which way it
+has been going these last few years. Figures where you are sure of them.
+
+THEN THE REGION the story is about - name it plainly: Japan, China, the
+United States, the EU, Taiwan, the Gulf. 70 to 90 words: who the players
+are there, how that region sits against the global picture, whether it is
+gaining or losing ground, what it depends on from outside, and what the
+event in the article does to that position.
 
 Use what you know about how these industries are structured, who supplies
-whom and what has happened before. Give figures and dates you are sure of.
-Where the answer turns on the last few months and your knowledge stops
-before then, say so in a few words rather than guessing.
+whom and what has happened before. That is the whole value: the reader
+cannot get it from the article. Name firms. Give figures and dates you are
+sure of, and say so plainly when a number is an estimate.
+
+Your knowledge has a cutoff and the story is newer. Where the last few
+months would change the answer and you cannot know them, say so in a clause
+and carry on.
 
 Banned, because they say nothing: adds uncertainty, raises questions, may
 affect sentiment, remains to be seen, could prove significant, investors
-will be watching, time will tell. Never recommend buying or selling and
-never give a price target.
+will be watching, time will tell, a rapidly evolving landscape. Never
+recommend buying or selling and never give a price target.
 
 Return JSON only, in this exact shape and nothing else:
-{"industry":{"name":"HBM memory","text":"..."},"companies":[{"name":"SK Hynix","text":"..."}]}`;
+{"industry":"HBM memory","world":"...","region":"South Korea","local":"..."}`;
 
 const FOLLOW_UP = `You answer one follow-up question about a news story, for
 an investor in technology companies.
@@ -192,9 +203,8 @@ export default async function handler(request, response) {
       return;
     }
 
-    // The opening read names its industry and its companies, and those names
-    // are what stage two is pressed on. An answer to a question labels its
-    // own rows instead, because the question decides what is worth a row.
+    // Stage one is the industry, read twice: globally, then where the story
+    // happens. An answer to a question labels its own rows instead.
     const out = asked
       ? {
           question: asked,
@@ -204,17 +214,13 @@ export default async function handler(request, response) {
             .filter((f) => f.text),
         }
       : {
+          industry: String(written.industry || "").trim(),
           fields: [
-            written.industry?.text && {
-              label: "Industry",
-              name: String(written.industry.name || "").trim(),
-              text: String(written.industry.text).trim(),
+            written.world && { label: "Globally", text: String(written.world).trim() },
+            written.local && {
+              label: String(written.region || "").trim() ? `In ${String(written.region).trim()}` : "Locally",
+              text: String(written.local).trim(),
             },
-            ...(written.companies || []).slice(0, 4).map((c) => ({
-              label: "Company",
-              name: String(c.name || "").trim(),
-              text: String(c.text || "").trim(),
-            })),
           ].filter((f) => f && f.text),
         };
 

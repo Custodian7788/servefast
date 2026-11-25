@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import openStory from "./openStory.js";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
@@ -182,35 +182,19 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
   );
 }
 
-// Stage one is two things: where the industry stands and where the companies
-// stand. Each name is a button, and pressing it is stage two. Every answer
-// arrives as its own frame on top of the last, so nothing is overwritten and
-// the chain can be stepped back through. Frames live in the workspace, so a
-// refresh keeps them and only Clear empties them.
+// Stage one, and for now the only stage: the industry behind the story, read
+// twice - how it stands globally, then how it stands where the story
+// happened. Nothing runs until the header is pressed, and what comes back is
+// kept in the workspace so a refresh does not lose it.
 export function Perspective({ item, frames = [], onFrames }) {
-  const [at, setAt] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [question, setQuestion] = useState("");
-
-  // A new frame is always the one you want to be looking at.
-  useEffect(() => {
-    setAt(Math.max(frames.length - 1, 0));
-  }, [frames.length]);
 
   useEffect(() => {
-    setQuestion("");
     setBusy(false);
   }, [item?.id]);
 
-  function sofar() {
-    return frames.flatMap((f) => [
-      f.question ? `Q: ${f.question}` : "Opening read:",
-      ...(f.fields || []).map((x) => `${x.name ? `${x.name} - ` : ""}${x.text}`),
-    ]);
-  }
-
-  function ask(asked) {
-    if (busy || !item) return;
+  function ask() {
+    if (busy || !item || frames.length) return;
     setBusy(true);
     fetch("/api/story", {
       method: "POST",
@@ -220,128 +204,63 @@ export function Perspective({ item, frames = [], onFrames }) {
         title: item.text,
         source: item.source,
         category: item.category,
-        question: asked || "",
-        prior: sofar(),
       }),
     })
       .then((r) => r.json())
       .then((data) => {
         setBusy(false);
         if (!data.fields?.length) return;
-        onFrames?.([...frames, { question: asked || "", fields: data.fields }]);
-        setQuestion("");
+        onFrames?.([{ industry: data.industry || "", fields: data.fields }]);
       })
       .catch(() => setBusy(false));
   }
 
-  const frame = frames[Math.min(at, Math.max(frames.length - 1, 0))];
+  const frame = frames[0];
 
   return (
     <div className="h-full flex flex-col">
-      <div
-        className="shrink-0 flex items-center gap-2 px-2.5 h-7"
+      <button
+        type="button"
+        onClick={ask}
+        disabled={!item || busy || Boolean(frame)}
+        className="shrink-0 flex items-center justify-center h-7 transition-colors enabled:hover:bg-[#FFF3E8] disabled:cursor-default"
         style={{ borderBottom: `1px solid ${LINE}` }}
       >
-        <button
-          type="button"
-          onClick={() => setAt((i) => Math.max(i - 1, 0))}
-          disabled={at === 0}
-          className="disabled:opacity-20 hover:opacity-70"
+        <span
+          className="leading-none font-bold uppercase tracking-[0.12em] text-[10.5px]"
           style={{ color: ORANGE }}
-          aria-label="Back"
         >
-          <ChevronLeft size={13} />
-        </button>
-        <span className="flex-1 flex items-center justify-center min-w-0">
-          <button
-            type="button"
-            onClick={() => ask("")}
-            disabled={!item || busy || frames.length > 0}
-            className="flex items-center leading-none font-bold uppercase tracking-[0.12em] text-[10.5px] truncate enabled:hover:opacity-70 disabled:cursor-default"
-            style={{ color: ORANGE }}
-          >
-            {frame?.question || "Perspective"}
-            {frames.length > 1 && (
-              <span className="ml-1.5 shrink-0 opacity-50 tabular-nums">
-                {at + 1}/{frames.length}
-              </span>
-            )}
-          </button>
+          Industry
         </span>
-        <button
-          type="button"
-          onClick={() => setAt((i) => Math.min(i + 1, frames.length - 1))}
-          disabled={at >= frames.length - 1}
-          className="disabled:opacity-20 hover:opacity-70"
-          style={{ color: ORANGE }}
-          aria-label="Forward"
-        >
-          <ChevronRight size={13} />
-        </button>
-      </div>
+      </button>
 
-      <div className="flex-1 min-h-0 flex">
-        <div className="no-bar w-[68%] min-w-0 overflow-y-auto px-3 py-2.5">
-          {!item ? null : busy && !frames.length ? (
-            <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
-              Working it out
-            </p>
-          ) : !frame ? null : (
-            <div className="flex flex-col gap-3">
-              {frame.fields.map((f, i) => (
-                <div key={i}>
-                  {f.name ? (
-                    <button
-                      type="button"
-                      onClick={() => ask(`Give me the detail on ${f.name}`)}
-                      disabled={busy}
-                      className="mb-1 px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.07em] transition-colors enabled:hover:bg-[#FFF3E8]"
-                      style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
-                    >
-                      {f.name}
-                    </button>
-                  ) : (
-                    <p
-                      className="mb-1 text-[10px] font-bold uppercase tracking-[0.07em]"
-                      style={{ color: ORANGE }}
-                    >
-                      {f.label}
-                    </p>
-                  )}
-                  <p className="text-[13px] leading-[1.5]" style={{ color: INK }}>
-                    {f.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="w-[32%] min-w-0 flex flex-col gap-2 p-2.5" style={{ borderLeft: `1px solid ${LINE}` }}>
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                if (question.trim()) ask(question.trim());
-              }
-            }}
-            placeholder={frames.length ? "Ask about this" : ""}
-            disabled={!frames.length || busy}
-            className="no-bar flex-1 min-h-0 w-full p-2 text-[12.5px] leading-[1.45] outline-none resize-none disabled:opacity-40"
-            style={{ border: `1px solid ${LINE}`, color: INK }}
-          />
-          <button
-            type="button"
-            onClick={() => question.trim() && ask(question.trim())}
-            disabled={!question.trim() || busy}
-            className="self-stretch px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors enabled:hover:bg-[#FFF3E8] disabled:opacity-25"
-            style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
-          >
-            {busy ? "Working" : "Submit"}
-          </button>
-        </div>
+      <div className="no-bar flex-1 min-h-0 overflow-y-auto px-4 py-3">
+        {!item ? null : busy ? (
+          <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
+            Working it out
+          </p>
+        ) : !frame ? null : (
+          <>
+            {frame.industry && (
+              <h3 className="text-[15px] font-bold leading-[1.3]" style={{ color: INK }}>
+                {frame.industry}
+              </h3>
+            )}
+            {frame.fields.map((f, i) => (
+              <div key={i} className="mt-3">
+                <p
+                  className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em]"
+                  style={{ color: ORANGE }}
+                >
+                  {f.label}
+                </p>
+                <p className="text-[13.5px] leading-[1.5]" style={{ color: INK }}>
+                  {f.text}
+                </p>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
