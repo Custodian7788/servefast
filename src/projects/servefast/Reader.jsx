@@ -51,7 +51,21 @@ function Paste({ item, onSaved }) {
 
 export function Article({ item, onClear, onOpenOut = openStory }) {
   const [state, setState] = useState({ loading: true });
+  const [brief, setBrief] = useState({ idle: true });
   const top = useRef(null);
+
+  // The article itself is padded. This is the read.
+  function summarise() {
+    setBrief({ loading: true });
+    fetch("/api/summary", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url: item.url }),
+    })
+      .then((r) => r.json())
+      .then((data) => setBrief(data.summary ? { summary: data.summary } : { failed: true }))
+      .catch(() => setBrief({ failed: true }));
+  }
 
   useEffect(() => {
     if (!item?.url) {
@@ -60,6 +74,7 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
     }
     let alive = true;
     setState({ loading: true });
+    setBrief({ idle: true });
     top.current?.scrollTo({ top: 0 });
 
     fetch("/api/read", {
@@ -68,7 +83,11 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
       body: JSON.stringify({ url: item.url }),
     })
       .then((r) => r.json())
-      .then((data) => alive && setState({ loading: false, ...data }))
+      .then((data) => {
+        if (!alive) return;
+        setState({ loading: false, ...data });
+        if (!data.blocked) summarise();
+      })
       .catch(() => alive && setState({ loading: false, blocked: true, reason: "That site did not answer" }));
 
     return () => {
@@ -128,12 +147,34 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
             Fetching the article
           </p>
         ) : state.blocked ? (
-          <Paste item={item} onSaved={(data) => setState({ loading: false, ...data })} />
+          <Paste
+            item={item}
+            onSaved={(data) => setState({ loading: false, ...data })}
+          />
         ) : (
           <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${LINE}` }}>
-            <p className="text-[14px] leading-[1.55]" style={{ color: INK }}>
-              {(state.paragraphs || []).map((p) => p.text).join(" ")}
-            </p>
+            {brief.loading ? (
+              <p className="text-[12px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
+                Reading it for you
+              </p>
+            ) : brief.summary ? (
+              <p className="text-[14px] leading-[1.55] whitespace-pre-line" style={{ color: INK }}>
+                {brief.summary}
+              </p>
+            ) : brief.idle ? (
+              <button
+                type="button"
+                onClick={summarise}
+                className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] transition-colors hover:bg-[#FFF3E8]"
+                style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
+              >
+                Read it for me
+              </button>
+            ) : (
+              <p className="text-[14px] leading-[1.55]" style={{ color: INK }}>
+                {(state.paragraphs || []).map((p) => p.text).join(" ")}
+              </p>
+            )}
           </div>
         )}
       </div>
