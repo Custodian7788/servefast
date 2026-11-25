@@ -50,6 +50,9 @@ export default function BlockTabs({
   const where = view || {};
   const category = where.category || "";
   const readingId = where.readingId || null;
+  // Which ones you have opened. Kept in the workspace, so it survives a
+  // refresh and a new machine, and only a fresh sweep clears it.
+  const seen = new Set(where.read || []);
   const go = (patch) => onView?.(patch);
 
   // The list has no scrollbar. It moves one headline at a time on the two
@@ -309,15 +312,26 @@ export default function BlockTabs({
                 <button
                   key={item.id}
                   type="button"
-                  // A new story starts its perspective fresh.
-                  onClick={() => go({ readingId: item.id, frames: [] })}
-                  className="block w-full text-left px-2 py-1 hover:bg-[#FFF8F2] transition-colors"
+                  // A new story starts its perspective fresh, and marks itself
+                  // as one you have opened.
+                  onClick={() =>
+                    go({
+                      readingId: item.id,
+                      frames: [],
+                      read: [...new Set([...(where.read || []), item.id])].slice(-400),
+                    })
+                  }
+                  className="block w-full text-left px-2 py-1 transition-colors hover:bg-[#FFF8F2]"
                   style={{
                     borderTop: i ? `1px solid ${LINE}` : "none",
                     visibility: i >= at.cut ? "hidden" : "visible",
+                    backgroundColor: item.id === readingId ? "#FFF1E3" : "transparent",
                   }}
                 >
-                  <span className="block text-[12px] leading-[1.2]" style={{ color: INK }}>
+                  <span
+                    className="block text-[12px] leading-[1.2]"
+                    style={{ color: INK, opacity: seen.has(item.id) ? 0.4 : 1 }}
+                  >
                     {item.text}
                   </span>
                   <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.04em] leading-[1.45]">
