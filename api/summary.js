@@ -33,7 +33,9 @@ and the outlet's own commentary.
 
 Work only from the article in front of you. Never add a fact, a figure or a
 date that is not in it. If the article is thin, the summary is short; do not
-pad it to reach the limit.
+pad it to reach the limit. Never comment on what the article does not say,
+and never mention the text, the source or yourself: no "the article gives no
+dates", no "the text provided". Write only what is there.
 
 Write plainly, in full sentences, in the past tense where the event has
 happened. No preamble, no "the article says", no closing line about what it

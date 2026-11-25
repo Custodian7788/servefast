@@ -136,10 +136,12 @@ export default async function handler(request, response) {
     const paragraphs = paragraphsFrom(html);
     const words = paragraphs.reduce((n, p) => n + p.text.split(" ").length, 0);
 
-    if (words < 80) {
+    // A paywalled site serves the lede and the related links, which clears
+    // any low bar. Anything under this is a teaser, not an article.
+    if (words < 250) {
       response.status(200).json({
         blocked: true,
-        reason: "Only a teaser came back, so this one is behind a paywall",
+        reason: "Only a teaser came back from that site",
         url: result.url || url,
         title: titleFrom(html),
       });
