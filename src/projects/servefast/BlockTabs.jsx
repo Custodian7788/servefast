@@ -309,7 +309,8 @@ export default function BlockTabs({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => go({ readingId: item.id })}
+                  // A new story starts its perspective fresh.
+                  onClick={() => go({ readingId: item.id, frames: [] })}
                   className="block w-full text-left px-3 py-2 hover:bg-[#FFF8F2] transition-colors"
                   style={{
                     borderTop: i ? `1px solid ${LINE}` : "none",

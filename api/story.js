@@ -27,50 +27,37 @@ function keyFor(url, title, question = "") {
   return `sf:story:v2:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
-const SYSTEM = `You write the Perspective on one news story, for an investor
-in technology companies.
+const SYSTEM = `You write the opening read on one news story, for an
+investor in technology companies.
 
 The reader has just read the article. They know what happened. Never retell
-it and never explain it back. Perspective is the context around the event
-that the article does not give: where the industry stands, who the players
-are, who this helps and hurts, and when it shows up in money.
+it and never explain it back. You give the context around the event that the
+article does not: where the industry stands, and where each company stands.
 
-You may and should use what you know about how these industries are
-structured, who supplies whom, and what has happened before. That is the
-whole value: the reader cannot get it from the article. Name companies.
-Give a figure when you are sure of it.
+Two things only.
 
-Your knowledge has a cutoff and this story is newer than it. Where the last
-few months would change the answer and you cannot know them, say so in a
-few words rather than guessing.
+ONE, the industry. Name it as a market, not as a category: "HBM memory",
+"robotaxi operations", "EDA software", "defence electronics". Then up to 45
+words on where that market is right now: who leads it, how concentrated it
+is, what is growing or shrinking, what the constraint is.
 
-Six fields, each one short line. No field longer than 28 words. Plain
-sentences, no lists inside a field, no preamble, no repeating the label.
+TWO, the companies. Between one and four, the ones this story genuinely
+reaches, most affected first. For each, up to 35 words on where that company
+stands in that market: its position, what it depends on, what this event
+does to it. Not what the article said about it.
 
-1. "industry" - which industry this sits in and the state it is in right
-   now: growing, consolidating, under pressure, newly opened by a rule.
-2. "companies" - the companies this lands on, named, with a word each on
-   why. The one in the story first, then the ones it reaches.
-3. "changes" - the mechanism. What is actually different now: a cost, a
-   licence, a volume, a customer, a market opened or closed.
-4. "winners" - who gains and who loses, by name, and roughly how much it
-   matters to each. If it is genuinely even, say so.
-5. "timeframe" - when this shows up in anybody's numbers. A quarter, a
-   year, a decade. Be specific about which, and whose.
-6. "watch" - the next observable thing that tells you it is playing out: a
-   filing, an order, a launch, a regulator, a line in a named firm's next
-   results. Say roughly when it is due.
+Use what you know about how these industries are structured, who supplies
+whom and what has happened before. Give figures and dates you are sure of.
+Where the answer turns on the last few months and your knowledge stops
+before then, say so in a few words rather than guessing.
 
 Banned, because they say nothing: adds uncertainty, raises questions, may
 affect sentiment, remains to be seen, could prove significant, investors
-will be watching, time will tell, through sentiment, risks remain. If a
-field has no honest answer, write one short sentence saying why rather than
-filling it with those.
-
-Never recommend buying or selling and never give a price target.
+will be watching, time will tell. Never recommend buying or selling and
+never give a price target.
 
 Return JSON only, in this exact shape and nothing else:
-{"industry":"...","companies":"...","changes":"...","winners":"...","timeframe":"...","watch":"..."}`;
+{"industry":{"name":"HBM memory","text":"..."},"companies":[{"name":"SK Hynix","text":"..."}]}`;
 
 const FOLLOW_UP = `You answer one follow-up question about a news story, for
 an investor in technology companies.
@@ -205,17 +192,9 @@ export default async function handler(request, response) {
       return;
     }
 
-    // The opening table has fixed fields; an answer to a question labels its
-    // own, because the question decides what is worth a row.
-    const FIELDS = ["industry", "companies", "changes", "winners", "timeframe", "watch"];
-    const LABELS = {
-      industry: "Industry",
-      companies: "Companies",
-      changes: "What changes",
-      winners: "Winners",
-      timeframe: "Timeframe",
-      watch: "Watch for",
-    };
+    // The opening read names its industry and its companies, and those names
+    // are what stage two is pressed on. An answer to a question labels its
+    // own rows instead, because the question decides what is worth a row.
     const out = asked
       ? {
           question: asked,
@@ -225,9 +204,18 @@ export default async function handler(request, response) {
             .filter((f) => f.text),
         }
       : {
-          fields: FIELDS.map((key) => ({ label: LABELS[key], text: String(written[key] || "").trim() })).filter(
-            (f) => f.text
-          ),
+          fields: [
+            written.industry?.text && {
+              label: "Industry",
+              name: String(written.industry.name || "").trim(),
+              text: String(written.industry.text).trim(),
+            },
+            ...(written.companies || []).slice(0, 4).map((c) => ({
+              label: "Company",
+              name: String(c.name || "").trim(),
+              text: String(c.text || "").trim(),
+            })),
+          ].filter((f) => f && f.text),
         };
 
     const cost = spend(message.usage);

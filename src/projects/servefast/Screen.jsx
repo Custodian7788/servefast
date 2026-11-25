@@ -3,7 +3,7 @@ import { RotateCw, Rss } from "lucide-react";
 import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
-import Reader from "./Reader.jsx";
+import { Article, Perspective } from "./Reader.jsx";
 import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
@@ -99,6 +99,19 @@ export default function Screen() {
   // The leftmost block on screen. It lives in the workspace, not in this
   // component, so a refresh puts you back where you were.
   const listPanel = module?.panels?.[0] || null;
+
+  function setReading(id) {
+    if (!listPanel) return;
+    updatePanel(listPanel.id, (panel) => ({
+      ...panel,
+      view: { ...(panel.view || {}), readingId: id, frames: [] },
+    }));
+  }
+
+  function setFrames(frames) {
+    if (!listPanel) return;
+    updatePanel(listPanel.id, (panel) => ({ ...panel, view: { ...(panel.view || {}), frames } }));
+  }
   const openStoryItem =
     (listPanel?.tabs?.t1 || []).find((i) => i.id === listPanel?.view?.readingId) || null;
 
@@ -166,6 +179,24 @@ export default function Screen() {
         <div className="h-full flex">
           {module.panels.map((p, i) => (
             <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
+            {i === 1 ? (
+              <div className="h-full flex flex-col gap-2 sm:gap-3">
+                <Card className="flex flex-col h-[38%]">
+                  <Article
+                    key={openStoryItem?.id || "none"}
+                    item={openStoryItem}
+                    onClear={() => setReading(null)}
+                  />
+                </Card>
+                <Card className="flex flex-col flex-1 min-h-0">
+                  <Perspective
+                    item={openStoryItem}
+                    frames={listPanel?.view?.frames || []}
+                    onFrames={(frames) => setFrames(frames)}
+                  />
+                </Card>
+              </div>
+            ) : (
             <Card className="flex flex-col h-full">
               {/* Only the list block has a header: the feeds, the refresh,
                   and what the last sweep found. The block beside it draws its
@@ -215,19 +246,6 @@ export default function Screen() {
                   <span className="flex-1" />
                 </div>
               )}
-              {i === 1 ? (
-                <Reader
-                  key={openStoryItem?.id || "none"}
-                  item={openStoryItem}
-                  onClear={() =>
-                    listPanel &&
-                    updatePanel(listPanel.id, (panel) => ({
-                      ...panel,
-                      view: { ...(panel.view || {}), readingId: null },
-                    }))
-                  }
-                />
-              ) : (
               <BlockTabs
                 tabs={p.tabs}
                 view={p.view}
@@ -270,8 +288,8 @@ export default function Screen() {
                   }))
                 }
               />
-              )}
             </Card>
+            )}
             </div>
           ))}
         </div>

@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import openStory from "./openStory.js";
-import { FRAME, INK, LINE, NAV_BG, ORANGE } from "../../theme.js";
+import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
 
-// An article, read inside the block. The site's own page cannot be framed -
-// news sites forbid it - so the server fetches it and we set the text
-// ourselves. Nothing here costs anything: no model is involved.
-// Half the sites refuse to be read, so when one does you paste the article
-// in yourself. It is kept against that story, so it is there next time and
-// Perspective works from it.
+// Two boxes side by side with the list: the article, and the perspective on
+// it. The article half costs nothing - the server fetches the page and we set
+// the text. The perspective half runs only when its header is pressed.
+
+// Half the sites refuse to be read, so when one does you paste the article in
+// yourself. It is kept against that story, so it is there next time and the
+// perspective works from it.
 function Paste({ item, onSaved }) {
   const [text, setText] = useState("");
 
@@ -48,7 +49,7 @@ function Paste({ item, onSaved }) {
   );
 }
 
-export default function Reader({ item, onBack, onClear, onOpenOut = openStory }) {
+export function Article({ item, onClear, onOpenOut = openStory }) {
   const [state, setState] = useState({ loading: true });
   const top = useRef(null);
 
@@ -75,7 +76,6 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
     };
   }, [item?.id, item?.url]);
 
-  // Nothing picked yet. The block waits rather than showing a broken shell.
   if (!item) {
     return (
       <div className="h-full flex items-center justify-center px-6 text-center">
@@ -92,17 +92,7 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
         className="shrink-0 flex items-center gap-2 px-2.5 h-7"
         style={{ borderBottom: `1px solid ${LINE}` }}
       >
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
-            style={{ color: ORANGE }}
-          >
-            <ChevronLeft size={12} /> List
-          </button>
-        )}
         <span className="flex-1" />
-        {/* The original, then Clear. Same colour, same gap, same height. */}
         <button
           onClick={(e) => onOpenOut?.(e, item.url)}
           className="flex items-center h-5 hover:opacity-70"
@@ -122,15 +112,12 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
         </button>
       </div>
 
-      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-8">
+      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-4">
         <h2 className="text-[15px] font-bold leading-[1.3]" style={{ color: INK }}>
           {state.title && state.title.length > item.text.length ? state.title : item.text}
         </h2>
         {item.publishedAt && (
-          <p
-            className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.07em]"
-            style={{ color: ORANGE }}
-          >
+          <p className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.07em]" style={{ color: ORANGE }}>
             {sinceLabel(item.publishedAt)}
             {state.words ? ` · ${state.words.toLocaleString("en-GB")} words` : ""}
           </p>
@@ -147,50 +134,43 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
             <p className="text-[14px] leading-[1.55]" style={{ color: INK }}>
               {(state.paragraphs || []).map((p) => p.text).join(" ")}
             </p>
-            <button
-              onClick={(e) => onOpenOut?.(e, item.url)}
-              className="mt-2 mb-1 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.09em] opacity-60 hover:opacity-100"
-              style={{ color: ORANGE }}
-            >
-              Open the original <ExternalLink size={11} />
-            </button>
           </div>
         )}
       </div>
-
-      <Strip item={item} />
     </div>
   );
 }
 
-// The bottom half of the block. Each answer is a table of its own; asking a
-// question pushes a new one on and slides the last one left, so the whole
-// chain stays there to step back through.
-function Strip({ item }) {
-  const [frames, setFrames] = useState([]);
+// Stage one is two things: where the industry stands and where the companies
+// stand. Each name is a button, and pressing it is stage two. Every answer
+// arrives as its own frame on top of the last, so nothing is overwritten and
+// the chain can be stepped back through. Frames live in the workspace, so a
+// refresh keeps them and only Clear empties them.
+export function Perspective({ item, frames = [], onFrames }) {
   const [at, setAt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [question, setQuestion] = useState("");
 
+  // A new frame is always the one you want to be looking at.
   useEffect(() => {
-    setFrames([]);
-    setAt(0);
+    setAt(Math.max(frames.length - 1, 0));
+  }, [frames.length]);
+
+  useEffect(() => {
     setQuestion("");
     setBusy(false);
   }, [item?.id]);
 
-  // What has been said so far, so a question can build on it.
   function sofar() {
     return frames.flatMap((f) => [
       f.question ? `Q: ${f.question}` : "Opening read:",
-      ...(f.fields || []).map((x) => `${x.label}: ${x.text}`),
+      ...(f.fields || []).map((x) => `${x.name ? `${x.name} - ` : ""}${x.text}`),
     ]);
   }
 
   function ask(asked) {
     if (busy || !item) return;
     setBusy(true);
-    const prior = sofar();
     fetch("/api/story", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -200,30 +180,26 @@ function Strip({ item }) {
         source: item.source,
         category: item.category,
         question: asked || "",
-        prior,
+        prior: sofar(),
       }),
     })
       .then((r) => r.json())
       .then((data) => {
         setBusy(false);
         if (!data.fields?.length) return;
-        setFrames((list) => {
-          const next = [...list, { question: asked || "", fields: data.fields }];
-          setAt(next.length - 1);
-          return next;
-        });
+        onFrames?.([...frames, { question: asked || "", fields: data.fields }]);
         setQuestion("");
       })
       .catch(() => setBusy(false));
   }
 
-  const frame = frames[at];
+  const frame = frames[Math.min(at, Math.max(frames.length - 1, 0))];
 
   return (
-    <div className="shrink-0 h-[62%] flex flex-col" style={{ borderTop: `2px solid ${FRAME}` }}>
+    <div className="h-full flex flex-col">
       <div
         className="shrink-0 flex items-center gap-2 px-2.5 h-7"
-        style={{ borderBottom: `2px solid ${FRAME}`, backgroundColor: NAV_BG }}
+        style={{ borderBottom: `1px solid ${LINE}` }}
       >
         <button
           type="button"
@@ -235,17 +211,17 @@ function Strip({ item }) {
         >
           <ChevronLeft size={13} />
         </button>
-        <span className="flex-1 flex items-center justify-center">
+        <span className="flex-1 flex items-center justify-center min-w-0">
           <button
             type="button"
             onClick={() => ask("")}
             disabled={!item || busy || frames.length > 0}
-            className="flex items-center leading-none font-bold uppercase tracking-[0.12em] text-[10.5px] enabled:hover:opacity-70 disabled:cursor-default"
+            className="flex items-center leading-none font-bold uppercase tracking-[0.12em] text-[10.5px] truncate enabled:hover:opacity-70 disabled:cursor-default"
             style={{ color: ORANGE }}
           >
-            {frame?.question ? frame.question : "Perspective"}
+            {frame?.question || "Perspective"}
             {frames.length > 1 && (
-              <span className="ml-1.5 opacity-50 tabular-nums">
+              <span className="ml-1.5 shrink-0 opacity-50 tabular-nums">
                 {at + 1}/{frames.length}
               </span>
             )}
@@ -264,33 +240,43 @@ function Strip({ item }) {
       </div>
 
       <div className="flex-1 min-h-0 flex">
-        <div className="no-bar w-[68%] min-w-0 overflow-y-auto px-3 py-1">
+        <div className="no-bar w-[68%] min-w-0 overflow-y-auto px-3 py-2.5">
           {!item ? null : busy && !frames.length ? (
-            <p className="mt-2 text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
+            <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
               Working it out
             </p>
           ) : !frame ? null : (
-            <table className="w-full border-collapse">
-              <tbody>
-                {frame.fields.map((f, i) => (
-                  <tr key={i} style={{ borderTop: `1px solid ${LINE}` }}>
-                    <td
-                      className="align-top py-1.5 pr-2 text-[10px] font-bold uppercase tracking-[0.07em]"
-                      style={{ color: ORANGE, width: "30%" }}
+            <div className="flex flex-col gap-3">
+              {frame.fields.map((f, i) => (
+                <div key={i}>
+                  {f.name ? (
+                    <button
+                      type="button"
+                      onClick={() => ask(`Give me the detail on ${f.name}`)}
+                      disabled={busy}
+                      className="mb-1 px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.07em] transition-colors enabled:hover:bg-[#FFF3E8]"
+                      style={{ color: ORANGE, border: `1px solid ${ORANGE}` }}
+                    >
+                      {f.name}
+                    </button>
+                  ) : (
+                    <p
+                      className="mb-1 text-[10px] font-bold uppercase tracking-[0.07em]"
+                      style={{ color: ORANGE }}
                     >
                       {f.label}
-                    </td>
-                    <td className="align-top py-1.5 text-[12.5px] leading-[1.45]" style={{ color: INK }}>
-                      {f.text}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </p>
+                  )}
+                  <p className="text-[13px] leading-[1.5]" style={{ color: INK }}>
+                    {f.text}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        <div className="w-[32%] min-w-0 flex flex-col gap-2 p-2.5" style={{ borderLeft: `2px solid ${FRAME}` }}>
+        <div className="w-[32%] min-w-0 flex flex-col gap-2 p-2.5" style={{ borderLeft: `1px solid ${LINE}` }}>
           <textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
