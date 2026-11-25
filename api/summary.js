@@ -18,42 +18,30 @@ function spend(usage) {
 }
 
 const SYSTEM = `You compress one news article for someone who follows
-technology industries. You write it twice, at two lengths.
+technology industries.
 
-Three versions of the same story, each a real length, not an abridgement of
-the one above it. Count your words.
+One summary. As short as the story allows and never longer than 150 words.
+A thin story gets three sentences; a dense one with figures, dates and
+several parties gets the full length. Length follows the material, not a
+target: never pad, never repeat a fact to fill space.
 
-"short" - 50 words. Not 35, not 65: aim for 50 and use them. The story in a
-breath: who did what, the one figure that matters, and what it means is
-happening. One paragraph.
+Keep: who did what, where, when, the figures, the dates, the names, the
+scale, what happens next, and anything said that carries information.
 
-"full" - 100 words, one or two paragraphs. Who did what, where, when, the
-figures, the dates, the names, the scale, and what happens next. Twice the
-room of the short one, so spend it on facts the short one had to leave out,
-not on a longer way of saying the same thing.
+Drop: the scene-setting opening, background the reader already has, the
+same fact said a second way, quotes that only express a feeling, analyst
+reaction, and the outlet's own commentary.
 
-"long" - 150 words, two or three paragraphs. Everything in the article worth
-keeping: the numbers, the dates, the named people and firms, what they said,
-the mechanism, the next step and the condition it depends on. This is the
-version for someone who will not open the original.
-
-Both: drop the scene-setting opening, background the reader already has,
-the same fact said a second way, quotes that only express a feeling,
-analyst reaction, and the outlet's own commentary. No lists, no bullet
-points, no headings.
+Plain prose, one to three paragraphs. No lists, no bullet points, no
+headings. Full sentences, past tense where the event has happened. No
+preamble, no closing line about what it all means.
 
 Work only from the article in front of you. Never add a fact, a figure or a
-date that is not in it. Go under the target only where the article genuinely
-has no more in it: never pad, never repeat a fact to fill the space, never
-add your own commentary to reach a length. Never comment on what the article does not say, and never
-mention the text, the source or yourself: no "the article gives no dates",
-no "the text provided". Write only what is there.
-
-Write plainly, in full sentences, in the past tense where the event has
-happened. No preamble, no closing line about what it all means.
+date that is not in it. Never comment on what the article does not say, and
+never mention the text, the source or yourself.
 
 Return JSON only, in this exact shape and nothing else:
-{"short":"...","full":"...","long":"..."}`;
+{"summary":"..."}`;
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -74,7 +62,7 @@ export default async function handler(request, response) {
   }
 
   const hash = crypto.createHash("sha256").update(url).digest("hex").slice(0, 24);
-  const key = `sf:sum:v4:${hash}`;
+  const key = `sf:sum:v5:${hash}`;
 
   try {
     if (ready) {
@@ -105,14 +93,14 @@ export default async function handler(request, response) {
     if (!body) body = await readArticle(url);
 
     if (!body || body.length < 400) {
-      response.status(200).json({ short: "", full: "", long: "", thin: true, cost: 0 });
+      response.status(200).json({ summary: "", thin: true, cost: 0 });
       return;
     }
 
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: MODEL,
-      max_tokens: 2200,
+      max_tokens: 1200,
       output_config: { effort: "low" },
       system: SYSTEM,
       messages: [{ role: "user", content: body }],
@@ -124,14 +112,10 @@ export default async function handler(request, response) {
       .join("")
       .trim();
 
-    let short = "";
-    let full = "";
-    let long = "";
+    let summary = "";
     try {
       const got = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
-      short = String(got.short || "").trim();
-      full = String(got.full || "").trim();
-      long = String(got.long || "").trim();
+      summary = String(got.summary || "").trim();
     } catch {
       response.status(502).json({ error: "Could not read the summary" });
       return;
@@ -139,16 +123,16 @@ export default async function handler(request, response) {
 
     const cost = spend(message.usage);
 
-    if (ready && short) {
+    if (ready && summary) {
       try {
-        await set(key, JSON.stringify({ short, full, long }), TTL_DAYS * 24 * 60 * 60);
+        await set(key, JSON.stringify({ summary }), TTL_DAYS * 24 * 60 * 60);
       } catch {
         // Not worth failing the response over.
       }
     }
 
-    console.log(`summary: ${short.split(" ").length} and ${full.split(" ").length} words, cost ${cost.toFixed(4)}`);
-    response.status(200).json({ short, full, long, cached: false, cost: Number(cost.toFixed(4)) });
+    console.log(`summary: ${summary.split(" ").length} words, cost $${cost.toFixed(4)}`);
+    response.status(200).json({ summary, cached: false, cost: Number(cost.toFixed(4)) });
   } catch (error) {
     response.status(500).json({ error: error?.message || "Something went wrong" });
   }
