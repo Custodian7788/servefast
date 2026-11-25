@@ -181,7 +181,7 @@ export default function Screen() {
             <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
             {i === 1 ? (
               <div className="h-full flex flex-col gap-2 sm:gap-3">
-                <Card className="flex flex-col h-[38%]">
+                <Card className="flex flex-col shrink-0 max-h-[45%]">
                   <Article
                     key={openStoryItem?.id || "none"}
                     item={openStoryItem}
