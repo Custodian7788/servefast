@@ -18,31 +18,33 @@ function spend(usage) {
 }
 
 const SYSTEM = `You compress one news article for someone who follows
-technology industries and has thirty seconds.
+technology industries. You write it twice, at two lengths.
 
-Give back the story itself, in at most 200 words, as two or three paragraphs
-of plain prose. Not a list, not bullet points, not headings.
+"short" - at most 50 words. The story in a breath: who did what, the one
+figure that matters, and what it means is happening. One paragraph. If you
+can only fit the fact itself, fit the fact itself.
 
-Keep: who did what, where, when, the figures, the dates, the names, the
-scale, what happens next, and anything the people involved actually said
-that carries information.
+"full" - at most 100 words, one or two paragraphs of plain prose. Who did
+what, where, when, the figures, the dates, the names, the scale, and what
+happens next. Twice the room of the short one, so use it on detail that
+earns its place, not on a longer way of saying the same thing.
 
-Drop: the scene-setting opening, background the reader already has, the same
-fact said a second way, quotes that only express a feeling, analyst reaction,
-and the outlet's own commentary.
+Both: drop the scene-setting opening, background the reader already has,
+the same fact said a second way, quotes that only express a feeling,
+analyst reaction, and the outlet's own commentary. No lists, no bullet
+points, no headings.
 
 Work only from the article in front of you. Never add a fact, a figure or a
-date that is not in it. If the article is thin, the summary is short; do not
-pad it to reach the limit. Never comment on what the article does not say,
-and never mention the text, the source or yourself: no "the article gives no
-dates", no "the text provided". Write only what is there.
+date that is not in it. If the article is thin, both are short; do not pad
+to reach a limit. Never comment on what the article does not say, and never
+mention the text, the source or yourself: no "the article gives no dates",
+no "the text provided". Write only what is there.
 
 Write plainly, in full sentences, in the past tense where the event has
-happened. No preamble, no "the article says", no closing line about what it
-all means.
+happened. No preamble, no closing line about what it all means.
 
 Return JSON only, in this exact shape and nothing else:
-{"summary":"..."}`;
+{"short":"...","full":"..."}`;
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -63,7 +65,7 @@ export default async function handler(request, response) {
   }
 
   const hash = crypto.createHash("sha256").update(url).digest("hex").slice(0, 24);
-  const key = `sf:sum:v1:${hash}`;
+  const key = `sf:sum:v2:${hash}`;
 
   try {
     if (ready) {
@@ -94,14 +96,14 @@ export default async function handler(request, response) {
     if (!body) body = await readArticle(url);
 
     if (!body || body.length < 400) {
-      response.status(200).json({ summary: "", thin: true, cost: 0 });
+      response.status(200).json({ short: "", full: "", thin: true, cost: 0 });
       return;
     }
 
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: MODEL,
-      max_tokens: 1200,
+      max_tokens: 1600,
       output_config: { effort: "low" },
       system: SYSTEM,
       messages: [{ role: "user", content: body }],
@@ -113,9 +115,12 @@ export default async function handler(request, response) {
       .join("")
       .trim();
 
-    let summary = "";
+    let short = "";
+    let full = "";
     try {
-      summary = String(JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)).summary || "").trim();
+      const got = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+      short = String(got.short || "").trim();
+      full = String(got.full || "").trim();
     } catch {
       response.status(502).json({ error: "Could not read the summary" });
       return;
@@ -123,16 +128,16 @@ export default async function handler(request, response) {
 
     const cost = spend(message.usage);
 
-    if (ready && summary) {
+    if (ready && short) {
       try {
-        await set(key, JSON.stringify({ summary }), TTL_DAYS * 24 * 60 * 60);
+        await set(key, JSON.stringify({ short, full }), TTL_DAYS * 24 * 60 * 60);
       } catch {
         // Not worth failing the response over.
       }
     }
 
-    console.log(`summary: ${summary.split(" ").length} words, cost $${cost.toFixed(4)}`);
-    response.status(200).json({ summary, cached: false, cost: Number(cost.toFixed(4)) });
+    console.log(`summary: ${short.split(" ").length} and ${full.split(" ").length} words, cost ${cost.toFixed(4)}`);
+    response.status(200).json({ short, full, cached: false, cost: Number(cost.toFixed(4)) });
   } catch (error) {
     response.status(500).json({ error: error?.message || "Something went wrong" });
   }

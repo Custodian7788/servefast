@@ -52,6 +52,7 @@ function Paste({ item, onSaved }) {
 export function Article({ item, onClear, onOpenOut = openStory }) {
   const [state, setState] = useState({ loading: true });
   const [brief, setBrief] = useState({ idle: true });
+  const [long, setLong] = useState(false);
   const top = useRef(null);
 
   // The article itself is padded. This is the read.
@@ -63,7 +64,7 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
       body: JSON.stringify({ url: item.url }),
     })
       .then((r) => r.json())
-      .then((data) => setBrief(data.summary ? { summary: data.summary } : { failed: true }))
+      .then((data) => setBrief(data.short ? { short: data.short, full: data.full } : { failed: true }))
       .catch(() => setBrief({ failed: true }));
   }
 
@@ -75,6 +76,7 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
     let alive = true;
     setState({ loading: true });
     setBrief({ idle: true });
+    setLong(false);
     top.current?.scrollTo({ top: 0 });
 
     fetch("/api/read", {
@@ -157,10 +159,22 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
               <p className="text-[12px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
                 Reading it for you
               </p>
-            ) : brief.summary ? (
-              <p className="text-[14px] leading-[1.55] whitespace-pre-line" style={{ color: INK }}>
-                {brief.summary}
-              </p>
+            ) : brief.short ? (
+              <>
+                <p className="text-[14px] leading-[1.55] whitespace-pre-line" style={{ color: INK }}>
+                  {long && brief.full ? brief.full : brief.short}
+                </p>
+                {brief.full && brief.full !== brief.short && (
+                  <button
+                    type="button"
+                    onClick={() => setLong((v) => !v)}
+                    className="mt-2 text-[10px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
+                    style={{ color: ORANGE }}
+                  >
+                    {long ? "Shorter" : "Longer"}
+                  </button>
+                )}
+              </>
             ) : brief.idle ? (
               <button
                 type="button"
