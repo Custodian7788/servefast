@@ -122,7 +122,7 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
         </button>
       </div>
 
-      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-5">
+      <div ref={top} className="no-bar flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-8">
         <h2 className="text-[15px] font-bold leading-[1.3]" style={{ color: INK }}>
           {state.title && state.title.length > item.text.length ? state.title : item.text}
         </h2>
@@ -144,21 +144,9 @@ export default function Reader({ item, onBack, onClear, onOpenOut = openStory })
           <Paste item={item} onSaved={(data) => setState({ loading: false, ...data })} />
         ) : (
           <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${LINE}` }}>
-            {(state.paragraphs || []).map((p, i) =>
-              p.kind === "head" ? (
-                <h3
-                  key={i}
-                  className="mt-5 mb-1 text-[13px] font-bold leading-[1.35]"
-                  style={{ color: INK }}
-                >
-                  {p.text}
-                </h3>
-              ) : (
-                <p key={i} className="mb-3 text-[14px] leading-[1.55]" style={{ color: INK }}>
-                  {p.text}
-                </p>
-              )
-            )}
+            <p className="text-[14px] leading-[1.55]" style={{ color: INK }}>
+              {(state.paragraphs || []).map((p) => p.text).join(" ")}
+            </p>
             <button
               onClick={(e) => onOpenOut?.(e, item.url)}
               className="mt-2 mb-1 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.09em] opacity-60 hover:opacity-100"

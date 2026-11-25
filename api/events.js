@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { FEEDS } from "./feeds.js";
 import { decode } from "./_text.js";
+import { notACompany, marketNoise } from "./_guards.js";
 
 // Builds the day's list and nothing more.
 //
@@ -15,8 +16,13 @@ const MAX_ITEMS = 600;
 const WINDOW_HOURS = 12; // older than this and a story drops off the list
 const KEEP = 100; // headlines a sweep lists at most
 
-const SIFT_MODEL = "claude-haiku-5-5";
-const PRICES = { "claude-haiku-5-5": { in: 0.1, out: 0.5 } };
+// Haiku could not hold a long rubric across 600 headlines: outlets, indices
+// and countries came back in the company field. Sonnet does.
+const SIFT_MODEL = "claude-sonnet-5-5";
+const PRICES = {
+  "claude-haiku-5-5": { in: 0.1, out: 0.5 },
+  "claude-sonnet-5-5": { in: 2, out: 10 },
+};
 
 function spend(model, usage) {
   const price = PRICES[model];
@@ -251,8 +257,6 @@ export default async function handler(request, response) {
     const sifted = await client.messages.create({
       model: SIFT_MODEL,
       max_tokens: 16000,
-      // The whole budget goes to the list. There is nothing here to think about.
-      thinking: { type: "disabled" },
       output_config: { effort: "low" },
       system: SIFT,
       messages: [
@@ -277,10 +281,30 @@ export default async function handler(request, response) {
 
     // Nothing is written up here. Each story carries only what the list needs;
     // summary and effects arrive from api/story.js when it is opened.
+    const outlets = new Set(FEEDS.map((f) => f.source.toLowerCase()));
+    const seenCompany = new Set();
+
     const events = keep
       .map((pick) => ({ pick, item: items[Number(pick.n) - 1] }))
-      // No company named means the sift should have dropped it.
-      .filter(({ pick, item }) => item && CATEGORIES.includes(pick.category) && pick.company)
+      .filter(({ pick, item }) => {
+        if (!item || !CATEGORIES.includes(pick.category)) return false;
+
+        // The company field is where the sift gives itself away. Checked here
+        // rather than trusted, because a prompt cannot be relied on for this.
+        const company = String(pick.company || "").trim();
+        if (notACompany(company, outlets)) return false;
+
+        // A headline that is only a price move, a tip or an explainer.
+        const head = `${pick.headline || ""} ${item.title || ""}`.toLowerCase();
+        if (marketNoise(head)) return false;
+
+        // One story per company per sweep: the duplicates were all the same
+        // event told twice by different outlets.
+        const mark = company.toLowerCase();
+        if (seenCompany.has(mark)) return false;
+        seenCompany.add(mark);
+        return true;
+      })
       .slice(0, KEEP)
       .map(({ pick, item }, i) => ({
         id: `ev-${Date.now()}-${i}`,
