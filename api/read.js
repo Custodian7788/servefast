@@ -66,7 +66,7 @@ export default async function handler(request, response) {
     return;
   }
 
-  const key = `sf:read:${crypto.createHash("sha256").update(url).digest("hex").slice(0, 24)}`;
+  const key = `sf:read:v2:${crypto.createHash("sha256").update(url).digest("hex").slice(0, 24)}`;
 
   // Text pasted in by hand. Around half the sites refuse to be fetched, so
   // this is how those stories get their body, and it is kept like any other.

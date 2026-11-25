@@ -143,7 +143,7 @@ export default async function handler(request, response) {
     let body = "";
     if (ready && url) {
       try {
-        const held = await get(`sf:read:${crypto.createHash("sha256").update(url).digest("hex").slice(0, 24)}`);
+        const held = await get(`sf:read:v2:${crypto.createHash("sha256").update(url).digest("hex").slice(0, 24)}`);
         if (held) {
           const parsed = JSON.parse(held);
           body = (parsed.paragraphs || []).map((p) => p.text).join("\n\n").slice(0, 12000);

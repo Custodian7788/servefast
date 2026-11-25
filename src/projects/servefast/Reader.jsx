@@ -52,7 +52,7 @@ function Paste({ item, onSaved }) {
 export function Article({ item, onClear, onOpenOut = openStory }) {
   const [state, setState] = useState({ loading: true });
   const [brief, setBrief] = useState({ idle: true });
-  const [long, setLong] = useState(false);
+  const [size, setSize] = useState("short");
   const top = useRef(null);
 
   // The article itself is padded. This is the read.
@@ -64,7 +64,9 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
       body: JSON.stringify({ url: item.url }),
     })
       .then((r) => r.json())
-      .then((data) => setBrief(data.short ? { short: data.short, full: data.full } : { failed: true }))
+      .then((data) =>
+        setBrief(data.short ? { short: data.short, full: data.full, long: data.long } : { failed: true })
+      )
       .catch(() => setBrief({ failed: true }));
   }
 
@@ -76,7 +78,7 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
     let alive = true;
     setState({ loading: true });
     setBrief({ idle: true });
-    setLong(false);
+    setSize("short");
     top.current?.scrollTo({ top: 0 });
 
     fetch("/api/read", {
@@ -162,18 +164,31 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
             ) : brief.short ? (
               <>
                 <p className="text-[14px] leading-[1.55] whitespace-pre-line" style={{ color: INK }}>
-                  {long && brief.full ? brief.full : brief.short}
+                  {brief[size] || brief.short}
                 </p>
-                {brief.full && brief.full !== brief.short && (
-                  <button
-                    type="button"
-                    onClick={() => setLong((v) => !v)}
-                    className="mt-2 text-[10px] font-bold uppercase tracking-[0.09em] hover:opacity-70"
-                    style={{ color: ORANGE }}
-                  >
-                    {long ? "Shorter" : "Longer"}
-                  </button>
-                )}
+                <div className="mt-2 flex items-center gap-1">
+                  {[
+                    ["short", "50"],
+                    ["full", "100"],
+                    ["long", "150"],
+                  ].map(([key, label]) =>
+                    brief[key] ? (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setSize(key)}
+                        className="px-1.5 py-0.5 text-[9.5px] font-bold tabular-nums tracking-[0.06em] transition-colors"
+                        style={{
+                          color: size === key ? "#FFFFFF" : ORANGE,
+                          backgroundColor: size === key ? ORANGE : "transparent",
+                          border: `1px solid ${ORANGE}`,
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ) : null
+                  )}
+                </div>
               </>
             ) : brief.idle ? (
               <button
