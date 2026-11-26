@@ -4,6 +4,7 @@ import { FRAME, INK, LINE, MAIN_BG, NAV_BG, ORANGE } from "../../theme.js";
 import { makeModule, makePanel } from "./module.js";
 import BlockTabs from "./BlockTabs.jsx";
 import { Article, Perspective } from "./Reader.jsx";
+import MapBlock from "./MapBlock.jsx";
 import { loadModule, saveModule } from "./store.js";
 
 const KEY = "workspace";
@@ -178,7 +179,11 @@ export default function Screen() {
         {/* Both blocks fill the height, side by side. */}
         <div className="h-full flex">
           {module.panels.map((p, i) => (
-            <div key={p.id} className="h-full shrink-0 pr-2 sm:pr-3" style={{ width: `${100 / PER_PAGE}%` }}>
+            <div
+              key={p.id}
+              className="h-full shrink-0 pr-2 sm:pr-3"
+              style={{ width: i === 0 ? "30%" : "44%" }}
+            >
             {i === 1 ? (
               <div className="h-full flex flex-col gap-2 sm:gap-3">
                 <Card className="flex flex-col shrink-0 h-[22rem] max-h-[55%]">
@@ -292,6 +297,13 @@ export default function Screen() {
             )}
             </div>
           ))}
+
+          {/* Built from the reading, not filed by hand. */}
+          <div className="h-full shrink-0" style={{ width: "26%" }}>
+            <Card className="flex flex-col h-full">
+              <MapBlock tick={listPanel?.view?.frames?.length || 0} />
+            </Card>
+          </div>
         </div>
       </div>
 
