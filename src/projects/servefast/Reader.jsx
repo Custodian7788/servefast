@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 import openStory from "./openStory.js";
 import { INK, LINE, ORANGE } from "../../theme.js";
 import { sinceLabel } from "./Story.jsx";
+import Chain from "./Chain.jsx";
 
 // Two boxes side by side with the list: the article, and the perspective on
 // it. The article half costs nothing - the server fetches the page and we set
@@ -210,7 +211,7 @@ export function Perspective({ item, frames = [], onFrames }) {
       .then((data) => {
         setBusy(false);
         if (!data.fields?.length) return;
-        onFrames?.([{ industry: data.industry || "", fields: data.fields }]);
+        onFrames?.([{ industry: data.industry || "", fields: data.fields, chain: data.chain || [] }]);
       })
       .catch(() => setBusy(false));
   }
@@ -259,6 +260,7 @@ export function Perspective({ item, frames = [], onFrames }) {
                 </p>
               </div>
             ))}
+            <Chain stages={frame.chain || []} />
           </>
         )}
       </div>

@@ -25,7 +25,7 @@ function keyFor(url, title, question = "") {
   const seed = `${url || title || ""}::${question}`.trim().toLowerCase();
   // Bump the version when the shape of what we store changes, so entries
   // written by an older build are simply ignored rather than half-read.
-  return `sf:story:v5:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
+  return `sf:story:v6:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
 const SYSTEM = `You write the industry read behind one news story, for an
@@ -68,6 +68,27 @@ affect sentiment, remains to be seen, could prove significant, investors
 will be watching, time will tell, a rapidly evolving landscape. Never
 recommend buying or selling and never give a price target.
 
+THEN THE CHAIN, which is the same reading drawn rather than written. Three
+to five stages, left to right, from the deepest input to the end customer:
+for AI accelerators that is HBM memory, advanced packaging, the accelerator
+itself, server assembly, the data centre. Use the real stages of this market,
+not a generic template.
+
+For each stage give:
+- "name": two or three words.
+- "firms": the firms holding that stage, at most four, biggest first, each
+  with "share" as a whole number percent of that stage. Estimates are fine
+  and expected; make them add to about 100 and do not invent precision.
+- "where": the countries or regions that stage physically sits in.
+- "choke": true only where that stage is a binding constraint on the whole
+  chain, the thing that would stop everything if it stopped. Usually one
+  stage, sometimes two, never all of them.
+- "policy": a few words only where a rule, licence, tariff or control lands
+  on that stage, naming who imposes it. Leave it out everywhere else.
+
+The chain must agree with what you wrote above. If the prose says packaging
+is the constraint, the packaging stage is the one marked choke.
+
 Also give two things for the map, not for display:
 - "players": the companies that matter in this market, named, most important
   first, at most six. The ones who actually hold share, not everyone
@@ -77,7 +98,7 @@ Also give two things for the map, not for display:
   "incumbents losing the entry tier".
 
 Return JSON only, in this exact shape and nothing else:
-{"industry":"HBM memory","world":"...","region":"South Korea","local":"...","players":["SK Hynix","Samsung"],"lean":"..."}`;
+{"industry":"HBM memory","world":"...","region":"South Korea","local":"...","chain":[{"name":"HBM memory","firms":[{"name":"SK Hynix","share":55},{"name":"Samsung","share":30}],"where":"South Korea","choke":true,"policy":"US export licensing"}],"players":["SK Hynix","Samsung"],"lean":"..."}`;
 
 const FOLLOW_UP = `You answer one follow-up question about a news story, for
 an investor in technology companies.
@@ -177,7 +198,7 @@ export default async function handler(request, response) {
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: MODEL,
-      max_tokens: 2000,
+      max_tokens: 3000,
       output_config: { effort: "low" },
       system: asked ? FOLLOW_UP : SYSTEM,
       messages: [
@@ -225,6 +246,16 @@ export default async function handler(request, response) {
       : {
           industry: String(written.industry || "").trim(),
           players: (written.players || []).slice(0, 6).map((x) => String(x || "").trim()).filter(Boolean),
+          chain: (written.chain || []).slice(0, 5).map((st) => ({
+            name: String(st.name || "").trim(),
+            where: String(st.where || "").trim(),
+            choke: Boolean(st.choke),
+            policy: String(st.policy || "").trim(),
+            firms: (st.firms || []).slice(0, 4).map((f) => ({
+              name: String(f.name || "").trim(),
+              share: Math.max(0, Math.min(100, Math.round(Number(f.share) || 0))),
+            })).filter((f) => f.name),
+          })).filter((st) => st.name),
           lean: String(written.lean || "").trim(),
           fields: [
             written.world && { label: "Globally", text: String(written.world).trim() },
