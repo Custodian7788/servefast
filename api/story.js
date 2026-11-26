@@ -4,11 +4,13 @@ import { readArticle } from "./_article.js";
 import { get, set, ready } from "./_kv.js";
 import { recordRead } from "./_map.js";
 
-// Writes up one story, and only when someone opens it.
+// Where one story sits on the industry profile.
 //
-// The list is free. This is the part that costs, so it is paid for once: the
-// write-up is kept under a hash of the story's link, and opening it again is
-// a store read. Cost is reported back so the app can show it.
+// The profile is the standing map, built once per industry and reused by
+// every story in it. This is the thin layer on top: which segment the event
+// lands in, where the company sits in that segment, and what the event does
+// to that position. Small, cheap, and written against a structure the reader
+// already has in front of them.
 
 const MODEL = "claude-sonnet-5-5";
 const PRICE = { in: 2, out: 10 };
@@ -16,110 +18,68 @@ const TTL_DAYS = 30;
 
 function spend(usage) {
   if (!usage) return 0;
-  return (
-    ((usage.input_tokens || 0) * PRICE.in + (usage.output_tokens || 0) * PRICE.out) / 1_000_000
-  );
+  return (((usage.input_tokens || 0) * PRICE.in + (usage.output_tokens || 0) * PRICE.out) / 1_000_000);
 }
 
 function keyFor(url, title, question = "") {
   const seed = `${url || title || ""}::${question}`.trim().toLowerCase();
-  // Bump the version when the shape of what we store changes, so entries
-  // written by an older build are simply ignored rather than half-read.
-  return `sf:story:v7:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
+  return `sf:story:v8:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
-const SYSTEM = `You write the industry read behind one news story, for an
-investor in technology companies.
+const SYSTEM = `You place one news story on an industry map the reader
+already has in front of them.
 
-The reader has just read the article. They know what happened. You never
-retell it and never explain it back. You tell them about the industry the
-story sits in, which is what the article assumes they already know and does
-not supply.
+You are given the industry profile - its segments, who holds them, the
+chokepoint - and the story. The reader has read both. Never retell the
+article and never repeat the profile back to them. Say only where this event
+lands on that map and what it moves.
 
-Name the industry as a market, not as a category: "HBM memory", "robotaxi
-operations", "EDA software", "advanced chip packaging", "defence
-electronics". If the obvious name is broad, narrow it until it is a market
-someone could put a number on.
+Give back:
 
-Then two readings of it.
+1. "segment" - the name of the segment from the profile that this story
+   lands in, copied character for character from the list you are given. If
+   it genuinely sits between two, pick the one it moves most.
+2. "company" - the company the story turns on, named.
+3. "position" - 30 to 45 words on where that company actually sits in that
+   segment: its share or rank, what it depends on from the segments either
+   side of it, and what it has that the others do not.
+4. "move" - 40 to 60 words on what this event does to that position. Does it
+   harden the hold, loosen it, move the chokepoint, or change who the
+   customer is? Name who gains and who loses by it. If the honest answer is
+   that the position does not move, say so plainly in one sentence: that is
+   a useful answer and a common one.
+5. "lean" - at most 14 words on which way this market is moving now, in
+   plain words: "share drifting to China", "capacity tight into 2027".
 
-GLOBALLY, 70 to 90 words: how big it is and how fast it is moving, who
-leads it and by how much, how concentrated it is, what the binding
-constraint is - capacity, a material, a licence, talent - and which way it
-has been going these last few years. Figures where you are sure of them.
-
-THEN THE REGION the story is about - name it plainly: Japan, China, the
-United States, the EU, Taiwan, the Gulf. 70 to 90 words: who the players
-are there, how that region sits against the global picture, whether it is
-gaining or losing ground, what it depends on from outside, and what the
-event in the article does to that position.
-
-Use what you know about how these industries are structured, who supplies
-whom and what has happened before. That is the whole value: the reader
-cannot get it from the article. Name firms. Give figures and dates you are
-sure of, and say so plainly when a number is an estimate.
-
-Your knowledge has a cutoff and the story is newer. Where the last few
-months would change the answer and you cannot know them, say so in a clause
-and carry on.
+Use what you know about how the industry is structured and what has happened
+before. Give figures you are sure of. Your knowledge has a cutoff and the
+story is newer, so where the last few months would change the answer, say so
+in a clause and carry on.
 
 Banned, because they say nothing: adds uncertainty, raises questions, may
 affect sentiment, remains to be seen, could prove significant, investors
-will be watching, time will tell, a rapidly evolving landscape. Never
-recommend buying or selling and never give a price target.
-
-THEN THE CHAIN, which is the same reading drawn rather than written. Three
-to five stages, left to right, from the deepest input to the end customer:
-for AI accelerators that is HBM memory, advanced packaging, the accelerator
-itself, server assembly, the data centre. Use the real stages of this market,
-not a generic template.
-
-For each stage give:
-- "name": two or three words.
-- "firms": the firms holding that stage, at most four, biggest first, each
-  with "share" as a whole number percent of that stage. Estimates are fine
-  and expected; make them add to about 100 and do not invent precision.
-- "where": the countries or regions that stage physically sits in.
-- "choke": true where that stage is a binding constraint on the whole chain,
-  the thing that would stop everything if it stopped. Every chain has a
-  tightest link, so exactly one stage carries this, two at the most, and
-  never all of them. Pick the stage where supply is hardest to add, not the
-  stage with the most famous company.
-- "policy": a few words only where a rule, licence, tariff or control lands
-  on that stage, naming who imposes it. Leave it out everywhere else.
-
-The chain must agree with what you wrote above. If the prose says packaging
-is the constraint, the packaging stage is the one marked choke.
-
-Also give two things for the map, not for display:
-- "players": the companies that matter in this market, named, most important
-  first, at most six. The ones who actually hold share, not everyone
-  mentioned.
-- "lean": at most 14 words on which way this market is moving right now, in
-  plain words. "Share drifting to China", "capacity tight into 2027",
-  "incumbents losing the entry tier".
+will be watching, time will tell. Never recommend buying or selling and
+never give a price target.
 
 Return JSON only, in this exact shape and nothing else:
-{"industry":"HBM memory","world":"...","region":"South Korea","local":"...","chain":[{"name":"HBM memory","firms":[{"name":"SK Hynix","share":55},{"name":"Samsung","share":30}],"where":"South Korea","choke":true,"policy":"US export licensing"}],"players":["SK Hynix","Samsung"],"lean":"..."}`;
+{"segment":"Advanced packaging","company":"Nvidia","position":"...","move":"...","lean":"..."}`;
 
-const FOLLOW_UP = `You answer one follow-up question about a news story, for
-an investor in technology companies.
+const FOLLOW_UP = `You answer one follow-up question about a news story and
+the industry behind it, for an investor in technology companies.
 
-You are given the story, what has already been established, and the
-reader's question. Answer the question they asked, not the one you would
-rather answer. Never retell the article, and never repeat a line that is
-already in what has been established: they are asking because they want to
-go deeper than that.
+You are given the industry profile, the story, what has already been
+established, and the question. Answer the question they asked. Never retell
+the article, and never repeat something already established: they are asking
+because they want to go further than that.
 
-Use what you know about how these industries are structured, who supplies
-whom and what has happened before. Name companies. Give figures you are
-sure of. Where the answer turns on the last few months and your knowledge
-stops before then, say so in a few words rather than guessing.
+Use what you know about how the industry is structured, who supplies whom
+and what has happened before. Name companies. Give figures you are sure of.
+Where the answer turns on the last few months and your knowledge stops
+before then, say so in a few words rather than guessing.
 
-Answer in up to six short fields, each a label and one line of at most 28
-words. Choose labels that suit the question: any short noun phrase, in
-sentence case. Use fewer fields if fewer will do. One good field beats six
-padded ones.
+Answer in up to five short fields, each a label and one line of at most 30
+words. Labels are any short noun phrase, in sentence case, chosen to suit
+the question. Fewer is better: one good field beats five padded ones.
 
 Banned, because they say nothing: adds uncertainty, raises questions, may
 affect sentiment, remains to be seen, could prove significant, investors
@@ -130,6 +90,7 @@ Never recommend buying or selling and never give a price target.
 
 Return JSON only, in this exact shape and nothing else:
 {"fields":[{"label":"Short label","text":"..."}]}`;
+
 function readJSON(text) {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -149,30 +110,28 @@ export default async function handler(request, response) {
     return;
   }
 
-  const { url = "", title = "", source = "", category = "", question = "" } = request.body || {};
-  const asked = String(question).trim().slice(0, 300);
-  // Every answer so far in this chain, so each question can build on the last
-  // and "tell me more about the winners" knows which winners.
-  const prior = []
-    .concat(request.body?.prior || [])
-    .filter((line) => typeof line === "string")
-    .join("\n")
-    .slice(0, 4000);
+  const { url = "", title = "", source = "", category = "", question = "", profile = null } =
+    request.body || {};
+
   if (!title) {
     response.status(400).json({ error: "Send at least a title" });
     return;
   }
 
-  // A question only means the same thing after the same chain, so the chain
-  // is part of what identifies the answer.
+  const asked = String(question).trim().slice(0, 300);
+  const prior = []
+    .concat(request.body?.prior || [])
+    .filter((line) => typeof line === "string")
+    .join("\n")
+    .slice(0, 4000);
+
   const key = keyFor(url, title, asked ? `${prior}||${asked}` : "");
 
   try {
     if (ready) {
       const kept = await get(key);
       if (kept) {
-        const parsed = JSON.parse(kept);
-        response.status(200).json({ ...parsed, cached: true, cost: 0 });
+        response.status(200).json({ ...JSON.parse(kept), cached: true, cost: 0 });
         return;
       }
     }
@@ -181,15 +140,14 @@ export default async function handler(request, response) {
   }
 
   try {
-    // Prefer the body we already hold, whether it was fetched or pasted in
-    // by hand. Only go to the site when we have nothing.
+    // Prefer the body we already hold, fetched or pasted. Only go to the
+    // site when we have nothing.
     let body = "";
     if (ready && url) {
       try {
         const held = await get(`sf:read:v2:${crypto.createHash("sha256").update(url).digest("hex").slice(0, 24)}`);
         if (held) {
-          const parsed = JSON.parse(held);
-          body = (parsed.paragraphs || []).map((p) => p.text).join("\n\n").slice(0, 12000);
+          body = (JSON.parse(held).paragraphs || []).map((p) => p.text).join("\n\n").slice(0, 12000);
         }
       } catch {
         // Fall through to fetching it.
@@ -197,10 +155,30 @@ export default async function handler(request, response) {
     }
     if (!body) body = await readArticle(url);
 
+    // The map this answer is written against.
+    const map = profile
+      ? [
+          `Industry: ${profile.master}`,
+          profile.size ? `Size: ${profile.size}` : "",
+          profile.shape ? `Shape: ${profile.shape}` : "",
+          "Segments:",
+          ...(profile.segments || []).map(
+            (s) =>
+              `- ${s.name}${s.size ? ` (${s.size})` : ""}: ${(s.firms || [])
+                .map((f) => `${f.name} ${f.share}%`)
+                .join(", ")}${s.where ? ` | ${s.where}` : ""}${s.choke ? " | CHOKEPOINT" : ""}${
+                s.policy ? ` | policy: ${s.policy}` : ""
+              }`
+          ),
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : "";
+
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: MODEL,
-      max_tokens: 3000,
+      max_tokens: 2000,
       output_config: { effort: "low" },
       system: asked ? FOLLOW_UP : SYSTEM,
       messages: [
@@ -208,15 +186,15 @@ export default async function handler(request, response) {
           role: "user",
           content: [
             `Today is ${new Date().toISOString().slice(0, 10)}.`,
-            `Category: ${category || "unfiled"}`,
-            `Outlet: ${source || "unknown"}`,
+            map ? `\nThe industry profile:\n${map}` : `Category: ${category || "unfiled"}`,
+            `\nOutlet: ${source || "unknown"}`,
             `Headline: ${title}`,
             body ? `\nArticle:\n${body}` : "\nNo article body could be fetched.",
-            // What has already been said, so "tell me more about the winners"
-            // knows which winners, however deep the chain goes.
             prior ? `\nAlready established:\n${prior}` : "",
             asked ? `\nThe reader asks: ${asked}` : "",
-          ].join("\n"),
+          ]
+            .filter(Boolean)
+            .join("\n"),
         },
       ],
     });
@@ -231,47 +209,31 @@ export default async function handler(request, response) {
     try {
       written = readJSON(text);
     } catch {
-      response.status(502).json({ error: "Could not read the write-up", raw: text.slice(0, 300) });
+      response.status(502).json({ error: "Could not read the answer", raw: text.slice(0, 300) });
       return;
     }
 
-    // Stage one is the industry, read twice: globally, then where the story
-    // happens. An answer to a question labels its own rows instead.
     const out = asked
       ? {
           question: asked,
           fields: (written.fields || [])
-            .slice(0, 6)
+            .slice(0, 5)
             .map((f) => ({ label: String(f.label || "").trim(), text: String(f.text || "").trim() }))
             .filter((f) => f.text),
         }
       : {
-          industry: String(written.industry || "").trim(),
-          players: (written.players || []).slice(0, 6).map((x) => String(x || "").trim()).filter(Boolean),
-          chain: (written.chain || []).slice(0, 5).map((st) => ({
-            name: String(st.name || "").trim(),
-            where: String(st.where || "").trim(),
-            choke: Boolean(st.choke),
-            policy: String(st.policy || "").trim(),
-            firms: (st.firms || []).slice(0, 4).map((f) => ({
-              name: String(f.name || "").trim(),
-              share: Math.max(0, Math.min(100, Math.round(Number(f.share) || 0))),
-            })).filter((f) => f.name),
-          })).filter((st) => st.name),
+          segment: String(written.segment || "").trim(),
+          company: String(written.company || "").trim(),
           lean: String(written.lean || "").trim(),
           fields: [
-            written.world && { label: "Globally", text: String(written.world).trim() },
-            written.local && {
-              label: String(written.region || "").trim() ? `In ${String(written.region).trim()}` : "Locally",
-              text: String(written.local).trim(),
-            },
+            written.position && { label: "Where it sits", text: String(written.position).trim() },
+            written.move && { label: "What this moves", text: String(written.move).trim() },
           ].filter((f) => f && f.text),
         };
 
     const cost = spend(message.usage);
 
     if (ready && out.fields.length) {
-      // Paid for once. Every later open is a store read.
       try {
         await set(key, JSON.stringify(out), TTL_DAYS * 24 * 60 * 60);
       } catch {
@@ -279,20 +241,20 @@ export default async function handler(request, response) {
       }
     }
 
-    // The map is the by-product of this read, and only of a first one: a
-    // second look at the same story is not a second sighting of the market.
-    if (!asked && out.industry) {
+    // The map is the by-product of a first read, not of looking again.
+    if (!asked && profile?.master) {
       await recordRead({
-        market: out.industry,
-        category,
+        market: profile.master,
+        category: category || profile.master,
         lean: out.lean,
-        players: out.players,
+        players: out.company ? [out.company] : [],
         story: { title, url, source },
       });
     }
 
-    console.log(`story: ${body ? "article" : "headline only"}, cost ${cost.toFixed(4)} - ${title.slice(0, 60)}`);
-
+    console.log(
+      `story: ${out.segment || "follow-up"}, ${body ? "article" : "headline only"}, cost $${cost.toFixed(4)}`
+    );
     response.status(200).json({ ...out, cached: false, cost: Number(cost.toFixed(4)) });
   } catch (error) {
     response.status(500).json({ error: error?.message || "Something went wrong" });

@@ -183,47 +183,63 @@ export function Article({ item, onClear, onOpenOut = openStory }) {
   );
 }
 
-// Stage one, and for now the only stage: the industry behind the story, read
-// twice - how it stands globally, then how it stands where the story
-// happened. Nothing runs until the header is pressed, and what comes back is
-// kept in the workspace so a refresh does not lose it.
+
+// The same frame for every story, which is the point: the shape is what
+// gets learned. The industry profile is built once and reused by every story
+// in that industry, so after the first one this is near free. The story
+// itself is a thin layer on top: which segment it lands in, where the
+// company sits there, and what the event moves.
 export function Perspective({ item, frames = [], onFrames }) {
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState("");
 
   useEffect(() => {
-    setBusy(false);
+    setBusy("");
   }, [item?.id]);
 
-  function ask() {
+  function run() {
     if (busy || !item || frames.length) return;
-    setBusy(true);
-    fetch("/api/story", {
+    const master = item.category || "";
+    setBusy("Drawing the industry");
+
+    fetch("/api/industry", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        url: item.url,
-        title: item.text,
-        source: item.source,
-        category: item.category,
-      }),
+      body: JSON.stringify({ master }),
     })
       .then((r) => r.json())
-      .then((data) => {
-        setBusy(false);
-        if (!data.fields?.length) return;
-        onFrames?.([{ industry: data.industry || "", fields: data.fields, chain: data.chain || [] }]);
+      .then((profile) => {
+        if (!profile.segments?.length) throw new Error("no profile");
+        setBusy("Placing the story on it");
+        return fetch("/api/story", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            url: item.url,
+            title: item.text,
+            source: item.source,
+            category: master,
+            profile,
+          }),
+        })
+          .then((r) => r.json())
+          .then((story) => {
+            setBusy("");
+            onFrames?.([{ profile, story }]);
+          });
       })
-      .catch(() => setBusy(false));
+      .catch(() => setBusy(""));
   }
 
   const frame = frames[0];
+  const profile = frame?.profile;
+  const story = frame?.story;
 
   return (
     <div className="h-full flex flex-col">
       <button
         type="button"
-        onClick={ask}
-        disabled={!item || busy || Boolean(frame)}
+        onClick={run}
+        disabled={!item || Boolean(busy) || Boolean(frame)}
         className="shrink-0 flex items-center justify-center h-7 transition-colors enabled:hover:bg-[#FFF3E8] disabled:cursor-default"
         style={{ borderBottom: `1px solid ${LINE}` }}
       >
@@ -231,36 +247,56 @@ export function Perspective({ item, frames = [], onFrames }) {
           className="leading-none font-bold uppercase tracking-[0.12em] text-[10.5px]"
           style={{ color: ORANGE }}
         >
-          Industry
+          Perspective
         </span>
       </button>
 
       <div className="no-bar flex-1 min-h-0 overflow-y-auto px-4 py-3">
         {!item ? null : busy ? (
           <p className="text-[11px] uppercase tracking-[0.06em] animate-pulse" style={{ color: ORANGE }}>
-            Working it out
+            {busy}
           </p>
-        ) : !frame ? null : (
+        ) : !profile ? null : (
           <>
-            {frame.industry && (
-              <h3 className="text-[15px] font-bold leading-[1.3]" style={{ color: INK }}>
-                {frame.industry}
-              </h3>
+            {/* The industry, every time, in the same order. */}
+            <h3 className="text-[15px] font-bold leading-[1.25]" style={{ color: INK }}>
+              {profile.master}
+            </h3>
+            {profile.size && (
+              <p className="mt-0.5 text-[11px] leading-[1.35]" style={{ color: ORANGE }}>
+                {profile.size}
+              </p>
             )}
-            {frame.fields.map((f, i) => (
-              <div key={i} className="mt-3">
-                <p
-                  className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em]"
-                  style={{ color: ORANGE }}
-                >
-                  {f.label}
+            {profile.shape && (
+              <p className="mt-2 text-[13px] leading-[1.5]" style={{ color: INK }}>
+                {profile.shape}
+              </p>
+            )}
+
+            <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${LINE}` }}>
+              <Chain segments={profile.segments} here={story?.segment} />
+            </div>
+
+            {/* Then where this one story lands on it. */}
+            {story?.fields?.length ? (
+              <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${LINE}` }}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: ORANGE }}>
+                  {story.company || item.company || "This story"}
+                  {story.segment ? ` · ${story.segment}` : ""}
                 </p>
-                <p className="text-[13.5px] leading-[1.5]" style={{ color: INK }}>
-                  {f.text}
-                </p>
+                {story.fields.map((f, i) => (
+                  <p key={i} className="mt-1.5 text-[13px] leading-[1.5]" style={{ color: INK }}>
+                    {f.text}
+                  </p>
+                ))}
               </div>
-            ))}
-            <Chain stages={frame.chain || []} />
+            ) : null}
+
+            {profile.watch && (
+              <p className="mt-3 pt-2 text-[11px] leading-[1.4] opacity-55" style={{ color: INK, borderTop: `1px solid ${LINE}` }}>
+                {profile.watch}
+              </p>
+            )}
           </>
         )}
       </div>
