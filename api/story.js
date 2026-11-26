@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { readArticle } from "./_article.js";
 import { get, set, ready } from "./_kv.js";
+import { recordRead } from "./_map.js";
 
 // Writes up one story, and only when someone opens it.
 //
@@ -24,7 +25,7 @@ function keyFor(url, title, question = "") {
   const seed = `${url || title || ""}::${question}`.trim().toLowerCase();
   // Bump the version when the shape of what we store changes, so entries
   // written by an older build are simply ignored rather than half-read.
-  return `sf:story:v4:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
+  return `sf:story:v5:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
 const SYSTEM = `You write the industry read behind one news story, for an
@@ -67,8 +68,16 @@ affect sentiment, remains to be seen, could prove significant, investors
 will be watching, time will tell, a rapidly evolving landscape. Never
 recommend buying or selling and never give a price target.
 
+Also give two things for the map, not for display:
+- "players": the companies that matter in this market, named, most important
+  first, at most six. The ones who actually hold share, not everyone
+  mentioned.
+- "lean": at most 14 words on which way this market is moving right now, in
+  plain words. "Share drifting to China", "capacity tight into 2027",
+  "incumbents losing the entry tier".
+
 Return JSON only, in this exact shape and nothing else:
-{"industry":"HBM memory","world":"...","region":"South Korea","local":"..."}`;
+{"industry":"HBM memory","world":"...","region":"South Korea","local":"...","players":["SK Hynix","Samsung"],"lean":"..."}`;
 
 const FOLLOW_UP = `You answer one follow-up question about a news story, for
 an investor in technology companies.
@@ -215,6 +224,8 @@ export default async function handler(request, response) {
         }
       : {
           industry: String(written.industry || "").trim(),
+          players: (written.players || []).slice(0, 6).map((x) => String(x || "").trim()).filter(Boolean),
+          lean: String(written.lean || "").trim(),
           fields: [
             written.world && { label: "Globally", text: String(written.world).trim() },
             written.local && {
@@ -235,7 +246,19 @@ export default async function handler(request, response) {
       }
     }
 
-    console.log(`story: ${body ? "article" : "headline only"}, cost $${cost.toFixed(4)} - ${title.slice(0, 60)}`);
+    // The map is the by-product of this read, and only of a first one: a
+    // second look at the same story is not a second sighting of the market.
+    if (!asked && out.industry) {
+      await recordRead({
+        market: out.industry,
+        category,
+        lean: out.lean,
+        players: out.players,
+        story: { title, url, source },
+      });
+    }
+
+    console.log(`story: ${body ? "article" : "headline only"}, cost ${cost.toFixed(4)} - ${title.slice(0, 60)}`);
 
     response.status(200).json({ ...out, cached: false, cost: Number(cost.toFixed(4)) });
   } catch (error) {
