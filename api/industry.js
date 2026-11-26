@@ -38,18 +38,22 @@ Give back:
    ordered from the deepest input to the end customer. These are the parts
    someone would track separately. For each:
    - "name": two or three words.
-   - "size": what that segment is worth, with a year, or "" if you are not
-     reasonably sure. Never invent a number to fill the field.
+   - "size": what that segment is worth, with a year, in at most eight
+     words, or "" if you are not reasonably sure. Never invent a number to
+     fill the field and never add a parenthetical caveat here.
    - "firms": the firms holding it, at most four, biggest first, each with
      "share" as a whole number percent of that segment. Estimates are
      expected; make them add to about 100 and do not imply precision you do
      not have.
-   - "where": the countries or regions it physically sits in.
+   - "where": the countries or regions it physically sits in, at most four,
+     named plainly and nothing else.
    - "choke": true for the one segment where supply is hardest to add and
      which therefore constrains the whole industry. Exactly one segment
      carries this, two at the very most.
-   - "policy": a few words, only where a rule, licence, control or tariff
-     lands on that segment, naming who imposes it. Leave it out elsewhere.
+   - "policy": at most six words, only where a rule, licence, control or
+     tariff lands on that segment, naming who imposes it. "US licences on
+     tools to China". No dates, no parentheses, no history. Leave it out
+     everywhere else.
 5. "watch" - 25 words at most on what would change this picture: the shift
    that would move the concentration or break the chokepoint.
 
@@ -83,7 +87,7 @@ export default async function handler(request, response) {
     return;
   }
 
-  const key = `sf:industry:v1:${crypto.createHash("sha256").update(master.toLowerCase()).digest("hex").slice(0, 20)}`;
+  const key = `sf:industry:v2:${crypto.createHash("sha256").update(master.toLowerCase()).digest("hex").slice(0, 20)}`;
 
   try {
     if (ready && !request.body?.rebuild) {

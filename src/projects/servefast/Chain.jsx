@@ -1,10 +1,13 @@
 import React from "react";
 import { INK, LINE, ORANGE } from "../../theme.js";
 
-// The industry drawn: its segments left to right from the deepest input to
-// the end customer, who holds each and by how much, the tightest link in
-// red, and the segment this story lands in outlined so you can see where the
-// event sits on the map.
+// The industry drawn. One row per segment, in order from the deepest input
+// to the end customer: who holds it and by how much, where it sits, the
+// tightest link in red, and the segment this story lands in picked out, so
+// you can see where the event falls on the map.
+//
+// Rows rather than columns: six segments across a third of the screen left
+// each one too narrow to read.
 
 const CHOKE = "#C0392B";
 
@@ -12,44 +15,41 @@ export default function Chain({ segments = [], here = "" }) {
   if (!segments.length) return null;
 
   return (
-    <div className="flex items-stretch gap-1">
+    <div>
       {segments.map((st, i) => {
         const total = st.firms.reduce((n, f) => n + f.share, 0) || 100;
         const landed = here && st.name.toLowerCase() === here.toLowerCase();
+        const accent = st.choke ? CHOKE : ORANGE;
+
         return (
-          <React.Fragment key={i}>
-            {i > 0 && (
-              <span
-                className="shrink-0 self-start pt-[7px] text-[11px] leading-none opacity-25"
-                style={{ color: INK }}
-                aria-hidden="true"
-              >
-                ›
-              </span>
-            )}
-            <div
-              className="flex-1 min-w-0 flex flex-col px-1 py-1"
-              style={{
-                backgroundColor: landed ? "#FFF1E3" : "transparent",
-                border: landed ? `1px solid ${ORANGE}` : "1px solid transparent",
-              }}
-            >
+          <div
+            key={i}
+            className="px-1.5 py-1"
+            style={{
+              borderTop: i ? `1px solid ${LINE}` : "none",
+              backgroundColor: landed ? "#FFF1E3" : "transparent",
+              borderLeft: landed ? `2px solid ${ORANGE}` : "2px solid transparent",
+            }}
+          >
+            <div className="flex items-baseline gap-1.5">
               <p
-                className="text-[9.5px] font-bold uppercase tracking-[0.05em] leading-[1.2]"
+                className="shrink-0 text-[10px] font-bold uppercase tracking-[0.05em] leading-[1.3]"
                 style={{ color: st.choke ? CHOKE : INK }}
-                title={st.choke ? "The tightest link in the chain" : undefined}
+                title={st.choke ? "The tightest link: supply here is hardest to add" : undefined}
               >
                 {st.name}
               </p>
               {st.size && (
-                <p className="text-[9px] leading-[1.25] opacity-45" style={{ color: INK }}>
+                <p className="text-[9px] leading-[1.3] opacity-45 truncate" style={{ color: INK }}>
                   {st.size}
                 </p>
               )}
+            </div>
 
+            <div className="mt-1 flex items-center gap-2">
               <div
-                className="mt-1 flex h-1.5 w-full overflow-hidden"
-                style={{ border: `1px solid ${st.choke ? CHOKE : LINE}` }}
+                className="shrink-0 flex h-1.5 overflow-hidden"
+                style={{ width: "34%", border: `1px solid ${st.choke ? CHOKE : LINE}` }}
               >
                 {st.firms.map((f, k) => (
                   <span
@@ -57,41 +57,38 @@ export default function Chain({ segments = [], here = "" }) {
                     title={`${f.name} ${f.share}%`}
                     style={{
                       width: `${(f.share / total) * 100}%`,
-                      backgroundColor: st.choke ? CHOKE : ORANGE,
+                      backgroundColor: accent,
                       opacity: 1 - k * 0.22,
                       borderRight: k < st.firms.length - 1 ? "1px solid #FFFFFF" : "none",
                     }}
                   />
                 ))}
               </div>
-
-              <div className="mt-1 flex flex-col gap-0.5">
-                {st.firms.map((f) => (
-                  <p key={f.name} className="text-[9.5px] leading-[1.2]" style={{ color: INK }}>
-                    <span className="tabular-nums font-bold" style={{ color: st.choke ? CHOKE : ORANGE }}>
+              <p className="min-w-0 text-[9.5px] leading-[1.3] truncate" style={{ color: INK }}>
+                {st.firms.map((f, k) => (
+                  <span key={f.name}>
+                    {k > 0 && <span className="opacity-30"> · </span>}
+                    <span className="tabular-nums font-bold" style={{ color: accent }}>
                       {f.share}
-                    </span>{" "}
-                    <span className="opacity-75">{f.name}</span>
-                  </p>
+                    </span>
+                    <span className="opacity-75"> {f.name}</span>
+                  </span>
                 ))}
-              </div>
-
-              {st.where && (
-                <p className="mt-1 text-[9px] leading-[1.2] opacity-40" style={{ color: INK }}>
-                  {st.where}
-                </p>
-              )}
-              {st.policy && (
-                <p
-                  className="mt-1 text-[9px] leading-[1.2] font-bold"
-                  style={{ color: CHOKE }}
-                  title="A rule lands on this segment"
-                >
-                  {st.policy}
-                </p>
-              )}
+              </p>
             </div>
-          </React.Fragment>
+
+            {(st.where || st.policy) && (
+              <p className="mt-0.5 text-[9px] leading-[1.3] truncate" style={{ color: INK }}>
+                {st.where && <span className="opacity-40">{st.where}</span>}
+                {st.where && st.policy && <span className="opacity-25"> · </span>}
+                {st.policy && (
+                  <span style={{ color: CHOKE }} title={st.policy}>
+                    {st.policy}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
         );
       })}
     </div>
