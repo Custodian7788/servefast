@@ -3,6 +3,7 @@ export const config = {
 };
 
 const COOKIE = "sf_open";
+const DAYS = 100; // how long one unlock lasts
 
 function password() {
   return process.env.SITE_PASSWORD || "SF8";
@@ -60,7 +61,7 @@ export default async function middleware(request) {
         status: 303,
         headers: {
           location: "/",
-          "set-cookie": `${COOKIE}=${good}; Path=/; Max-Age=86400; HttpOnly; Secure; SameSite=Lax`,
+          "set-cookie": `${COOKIE}=${good}; Path=/; Max-Age=${DAYS * 24 * 60 * 60}; HttpOnly; Secure; SameSite=Lax`,
         },
       });
     }
