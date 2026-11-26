@@ -25,7 +25,7 @@ function keyFor(url, title, question = "") {
   const seed = `${url || title || ""}::${question}`.trim().toLowerCase();
   // Bump the version when the shape of what we store changes, so entries
   // written by an older build are simply ignored rather than half-read.
-  return `sf:story:v6:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
+  return `sf:story:v7:${crypto.createHash("sha256").update(seed).digest("hex").slice(0, 24)}`;
 }
 
 const SYSTEM = `You write the industry read behind one news story, for an
@@ -80,9 +80,11 @@ For each stage give:
   with "share" as a whole number percent of that stage. Estimates are fine
   and expected; make them add to about 100 and do not invent precision.
 - "where": the countries or regions that stage physically sits in.
-- "choke": true only where that stage is a binding constraint on the whole
-  chain, the thing that would stop everything if it stopped. Usually one
-  stage, sometimes two, never all of them.
+- "choke": true where that stage is a binding constraint on the whole chain,
+  the thing that would stop everything if it stopped. Every chain has a
+  tightest link, so exactly one stage carries this, two at the most, and
+  never all of them. Pick the stage where supply is hardest to add, not the
+  stage with the most famous company.
 - "policy": a few words only where a rule, licence, tariff or control lands
   on that stage, naming who imposes it. Leave it out everywhere else.
 
